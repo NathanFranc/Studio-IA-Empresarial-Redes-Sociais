@@ -11,53 +11,22 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="/assets/base.css">
 <style>
-/* Card dividido: à esquerda a "vitrine" da marca (brasa Megadino + posts flutuando), à direita o formulário claro. */
+/* Card dividido: à esquerda o degradê da marca (brasa Megadino) com a logo, à direita o formulário claro. */
 body{display:grid;place-items:center;padding:24px 16px}
 .auth{width:100%;max-width:1060px;min-height:640px;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
   background:#fff;border-radius:30px;padding:10px;box-shadow:0 40px 120px -40px rgba(0,0,0,.95),0 0 0 1px rgba(255,255,255,.06)}
 
 /* ---- Lado da marca ---- */
-.show{position:relative;overflow:hidden;border-radius:22px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:34px;isolation:isolate;
+.show{position:relative;overflow:hidden;border-radius:22px;color:#fff;display:grid;place-items:center;padding:34px;isolation:isolate;
   background:
-    radial-gradient(520px 420px at 18% 108%,#FF8A1F 0%,rgba(255,138,31,0) 62%),
-    radial-gradient(560px 460px at 100% 0%,#F0452F 0%,rgba(240,69,47,0) 60%),
-    radial-gradient(420px 360px at 70% 70%,rgba(179,23,27,.9),rgba(179,23,27,0) 70%),
-    #0B0708}
+    radial-gradient(480px 380px at 12% 8%,rgba(255,176,64,.85),rgba(255,176,64,0) 60%),
+    radial-gradient(520px 460px at 92% 96%,rgba(90,6,10,.95),rgba(90,6,10,0) 65%),
+    radial-gradient(420px 360px at 70% 30%,rgba(255,90,60,.55),rgba(255,90,60,0) 70%),
+    linear-gradient(150deg,#FF8A1F 0%,#F0452F 42%,#B3171B 72%,#3A0708 100%)}
 .show::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.5;
   background-image:radial-gradient(rgba(255,255,255,.14) 1px,transparent 1px);background-size:20px 20px;
   mask-image:radial-gradient(circle at 60% 40%,#000 0,transparent 75%);-webkit-mask-image:radial-gradient(circle at 60% 40%,#000 0,transparent 75%)}
-.show::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.25),transparent 30%,transparent 55%,rgba(0,0,0,.55))}
-.show .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.show .top img{height:30px;width:auto}
-.show .top span{font-size:11px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px)}
-.show h2{font-size:46px;line-height:.98;letter-spacing:.6px;max-width:11ch}
-.show p{margin-top:12px;color:rgba(255,255,255,.78);max-width:34ch}
-.chipset{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
-.chipset b{font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:999px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);font-variant-numeric:tabular-nums}
-
-/* posts flutuando: miniaturas dos formatos do feed, desenhadas em CSS */
-.posts{position:relative;flex:1;min-height:250px;margin:10px 0}
-.post{position:absolute;width:150px;aspect-ratio:4/5;border-radius:14px;overflow:hidden;
-  box-shadow:0 30px 60px -20px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.14);animation:float 7s ease-in-out infinite}
-.post .ph{position:absolute;left:50%;transform:translateX(-50%);border-radius:50%}
-.post .ln{position:absolute;left:12px;height:7px;border-radius:4px}
-/* 1 · Ficha clara */
-.p1{left:4%;top:18%;background:#fff;rotate:-9deg}
-.p1 .t{position:absolute;left:12px;top:12px;font-family:var(--font-display);font-size:19px;line-height:.95;color:#111}
-.p1 .t em{font-style:normal;color:#C8261C}
-.p1 .ph{bottom:26px;width:78px;height:78px;background:radial-gradient(circle at 35% 30%,#d9d9d9,#8c8c8c 70%);box-shadow:0 10px 12px -8px rgba(0,0,0,.4)}
-.p1 .ln{bottom:12px;width:60%;background:#C8261C}
-/* 2 · Premium escuro */
-.p2{left:34%;top:4%;width:176px;background:radial-gradient(circle at 50% 40%,#3a2a18,#0c0a08 70%);rotate:4deg;animation-delay:-2.3s;z-index:2}
-.p2 .t{position:absolute;left:0;right:0;top:14px;text-align:center;font-family:var(--font-display);font-size:22px;color:#E9C27A;letter-spacing:.5px}
-.p2 .ph{top:62px;width:84px;height:84px;background:radial-gradient(circle at 35% 30%,#6a6a6a,#1b1b1b 70%);box-shadow:0 0 40px rgba(233,194,122,.35)}
-.p2 .band{position:absolute;left:0;right:0;bottom:0;height:34px;background:linear-gradient(90deg,#B8893A,#E9C27A,#B8893A)}
-/* 3 · Cupom */
-.p3{right:3%;top:30%;background:linear-gradient(160deg,#FF8A1F,#E0521B);rotate:10deg;animation-delay:-4.6s}
-.p3 .t{position:absolute;left:12px;top:12px;font-family:var(--font-display);font-size:20px;line-height:.95;color:#fff}
-.p3 .cp{position:absolute;left:12px;right:12px;bottom:18px;height:64px;border:2px dashed rgba(255,255,255,.9);border-radius:10px;display:grid;place-items:center;
-  font-family:var(--font-display);font-size:28px;color:#fff;background:rgba(0,0,0,.12)}
-@keyframes float{0%,100%{translate:0 0}50%{translate:0 -10px}}
+.show img{width:min(62%,340px);height:auto;filter:drop-shadow(0 12px 30px rgba(0,0,0,.45))}
 
 /* ---- Formulário (claro) ---- */
 .form{--panel-2:#F6F5F3;--fg:#15130F;--muted:#6E6A63;--line:#E4E1DB;--line-2:#CFCAC2;color-scheme:light;
@@ -83,10 +52,9 @@ form{display:flex;flex-direction:column;gap:16px}
 @media (max-width:860px){
   body{padding:12px;place-items:start center}
   .auth{grid-template-columns:minmax(0,1fr);min-height:0;border-radius:24px;padding:8px}
-  .show{padding:22px;min-height:240px;gap:18px}
-  .show h2{font-size:34px}
-  .posts{display:none}
-  .chipset{margin-top:14px}
+  .show{padding:22px;min-height:180px}
+  .show img{width:min(60%,240px)}
+  .form .logo{display:none}
   .form{padding:28px 18px 18px}
 }
 </style>
@@ -94,17 +62,7 @@ form{display:flex;flex-direction:column;gap:16px}
 <body>
 <main class="auth">
   <section class="show" aria-hidden="true">
-    <div class="top"><img src="/assets/megadino-logo-branca.png" alt=""><span>Estúdio</span></div>
-    <div class="posts">
-      <div class="post p1"><div class="t">OFERTA<br><em>DO DIA</em></div><div class="ph"></div><div class="ln"></div></div>
-      <div class="post p2"><div class="t">PREMIUM</div><div class="ph"></div><div class="band"></div></div>
-      <div class="post p3"><div class="t">SÓ<br>HOJE</div><div class="cp">CUPOM</div></div>
-    </div>
-    <div>
-      <h2>Da foto ao post em segundos.</h2>
-      <p>Envie a foto e a ficha técnica: a arte do feed, o carrossel e a legenda saem no padrão Megadino.</p>
-      <div class="chipset"><b>1080×1350</b><b>10 modelos</b><b>Carrossel</b><b>Recorte de fundo</b></div>
-    </div>
+    <img src="/assets/megadino-logo-branca.png" alt="">
   </section>
 
   <section class="form">
