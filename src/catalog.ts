@@ -1,3 +1,7 @@
+/*
+ * Estúdio Megadino — Copyright (c) 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.
+ * Uso, cópia, modificação ou distribuição só com autorização por escrito do autor. Ver LICENSE.
+ */
 /** Listas compartilhadas com o front-end (manter em sincronia com public/estudio.js). */
 export const ICON_KEYS = [
   'raio', 'escudo', 'relogio', 'gota', 'olho', 'cabo', 'brilho', 'caixa', 'fogo', 'girar', 'bateria', 'tomada',

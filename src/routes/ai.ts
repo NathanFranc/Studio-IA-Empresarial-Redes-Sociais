@@ -1,3 +1,7 @@
+/*
+ * Estúdio Megadino — Copyright (c) 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.
+ * Uso, cópia, modificação ou distribuição só com autorização por escrito do autor. Ver LICENSE.
+ */
 /** Geração de textos com IA (post rápido e carrossel), com log e limite diário opcional. */
 import { Router } from 'express';
 import { AiError, askJson } from '../ai.js';

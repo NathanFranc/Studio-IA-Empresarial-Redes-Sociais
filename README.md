@@ -145,3 +145,7 @@ public/
   login.html, conta.html, admin.html
   assets/          logos, estilos e funções comuns
 ```
+
+## Autoria e licença
+Copyright (c) 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.
+Software proprietário: uso, cópia, modificação e distribuição só com autorização por escrito do autor. Veja [LICENSE](LICENSE).

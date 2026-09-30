@@ -1,3 +1,7 @@
+/*
+ * Estúdio Megadino — Copyright (c) 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.
+ * Uso, cópia, modificação ou distribuição só com autorização por escrito do autor. Ver LICENSE.
+ */
 /** Histórico reutilizável: salvar, listar, abrir, atualizar e excluir artes. */
 import { Router, type Request } from 'express';
 import fs from 'node:fs';

@@ -1,3 +1,7 @@
+/*
+ * Estúdio Megadino — Copyright (c) 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.
+ * Uso, cópia, modificação ou distribuição só com autorização por escrito do autor. Ver LICENSE.
+ */
 /** Eventos que só o navegador conhece (downloads, cópia de legenda). */
 import { Router } from 'express';
 import { logAction, type Action } from '../logs.js';

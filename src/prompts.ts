@@ -1,3 +1,7 @@
+/*
+ * Estúdio Megadino — Copyright (c) 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.
+ * Uso, cópia, modificação ou distribuição só com autorização por escrito do autor. Ver LICENSE.
+ */
 /** Textos enviados para a IA. Montados no servidor para que ninguém use a chave com outro fim. */
 import { COLOR_KEYS, ICON_KEYS, MODELS } from './catalog.js';
 

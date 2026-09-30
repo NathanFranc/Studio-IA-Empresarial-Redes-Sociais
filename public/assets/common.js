@@ -1,3 +1,7 @@
+/*
+ * Estúdio Megadino — Copyright (c) 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.
+ * Uso, cópia, modificação ou distribuição só com autorização por escrito do autor. Ver LICENSE.
+ */
 /* Funções compartilhadas pelas páginas: chamadas à API, barra do topo e avisos. */
 (function () {
   /** Chama a API do Estúdio. Lança Error com a mensagem pronta para mostrar. */

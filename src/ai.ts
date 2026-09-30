@@ -1,3 +1,7 @@
+/*
+ * Estúdio Megadino — Copyright (c) 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.
+ * Uso, cópia, modificação ou distribuição só com autorização por escrito do autor. Ver LICENSE.
+ */
 /** Chamada à API da Anthropic com imagens e leitura tolerante do JSON devolvido. */
 import Anthropic from '@anthropic-ai/sdk';
 import { config } from './config.js';

@@ -1,3 +1,7 @@
+/*
+ * Estúdio Megadino — Copyright (c) 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.
+ * Uso, cópia, modificação ou distribuição só com autorização por escrito do autor. Ver LICENSE.
+ */
 /** Senhas, sessões por cookie e middlewares de acesso. */
 import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
