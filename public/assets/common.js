@@ -90,7 +90,7 @@
   /** Datas do banco vêm em UTC ("2026-09-30 18:10:00"); mostra no horário de Brasília. */
   function fmtDate(s) {
     if (!s) return '—';
-    return fmt.format(new Date(s.replace(' ', 'T') + 'Z'));
+    return fmt.format(new Date(/[TZ]/.test(s) ? s : s.replace(' ', 'T') + 'Z'));
   }
 
   window.Estudio = { api, logEvent, downloadBlob, mountTopbar, fmtDate };

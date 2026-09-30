@@ -64,7 +64,32 @@ CREATE TABLE IF NOT EXISTS posts (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS posts_updated ON posts(updated_at);
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS ig_posts (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  post_id    INTEGER REFERENCES posts(id) ON DELETE SET NULL,
+  media_id   TEXT NOT NULL,
+  permalink  TEXT,
+  kind       TEXT NOT NULL,               -- post | carrossel
+  username   TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS ig_posts_post ON ig_posts(post_id);
 `);
+
+/** Configurações simples guardadas no banco (chave → texto). */
+export function getSetting(key: string): string | null {
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined;
+  return row ? row.value : null;
+}
+export function setSetting(key: string, value: string | null): void {
+  if (value === null) db.prepare('DELETE FROM settings WHERE key = ?').run(key);
+  else db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, value);
+}
 
 export type Role = 'admin' | 'editor';
 

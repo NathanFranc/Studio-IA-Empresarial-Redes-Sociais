@@ -6,6 +6,7 @@ Sistema interno para a equipe da Megadino criar as artes do Instagram. A pessoa 
 - **Logs** de acessos (entradas, saídas e tentativas erradas), gerações com IA, downloads, cópias de legenda e alterações de usuários
 - **Histórico reutilizável**: cada arte gerada fica salva com textos, ajustes, legenda e fotos, pronta para abrir e reusar
 - **Painel de administração**: resumo do dia e da semana, gestão da equipe e consulta de logs com filtros e exportação CSV
+- **Publicar direto no Instagram**: posts e carrosséis saem do Estúdio para o perfil da loja, com confirmação antes
 - **IA pela chave da empresa**: os textos são escritos no servidor, então a chave nunca aparece no navegador
 
 ## Como funciona
@@ -86,6 +87,24 @@ Para restaurar, pare o sistema (`docker compose down`), coloque a pasta `data/` 
 
 ---
 
+## Publicar no Instagram (opcional)
+
+O Estúdio publica posts e carrosséis direto no perfil da loja usando a API oficial do Instagram (login do Instagram). A conta precisa ser **profissional** (Empresa ou Criador de conteúdo).
+
+### Configurar uma vez
+1. Em [developers.facebook.com](https://developers.facebook.com), crie um app do tipo **Empresa** e adicione o produto **Instagram** › **API com login do Instagram**.
+2. Em **Configurar login comercial do Instagram**, cadastre o endereço de redirecionamento: `https://SEU_DOMINIO/instagram/retorno` (o painel mostra o endereço exato em Administração › Instagram).
+3. Em **Funções do app** › **Testadores do Instagram**, adicione a conta da loja e aceite o convite no Instagram (Configurações › Apps e sites › Convites de teste). Com o app em modo de desenvolvimento, só contas com função no app podem ser conectadas, o que basta para a própria loja.
+4. No `.env`, preencha `IG_APP_ID` e `IG_APP_SECRET` (os do **app do Instagram**, na tela da API com login do Instagram) e rode `docker compose up -d`.
+5. No Estúdio, vá em **Administração › Instagram › Conectar Instagram** e autorize.
+
+### Como funciona
+- O acesso vale 60 dias e é renovado sozinho. Ele fica no banco criptografado com uma chave derivada do `IG_APP_SECRET`.
+- Por padrão só administradores publicam. Em **Administração › Instagram** dá para liberar os editores.
+- Ao publicar, o servidor salva as imagens em JPEG numa pasta temporária pública (`/ig-media/`, com nomes aleatórios), o Instagram baixa e os arquivos são apagados em seguida. Por isso o site precisa estar acessível pela internet.
+- Limites do Instagram: até 10 imagens por carrossel, 2.200 caracteres e 30 hashtags na legenda, e até 100 publicações pela API a cada 24 horas.
+- Cada publicação fica nos logs (**Publicou no Instagram**), no histórico (selo **No Instagram**) e na lista da aba Instagram.
+
 ## Perfis
 
 | | Editor | Administrador |
@@ -107,6 +126,8 @@ Para restaurar, pare o sistema (`docker compose down`), coloque a pasta `data/` 
 | Salvou / Atualizou / Abriu / Excluiu do histórico | movimentação do histórico |
 | Baixou post / carrossel / slide | cada download |
 | Copiou legenda | cada cópia |
+| Conectou / Desconectou o Instagram | ações do administrador |
+| Publicou no Instagram / Erro no Instagram | cada publicação direta, com link ou motivo do erro |
 | Criou / Alterou usuário | ações do administrador |
 
 Os horários ficam gravados em UTC e aparecem no painel no horário de Brasília. A exportação CSV sai em UTC.
@@ -139,7 +160,8 @@ src/
   ai.ts            chamada à API da Anthropic
   prompts.ts       instruções enviadas à IA (post e carrossel)
   catalog.ts       modelos, ícones e cores (manter igual ao public/index.html)
-  routes/          auth, ai, posts (histórico), events (downloads), admin
+  instagram.ts     conexão (OAuth), token criptografado e publicação no Instagram
+  routes/          auth, ai, posts (histórico), events (downloads), admin, instagram
 public/
   index.html       o Estúdio (modelos, recorte de fundo, carrossel, histórico)
   login.html, conta.html, admin.html

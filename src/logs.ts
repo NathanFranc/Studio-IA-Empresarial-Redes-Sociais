@@ -12,6 +12,7 @@ export const ACTIONS = [
   'salvar_historico', 'atualizar_historico', 'abrir_historico', 'excluir_historico',
   'baixar_post', 'baixar_carrossel', 'baixar_slide', 'copiar_legenda',
   'usuario_criado', 'usuario_alterado',
+  'instagram_conectado', 'instagram_desconectado', 'publicar_instagram', 'erro_instagram',
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 

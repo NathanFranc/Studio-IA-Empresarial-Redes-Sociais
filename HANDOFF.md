@@ -121,6 +121,12 @@ Abas **Resumo / Usuários / Logs**: resumo do dia e semana, cadastro e desativa�
 
 ---
 
+## 4.1 Novidades (30/09/2026)
+- Visual novo: login em card dividido (degradê Megadino + logo) e interface interna preta estilo estúdio.
+- Prévia no feed: celular interativo (curtir, legenda com "mais", carrossel arrastável, grade do perfil 3:4, app claro/escuro).
+- Administração › **Usuários e acessos**: criar e-mail e senha (com gerador), cartão para copiar o acesso, editar nome/e-mail, nova senha.
+- Administração › **Instagram**: conectar a conta via OAuth (API do Instagram com login do Instagram) e publicar posts e carrosséis direto do Estúdio (`src/instagram.ts`, `src/routes/instagram.ts`). Token de 60 dias criptografado e renovado sozinho; imagens temporárias públicas em `/ig-media/`. Passo a passo da Meta no README.
+
 ## 5. Variáveis de ambiente (`.env`)
 
 ```
@@ -134,6 +140,9 @@ ADMIN_PASSWORD=                      # 8+ chars, letras e números; trocada no 1
 COOKIE_SECURE=true                   # false só em http://localhost
 SESSION_DAYS=7
 DAILY_AI_LIMIT=0
+PUBLIC_URL=                          # opcional; padrão https://DOMAIN
+IG_APP_ID=                           # app da Meta (Instagram API com login do Instagram)
+IG_APP_SECRET=
 ```
 Existe também `TRUST_PROXY` em `src/config.ts`. **Nunca commitar `.env` nem `data/`.**
 

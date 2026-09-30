@@ -63,7 +63,9 @@ postsRouter.get('/', (req, res) => {
   const limit = Math.min(100, Number(req.query.limit) || 40);
   const offset = Math.max(0, Number(req.query.offset) || 0);
   const rows = db.prepare(
-    `SELECT p.id, p.user_id, p.mode, p.title, p.model, p.color, p.thumb, p.photos, p.created_at, p.updated_at, u.name AS user_name
+    `SELECT p.id, p.user_id, p.mode, p.title, p.model, p.color, p.thumb, p.photos, p.created_at, p.updated_at, u.name AS user_name,
+       (SELECT i.permalink FROM ig_posts i WHERE i.post_id = p.id ORDER BY i.id DESC LIMIT 1) AS ig_permalink,
+       (SELECT COUNT(*) FROM ig_posts i WHERE i.post_id = p.id) AS ig_count
        FROM posts p LEFT JOIN users u ON u.id = p.user_id
       WHERE (? = 0 OR p.user_id = ?) AND p.title LIKE ?
       ORDER BY p.updated_at DESC LIMIT ? OFFSET ?`,

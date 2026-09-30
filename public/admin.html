@@ -47,6 +47,19 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 .edit input:focus{outline:none;border-color:var(--accent)}
 td .acts{align-items:center}
 td.actcell{min-width:300px}
+.igc{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.igmark{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(45deg,#FEDA75,#FA7E1E 25%,#D62976 55%,#962FBF 80%,#4F5BD5)}
+.igmark svg{width:26px;height:26px}
+.igc-t{flex:1;min-width:200px}
+.igc-t p{margin-top:4px}
+.igc-body{display:flex;flex-direction:column;gap:14px}
+.igc-body > .btn{align-self:flex-start;padding-inline:28px}
+.igdl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 16px;margin:0}
+.igdl dt{color:var(--muted);font-size:13px;font-weight:600}
+.igdl dd{margin:0;font-weight:600}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;color:var(--fg)}
+.steps code,#ig-redirect{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:2px 6px;overflow-wrap:anywhere}
+#ig-redirect{display:block;margin-top:6px;padding:8px 10px}
 .edit .tgl{font-size:13px;color:var(--muted)}
 </style>
 </head>
@@ -57,6 +70,7 @@ td.actcell{min-width:300px}
   <div class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="resumo" id="t-resumo">Resumo</button>
     <button role="tab" aria-selected="false" data-tab="usuarios" id="t-usuarios">Usuários e acessos</button>
+    <button role="tab" aria-selected="false" data-tab="instagram" id="t-instagram">Instagram</button>
     <button role="tab" aria-selected="false" data-tab="logs" id="t-logs">Logs</button>
   </div>
 
@@ -94,6 +108,40 @@ td.actcell{min-width:300px}
     </div>
   </section>
 
+  <section id="instagram" role="tabpanel" aria-labelledby="t-instagram" hidden class="page" style="padding:0;width:100%;max-width:none">
+    <div class="panel">
+      <div class="igc">
+        <span class="igmark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/></svg></span>
+        <div class="igc-t"><h2>Instagram</h2><p class="muted" id="ig-sub">Conecte a conta da loja para publicar direto pelo Estúdio.</p></div>
+        <span class="pill" id="ig-pill">…</span>
+      </div>
+      <div class="msg" id="ig-msg" role="status" aria-live="polite"></div>
+      <div id="ig-connected" hidden class="igc-body">
+        <dl class="igdl"><dt>Conta</dt><dd id="ig-user"></dd><dt>Conectada em</dt><dd id="ig-since"></dd><dt>Acesso válido até</dt><dd id="ig-until"></dd></dl>
+        <label class="tgl"><input type="checkbox" id="ig-editors"> Editores também podem publicar (administradores sempre podem)</label>
+        <div class="row"><a class="btn ghost sm" href="/instagram/conectar">Reconectar</a><button class="btn ghost sm" type="button" id="ig-off">Desconectar</button></div>
+        <p class="muted" style="font-size:13px">O acesso vale 60 dias e é renovado sozinho enquanto o sistema estiver no ar.</p>
+      </div>
+      <div id="ig-disconnected" hidden class="igc-body">
+        <a class="btn" href="/instagram/conectar" id="ig-connect">Conectar Instagram</a>
+        <p class="muted" style="font-size:13px">Você vai para o Instagram, entra com a conta da loja e autoriza o Estúdio a publicar. A conta precisa ser profissional (Empresa ou Criador de conteúdo).</p>
+      </div>
+      <div id="ig-setup" hidden class="igc-body">
+        <p>Falta configurar o app da Meta no servidor. Uma vez só:</p>
+        <ol class="steps">
+          <li>Em <b>developers.facebook.com</b>, crie um app do tipo <b>Empresa</b> e adicione o produto <b>Instagram</b> › <b>API com login do Instagram</b>.</li>
+          <li>Em <b>Configurar login comercial do Instagram</b>, cadastre este endereço de redirecionamento:<code id="ig-redirect"></code></li>
+          <li>Em <b>Funções do app</b> › <b>Testadores do Instagram</b>, adicione <b>@loja_megadino</b> e aceite o convite no app do Instagram (Configurações › Apps e sites).</li>
+          <li>No <code>.env</code> do servidor, preencha <code>IG_APP_ID</code> e <code>IG_APP_SECRET</code> (ID e chave secreta do app do Instagram) e rode <code>docker compose up -d</code>.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Publicações feitas pelo Estúdio</h2>
+      <div class="table-wrap"><table><thead><tr><th>Data e hora</th><th>Quem publicou</th><th>Tipo</th><th>Link</th></tr></thead><tbody id="ig-rows"></tbody></table></div>
+    </div>
+  </section>
+
   <section id="logs" role="tabpanel" aria-labelledby="t-logs" hidden class="page" style="padding:0;width:100%;max-width:none">
     <div class="panel">
       <div class="grid2">
@@ -123,6 +171,7 @@ td.actcell{min-width:300px}
     salvar_historico: ['Salvou no histórico', ''], atualizar_historico: ['Atualizou histórico', ''], abrir_historico: ['Abriu do histórico', ''], excluir_historico: ['Excluiu do histórico', 'warn'],
     baixar_post: ['Baixou post', 'ok'], baixar_carrossel: ['Baixou carrossel', 'ok'], baixar_slide: ['Baixou slide', 'ok'], copiar_legenda: ['Copiou legenda', ''],
     usuario_criado: ['Criou usuário', 'warn'], usuario_alterado: ['Alterou usuário', 'warn'],
+    instagram_conectado: ['Conectou o Instagram', 'ok'], instagram_desconectado: ['Desconectou o Instagram', 'warn'], publicar_instagram: ['Publicou no Instagram', 'ok'], erro_instagram: ['Erro no Instagram', 'err'],
   };
   const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
   const pill = (a) => el('span', { className: 'pill ' + ((LABEL[a] || [])[1] || ''), textContent: (LABEL[a] || [a])[0] });
@@ -130,8 +179,9 @@ td.actcell{min-width:300px}
   // abas
   document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => {
     document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
-    ['resumo', 'usuarios', 'logs'].forEach((t) => $(t).hidden = t !== b.dataset.tab);
+    ['resumo', 'usuarios', 'instagram', 'logs'].forEach((t) => $(t).hidden = t !== b.dataset.tab);
     if (b.dataset.tab === 'logs') loadLogs(0);
+    if (b.dataset.tab === 'instagram') loadIg();
   });
 
   // resumo
@@ -239,6 +289,46 @@ td.actcell{min-width:300px}
     } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
   });
 
+  // instagram
+  async function loadIg() {
+    const s = await api('/api/instagram/status');
+    const pill = $('ig-pill');
+    $('ig-setup').hidden = s.configured; $('ig-connected').hidden = !(s.configured && s.connected); $('ig-disconnected').hidden = !(s.configured && !s.connected);
+    $('ig-redirect').textContent = s.redirectUri || 'defina DOMAIN ou PUBLIC_URL no .env para ver o endereço';
+    if (!s.configured) { pill.className = 'pill off'; pill.textContent = 'Não configurado'; $('ig-sub').textContent = 'Configure o app da Meta para liberar a publicação direta.'; }
+    else if (s.connected) { pill.className = 'pill ok'; pill.textContent = 'Conectado'; $('ig-sub').textContent = 'O Estúdio pode publicar posts e carrosséis nesta conta.'; }
+    else { pill.className = 'pill ' + (s.expired ? 'err' : 'warn'); pill.textContent = s.expired ? 'Expirado' : 'Desconectado'; $('ig-sub').textContent = s.expired ? 'A conexão expirou. Conecte de novo.' : 'Conecte a conta da loja para publicar direto pelo Estúdio.'; }
+    $('ig-user').textContent = s.username ? '@' + s.username : '—';
+    $('ig-since').textContent = fmtDate(s.connectedAt); $('ig-until').textContent = fmtDate(s.expiresAt);
+    $('ig-editors').checked = !!s.editorsCanPublish;
+    const r = await api('/api/admin/logs?action=publicar_instagram&limit=20&offset=0');
+    const tb = $('ig-rows'); tb.replaceChildren();
+    if (!r.logs.length) tb.append(el('tr', {}, el('td', { colSpan: 4, className: 'muted', textContent: 'Nada publicado pelo Estúdio ainda.' })));
+    for (const l of r.logs) {
+      let d = {}; try { d = JSON.parse(l.detail || '{}'); } catch {}
+      const link = d.link ? el('a', { href: d.link, target: '_blank', rel: 'noopener', textContent: 'Abrir ↗' }) : el('span', { className: 'muted', textContent: '—' });
+      tb.append(el('tr', {}, el('td', { textContent: fmtDate(l.created_at) }), el('td', { textContent: l.user_name || '—' }),
+        el('td', { textContent: d.tipo === 'carrossel' ? 'Carrossel · ' + (d.imagens || '') + ' imagens' : 'Post' }), el('td', {}, link)));
+    }
+  }
+  $('ig-editors').onchange = async (e) => {
+    const m = $('ig-msg');
+    try { await api('/api/instagram/settings', { method: 'POST', body: { editorsCanPublish: e.target.checked } }); m.className = 'msg ok'; m.textContent = e.target.checked ? 'Editores agora podem publicar.' : 'Só administradores podem publicar.'; }
+    catch (err) { m.className = 'msg err'; m.textContent = err.message; }
+  };
+  let offArmed = false;
+  $('ig-off').onclick = async () => {
+    const b = $('ig-off');
+    if (!offArmed) { offArmed = true; b.textContent = 'Confirmar desconexão'; setTimeout(() => { offArmed = false; b.textContent = 'Desconectar'; }, 3500); return; }
+    try { await api('/api/instagram/disconnect', { method: 'POST' }); $('ig-msg').className = 'msg ok'; $('ig-msg').textContent = 'Instagram desconectado.'; loadIg(); }
+    catch (err) { $('ig-msg').className = 'msg err'; $('ig-msg').textContent = err.message; }
+  };
+  {
+    const q = new URLSearchParams(location.search).get('ig'), m = $('ig-msg');
+    const T = { ok: ['ok', 'Instagram conectado.'], cancelado: ['err', 'A conexão foi cancelada no Instagram.'], invalido: ['err', 'A volta do Instagram não foi reconhecida. Tente conectar de novo.'], config: ['err', 'Configure IG_APP_ID e IG_APP_SECRET no servidor antes de conectar.'], erro: ['err', new URLSearchParams(location.search).get('msg') || 'Não foi possível conectar.'] };
+    if (q && T[q]) { m.className = 'msg ' + T[q][0]; m.textContent = T[q][1]; history.replaceState(null, '', '/admin#instagram'); }
+  }
+
   // logs
   let offset = 0; const PAGE = 50;
   function describe(l) {
@@ -275,6 +365,7 @@ td.actcell{min-width:300px}
 
   loadSummary().catch(() => {}); loadUsers().catch(() => {});
   if (location.hash === '#usuarios') $('t-usuarios').click();
+  if (location.hash === '#instagram') $('t-instagram').click();
 })();
 </script>
 </body>
