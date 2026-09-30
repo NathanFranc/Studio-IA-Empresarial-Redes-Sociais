@@ -28,6 +28,26 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 .bar.b{background:var(--ok)}
 .pwbox{display:flex;gap:6px;align-items:center;margin-top:6px}
 .pwbox input{max-width:200px}
+.nu{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:720px){.nu{grid-template-columns:minmax(0,1fr)}}
+.pwrow{display:flex;gap:8px;align-items:stretch}
+.pwrow input{flex:1;min-width:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;letter-spacing:.5px}
+.pwrow input::placeholder{font-family:var(--font-ui);letter-spacing:0}
+.pwrow .btn{flex:0 0 auto;border-radius:12px;padding:0 14px}
+.tgl{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--fg);cursor:pointer}
+.tgl input{width:18px;height:18px;accent-color:var(--accent)}
+.cred{border:1px solid rgba(79,209,139,.35);background:linear-gradient(135deg,rgba(79,209,139,.09),rgba(79,209,139,.02));border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.cred h3{font-family:var(--font-ui);font-size:15px;font-weight:700;letter-spacing:0;color:var(--ok)}
+.cred dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 14px;margin:0}
+.cred dt{color:var(--muted);font-size:13px;font-weight:600}
+.cred dd{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;overflow-wrap:anywhere}
+.cred .row{gap:8px}
+.edit{display:flex;flex-direction:column;gap:8px;margin-top:8px;max-width:320px}
+.edit input:not([type=checkbox]){width:100%;font:inherit;font-size:14px;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.edit input:focus{outline:none;border-color:var(--accent)}
+td .acts{align-items:center}
+td.actcell{min-width:300px}
+.edit .tgl{font-size:13px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -36,7 +56,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   <h1>Administração</h1>
   <div class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="resumo" id="t-resumo">Resumo</button>
-    <button role="tab" aria-selected="false" data-tab="usuarios" id="t-usuarios">Usuários</button>
+    <button role="tab" aria-selected="false" data-tab="usuarios" id="t-usuarios">Usuários e acessos</button>
     <button role="tab" aria-selected="false" data-tab="logs" id="t-logs">Logs</button>
   </div>
 
@@ -49,16 +69,20 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   </section>
 
   <section id="usuarios" role="tabpanel" aria-labelledby="t-usuarios" hidden class="page" style="padding:0;width:100%;max-width:none">
-    <form class="panel" id="newUser">
-      <h2>Novo usuário</h2>
-      <div class="grid2">
-        <label class="f" for="nu-name">Nome<input type="text" id="nu-name" required></label>
-        <label class="f" for="nu-email">E-mail<input type="email" id="nu-email" required></label>
-        <label class="f" for="nu-pass">Senha provisória<input type="text" id="nu-pass" required placeholder="mín. 8, letras e números"></label>
-        <label class="f" for="nu-role">Perfil<select id="nu-role"><option value="editor">Editor (cria artes)</option><option value="admin">Administrador</option></select></label>
+    <form class="panel" id="newUser" autocomplete="off">
+      <div><h2>Criar acesso</h2><p class="muted" style="margin-top:6px">Cadastre o e-mail e a senha de quem vai usar o Estúdio. Depois é só passar o acesso para a pessoa.</p></div>
+      <div class="nu">
+        <label class="f" for="nu-name">Nome<input type="text" id="nu-name" required placeholder="Ex.: Maria Silva"></label>
+        <label class="f" for="nu-email">E-mail de acesso<input type="email" id="nu-email" required placeholder="maria@empresa.com" autocomplete="off"></label>
+        <label class="f" for="nu-pass">Senha
+          <span class="pwrow"><input type="text" id="nu-pass" required minlength="8" placeholder="mín. 8, com letras e números" autocomplete="new-password" spellcheck="false">
+          <button class="btn ghost" type="button" id="nu-gen">Gerar senha</button></span>
+        </label>
+        <label class="f" for="nu-role">Perfil<select id="nu-role"><option value="editor">Editor · cria artes</option><option value="admin">Administrador · cria artes e gerencia a equipe</option></select></label>
       </div>
-      <div class="row"><button class="btn" type="submit">Criar usuário</button><span class="msg" id="nu-msg" role="status" aria-live="polite"></span></div>
-      <p class="muted" style="margin:0;font-size:13px">A pessoa troca a senha provisória no primeiro acesso.</p>
+      <label class="tgl"><input type="checkbox" id="nu-must" checked> Pedir para a pessoa trocar a senha no primeiro acesso</label>
+      <div class="row"><button class="btn" type="submit">Criar acesso</button><span class="msg" id="nu-msg" role="status" aria-live="polite"></span></div>
+      <div class="cred" id="cred" hidden></div>
     </form>
     <div class="panel">
       <h2>Equipe</h2>
@@ -129,7 +153,31 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     }
   }
 
-  // usuários
+  // usuários e acessos
+  const genPass = () => {
+    const L = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ', N = '23456789', A = L + N;
+    const r = (set) => set[crypto.getRandomValues(new Uint32Array(1))[0] % set.length];
+    const out = [r(L), r(L), r(N), r(N)]; while (out.length < 10) out.push(r(A));
+    for (let i = out.length - 1; i > 0; i--) { const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1); [out[i], out[j]] = [out[j], out[i]]; }
+    return out.join('');
+  };
+  // Mostra o acesso pronto para copiar. A senha não fica guardada em lugar nenhum além deste aviso.
+  function showCred(box, { name, email, password, mustChange, title }) {
+    const text = `Acesso ao Estúdio Megadino\nEndereço: ${location.origin}\nE-mail: ${email}\nSenha: ${password}` + (mustChange ? '\n(no primeiro acesso o sistema pede para trocar a senha)' : '');
+    const copyMsg = el('span', { className: 'muted', role: 'status' });
+    const copy = el('button', { className: 'btn sm', type: 'button', textContent: 'Copiar acesso', onclick: async () => {
+      try { await navigator.clipboard.writeText(text); copyMsg.textContent = 'Copiado. É só colar no WhatsApp ou e-mail da pessoa.'; }
+      catch { const t = el('textarea', { value: text, readOnly: true, rows: 4, style: 'width:100%' }); box.append(t); t.select(); copyMsg.textContent = 'Selecionado. Use Ctrl+C para copiar.'; }
+    } });
+    const dl = el('dl', {}, el('dt', { textContent: 'Endereço' }), el('dd', { textContent: location.origin }),
+      el('dt', { textContent: 'E-mail' }), el('dd', { textContent: email }), el('dt', { textContent: 'Senha' }), el('dd', { textContent: password }));
+    box.replaceChildren(el('h3', { textContent: title || 'Acesso de ' + name + ' criado' }), dl,
+      el('div', { className: 'row' }, copy, el('button', { className: 'btn sm ghost', type: 'button', textContent: 'Fechar', onclick: () => { box.hidden = true; box.replaceChildren(); } }), copyMsg),
+      el('p', { className: 'muted', style: 'font-size:13px', textContent: 'Anote ou copie agora: por segurança a senha não aparece de novo depois de fechar este aviso.' }));
+    box.hidden = false;
+  }
+  $('nu-gen').onclick = () => { $('nu-pass').value = genPass(); $('nu-pass').focus(); };
+
   let users = [];
   async function loadUsers() {
     users = (await api('/api/admin/users')).users;
@@ -137,18 +185,35 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     for (const u of users) {
       const acts = el('div', { className: 'acts' });
       const msg = $('u-msg');
-      const patch = async (body, ok) => {
-        try { await api('/api/admin/users/' + u.id, { method: 'PATCH', body }); msg.className = 'msg ok'; msg.textContent = ok; loadUsers(); }
+      const extra = el('div');
+      const patch = async (body, ok, after) => {
+        try { await api('/api/admin/users/' + u.id, { method: 'PATCH', body }); msg.className = 'msg ok'; msg.textContent = ok; if (after) after(); else loadUsers(); }
         catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
       };
+      const openBox = (box) => { const was = box.isConnected; extra.replaceChildren(); if (!was) extra.append(box); };
+      // editar nome e e-mail
+      const nIn = el('input', { type: 'text', value: u.name, ariaLabel: 'Nome' });
+      const eIn = el('input', { type: 'email', value: u.email, ariaLabel: 'E-mail de acesso' });
+      const editBox = el('div', { className: 'edit' }, nIn, eIn, el('div', { className: 'acts' },
+        el('button', { className: 'btn sm', type: 'button', textContent: 'Salvar', onclick: () => patch({ name: nIn.value, email: eIn.value }, 'Dados de ' + nIn.value.trim() + ' atualizados.') }),
+        el('button', { className: 'btn sm ghost', type: 'button', textContent: 'Cancelar', onclick: () => extra.replaceChildren() })));
+      acts.append(el('button', { className: 'btn sm ghost', type: 'button', textContent: 'Editar', onclick: () => { openBox(editBox); nIn.focus(); } }));
+      // nova senha
+      const pIn = el('input', { type: 'text', placeholder: 'nova senha', ariaLabel: 'Nova senha para ' + u.name, spellcheck: false, autocomplete: 'new-password' });
+      const pMust = el('input', { type: 'checkbox', checked: true });
+      const cred = el('div', { className: 'cred', hidden: true });
+      const pwBox = el('div', { className: 'edit' },
+        el('div', { className: 'pwrow' }, pIn, el('button', { className: 'btn sm ghost', type: 'button', textContent: 'Gerar', onclick: () => { pIn.value = genPass(); } })),
+        el('label', { className: 'tgl' }, pMust, 'Pedir troca no próximo acesso'),
+        el('div', { className: 'acts' }, el('button', { className: 'btn sm', type: 'button', textContent: 'Salvar senha', onclick: () => {
+          const password = pIn.value, mustChange = pMust.checked;
+          patch({ password, mustChange }, 'Senha de ' + u.name + ' redefinida.', () => { showCred(cred, { name: u.name, email: u.email, password, mustChange, title: 'Nova senha de ' + u.name }); pIn.value = ''; });
+        } })), cred);
+      acts.append(el('button', { className: 'btn sm ghost', type: 'button', textContent: 'Nova senha', onclick: () => { openBox(pwBox); pIn.focus(); } }));
       if (u.id !== me.id) {
-        acts.append(el('button', { className: 'btn sm ghost', type: 'button', textContent: u.active ? 'Desativar' : 'Reativar', onclick: () => patch({ active: !u.active }, u.active ? u.name + ' foi desativado.' : u.name + ' foi reativado.') }));
         acts.append(el('button', { className: 'btn sm ghost', type: 'button', textContent: u.role === 'admin' ? 'Tornar editor' : 'Tornar admin', onclick: () => patch({ role: u.role === 'admin' ? 'editor' : 'admin' }, 'Perfil de ' + u.name + ' alterado.') }));
+        acts.append(el('button', { className: 'btn sm ghost', type: 'button', textContent: u.active ? 'Desativar' : 'Reativar', onclick: () => patch({ active: !u.active }, u.active ? u.name + ' foi desativado.' : u.name + ' foi reativado.') }));
       }
-      const pwWrap = el('div', { className: 'pwbox', hidden: true });
-      const pwIn = el('input', { type: 'text', placeholder: 'nova senha provisória', ariaLabel: 'Nova senha provisória para ' + u.name });
-      pwWrap.append(pwIn, el('button', { className: 'btn sm', type: 'button', textContent: 'Salvar', onclick: () => patch({ password: pwIn.value }, 'Senha de ' + u.name + ' redefinida. Ele troca no próximo acesso.') }));
-      acts.append(el('button', { className: 'btn sm ghost', type: 'button', textContent: 'Redefinir senha', onclick: () => { pwWrap.hidden = !pwWrap.hidden; if (!pwWrap.hidden) pwIn.focus(); } }));
       tb.append(el('tr', {},
         el('td', {}, el('b', { textContent: u.name }), el('div', { className: 'muted', textContent: u.email })),
         el('td', {}, el('span', { className: 'pill', textContent: u.role === 'admin' ? 'Admin' : 'Editor' })),
@@ -156,7 +221,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
         el('td', { textContent: fmtDate(u.last_login_at) }),
         el('td', { className: 'num', textContent: u.geracoes }),
         el('td', { className: 'num', textContent: u.downloads }),
-        el('td', {}, acts, pwWrap)));
+        el('td', { className: 'actcell' }, acts, extra)));
     }
     const sel = $('lf-user'), cur = sel.value; sel.replaceChildren(el('option', { value: '', textContent: 'Todos' }));
     for (const u of users) sel.append(el('option', { value: u.id, textContent: u.name }));
@@ -165,9 +230,12 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   $('newUser').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = $('nu-msg');
+    const data = { name: $('nu-name').value.trim(), email: $('nu-email').value.trim().toLowerCase(), password: $('nu-pass').value, role: $('nu-role').value, mustChange: $('nu-must').checked };
     try {
-      await api('/api/admin/users', { method: 'POST', body: { name: $('nu-name').value, email: $('nu-email').value, password: $('nu-pass').value, role: $('nu-role').value } });
-      msg.className = 'msg ok'; msg.textContent = 'Usuário criado. Passe o e-mail e a senha provisória para a pessoa.'; e.target.reset(); loadUsers();
+      await api('/api/admin/users', { method: 'POST', body: data });
+      msg.className = 'msg'; msg.textContent = '';
+      showCred($('cred'), data);
+      $('nu-name').value = ''; $('nu-email').value = ''; $('nu-pass').value = ''; loadUsers();
     } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
   });
 
@@ -206,6 +274,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   $('pg-next').onclick = () => loadLogs(offset + PAGE);
 
   loadSummary().catch(() => {}); loadUsers().catch(() => {});
+  if (location.hash === '#usuarios') $('t-usuarios').click();
 })();
 </script>
 </body>

@@ -27,6 +27,7 @@ adminRouter.post('/users', (req, res) => {
   const email = String(req.body?.email ?? '').trim().toLowerCase();
   const role = req.body?.role === 'admin' ? 'admin' : 'editor';
   const password = String(req.body?.password ?? '');
+  const mustChange = req.body?.mustChange === false ? 0 : 1;
   if (!name) return void res.status(400).json({ error: 'Informe o nome.' });
   if (!EMAIL.test(email)) return void res.status(400).json({ error: 'Informe um e-mail válido.' });
   const problem = passwordProblem(password);
@@ -35,9 +36,9 @@ adminRouter.post('/users', (req, res) => {
     return void res.status(409).json({ error: 'Já existe um usuário com esse e-mail.' });
   }
   const info = db.prepare(
-    'INSERT INTO users (name, email, password_hash, role, must_change) VALUES (?, ?, ?, ?, 1)',
-  ).run(name, email, hashPassword(password), role);
-  logAction(req, 'usuario_criado', { detail: { id: Number(info.lastInsertRowid), email, role } });
+    'INSERT INTO users (name, email, password_hash, role, must_change) VALUES (?, ?, ?, ?, ?)',
+  ).run(name, email, hashPassword(password), role, mustChange);
+  logAction(req, 'usuario_criado', { detail: { id: Number(info.lastInsertRowid), email, role, troca_no_1o_acesso: mustChange ? 'sim' : 'não' } });
   res.json({ id: Number(info.lastInsertRowid) });
 });
 
@@ -47,6 +48,16 @@ adminRouter.patch('/users/:id', (req, res) => {
   if (!user) return void res.status(404).json({ error: 'Usuário não encontrado.' });
   const changes: Record<string, unknown> = {};
   if (typeof req.body?.name === 'string' && req.body.name.trim()) changes.name = req.body.name.trim();
+  if (typeof req.body?.email === 'string') {
+    const email = req.body.email.trim().toLowerCase();
+    if (email !== user.email) {
+      if (!EMAIL.test(email)) return void res.status(400).json({ error: 'Informe um e-mail válido.' });
+      if (db.prepare('SELECT 1 FROM users WHERE email = ? AND id <> ?').get(email, id)) {
+        return void res.status(409).json({ error: 'Já existe um usuário com esse e-mail.' });
+      }
+      changes.email = email;
+    }
+  }
   if (req.body?.role === 'admin' || req.body?.role === 'editor') changes.role = req.body.role;
   if (typeof req.body?.active === 'boolean') changes.active = req.body.active ? 1 : 0;
   if (id === req.user!.id && (changes.active === 0 || changes.role === 'editor')) {
@@ -56,12 +67,12 @@ adminRouter.patch('/users/:id', (req, res) => {
     const problem = passwordProblem(req.body.password);
     if (problem) return void res.status(400).json({ error: problem });
     changes.password_hash = hashPassword(req.body.password);
-    changes.must_change = 1;
+    changes.must_change = req.body?.mustChange === false ? 0 : 1;
   }
   const keys = Object.keys(changes);
   if (!keys.length) return void res.status(400).json({ error: 'Nada para alterar.' });
   db.prepare(`UPDATE users SET ${keys.map((k) => `${k} = ?`).join(', ')} WHERE id = ?`).run(...keys.map((k) => changes[k]), id);
-  if (changes.active === 0 || changes.password_hash) endAllSessionsOf(id);
+  if (changes.active === 0 || changes.password_hash || (changes.email && id !== req.user!.id)) endAllSessionsOf(id);
   const shown = { ...changes };
   if (shown.password_hash) {
     delete shown.password_hash;
