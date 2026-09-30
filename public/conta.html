@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minha conta · Estúdio Megadino</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/assets/base.css">
+<style>form{max-width:460px}</style>
+</head>
+<body>
+<header id="topbar"></header>
+<main class="page">
+  <h1>Minha conta</h1>
+  <p class="muted" id="who"></p>
+  <div class="panel" id="first" hidden style="border-color:var(--warn)"><b>Primeiro acesso:</b> troque a senha provisória antes de usar o Estúdio.</div>
+  <form class="panel" id="f">
+    <h2>Trocar senha</h2>
+    <label class="f" for="cur">Senha atual<input type="password" id="cur" autocomplete="current-password" required></label>
+    <label class="f" for="nx">Nova senha (mínimo 8 caracteres, com letras e números)<input type="password" id="nx" autocomplete="new-password" required></label>
+    <label class="f" for="nx2">Repita a nova senha<input type="password" id="nx2" autocomplete="new-password" required></label>
+    <button class="btn" type="submit" id="go">Salvar nova senha</button>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </form>
+</main>
+<script src="/assets/common.js"></script>
+<script>
+(async () => {
+  const me = await Estudio.mountTopbar('conta');
+  if (me) document.getElementById('who').textContent = me.name + ' · ' + me.email + ' · ' + (me.role === 'admin' ? 'Administrador' : 'Editor');
+  const first = new URLSearchParams(location.search).has('primeiro') || (me && me.mustChange);
+  document.getElementById('first').hidden = !first;
+  document.getElementById('f').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    const cur = document.getElementById('cur').value, nx = document.getElementById('nx').value, nx2 = document.getElementById('nx2').value;
+    if (nx !== nx2) { msg.className = 'msg err'; msg.textContent = 'As duas senhas novas não são iguais.'; return; }
+    try {
+      await Estudio.api('/api/auth/password', { method: 'POST', body: { current: cur, next: nx } });
+      msg.className = 'msg ok'; msg.textContent = 'Senha alterada.';
+      e.target.reset();
+      if (first) setTimeout(() => location.href = '/', 900);
+    } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+  });
+})();
+</script>
+</body>
+</html>

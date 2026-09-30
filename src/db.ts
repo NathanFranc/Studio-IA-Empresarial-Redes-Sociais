@@ -1,0 +1,82 @@
+/** Banco SQLite: criação das tabelas e acesso compartilhado. */
+import Database from 'better-sqlite3';
+import fs from 'node:fs';
+import path from 'node:path';
+import { config, uploadsDir } from './config.js';
+
+fs.mkdirSync(config.dataDir, { recursive: true });
+fs.mkdirSync(uploadsDir, { recursive: true });
+
+export const db = new Database(path.join(config.dataDir, 'estudio.db'));
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS users (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  name          TEXT NOT NULL,
+  email         TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role          TEXT NOT NULL CHECK (role IN ('admin','editor')),
+  active        INTEGER NOT NULL DEFAULT 1,
+  must_change   INTEGER NOT NULL DEFAULT 0,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  last_login_at TEXT
+);
+CREATE TABLE IF NOT EXISTS sessions (
+  id         TEXT PRIMARY KEY,           -- sha256 do token do cookie
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  last_seen  TEXT NOT NULL DEFAULT (datetime('now')),
+  expires_at TEXT NOT NULL,
+  ip         TEXT,
+  user_agent TEXT
+);
+CREATE TABLE IF NOT EXISTS logs (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  action     TEXT NOT NULL,
+  post_id    INTEGER,
+  detail     TEXT,                        -- JSON
+  ip         TEXT,
+  user_agent TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS logs_created ON logs(created_at);
+CREATE INDEX IF NOT EXISTS logs_user ON logs(user_id, created_at);
+CREATE INDEX IF NOT EXISTS logs_action ON logs(action, created_at);
+CREATE TABLE IF NOT EXISTS posts (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  mode       TEXT NOT NULL CHECK (mode IN ('post','carrossel')),
+  title      TEXT NOT NULL,
+  model      TEXT,
+  color      TEXT,
+  data       TEXT NOT NULL,               -- JSON com textos e ajustes
+  caption    TEXT,
+  thumb      TEXT,                        -- data URL JPEG pequeno
+  photos     INTEGER NOT NULL DEFAULT 0,  -- quantidade de fotos salvas em data/uploads/<id>/
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS posts_updated ON posts(updated_at);
+`);
+
+export type Role = 'admin' | 'editor';
+
+export interface UserRow {
+  id: number;
+  name: string;
+  email: string;
+  password_hash: string;
+  role: Role;
+  active: number;
+  must_change: number;
+  created_at: string;
+  last_login_at: string | null;
+}
+
+/** Remove sessões vencidas (roda no início e a cada hora). */
+export function purgeExpiredSessions(): void {
+  db.prepare("DELETE FROM sessions WHERE expires_at < datetime('now')").run();
+}

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Administração · Estúdio Megadino</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/assets/base.css">
+<style>
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tabs button{font:inherit;font-weight:700;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer}
+.tabs button[aria-selected=true]{color:var(--fg);border-color:var(--accent)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpi b{display:block;font-family:var(--font-display);font-size:40px;font-weight:400;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:end}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.detail{font-size:13px;color:var(--muted);max-width:420px;overflow-wrap:anywhere}
+.pager{display:flex;gap:10px;align-items:center;justify-content:flex-end}
+.bar{height:10px;border-radius:5px;background:var(--accent);min-width:2px}
+.bar.b{background:var(--ok)}
+.pwbox{display:flex;gap:6px;align-items:center;margin-top:6px}
+.pwbox input{max-width:200px}
+</style>
+</head>
+<body>
+<header id="topbar"></header>
+<main class="page">
+  <h1>Administração</h1>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="resumo" id="t-resumo">Resumo</button>
+    <button role="tab" aria-selected="false" data-tab="usuarios" id="t-usuarios">Usuários</button>
+    <button role="tab" aria-selected="false" data-tab="logs" id="t-logs">Logs</button>
+  </div>
+
+  <section id="resumo" role="tabpanel" aria-labelledby="t-resumo" class="page" style="padding:0;width:100%;max-width:none">
+    <div class="kpis" id="kpis"></div>
+    <div class="panel">
+      <h2>Últimos 7 dias</h2>
+      <div class="table-wrap"><table><thead><tr><th>Dia</th><th>Gerações</th><th></th><th>Downloads</th><th></th></tr></thead><tbody id="week"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="usuarios" role="tabpanel" aria-labelledby="t-usuarios" hidden class="page" style="padding:0;width:100%;max-width:none">
+    <form class="panel" id="newUser">
+      <h2>Novo usuário</h2>
+      <div class="grid2">
+        <label class="f" for="nu-name">Nome<input type="text" id="nu-name" required></label>
+        <label class="f" for="nu-email">E-mail<input type="email" id="nu-email" required></label>
+        <label class="f" for="nu-pass">Senha provisória<input type="text" id="nu-pass" required placeholder="mín. 8, letras e números"></label>
+        <label class="f" for="nu-role">Perfil<select id="nu-role"><option value="editor">Editor (cria artes)</option><option value="admin">Administrador</option></select></label>
+      </div>
+      <div class="row"><button class="btn" type="submit">Criar usuário</button><span class="msg" id="nu-msg" role="status" aria-live="polite"></span></div>
+      <p class="muted" style="margin:0;font-size:13px">A pessoa troca a senha provisória no primeiro acesso.</p>
+    </form>
+    <div class="panel">
+      <h2>Equipe</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Nome</th><th>Perfil</th><th>Situação</th><th>Último acesso</th><th>Gerações</th><th>Downloads</th><th>Ações</th></tr></thead>
+        <tbody id="users"></tbody>
+      </table></div>
+      <span class="msg" id="u-msg" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section id="logs" role="tabpanel" aria-labelledby="t-logs" hidden class="page" style="padding:0;width:100%;max-width:none">
+    <div class="panel">
+      <div class="grid2">
+        <label class="f" for="lf-user">Usuário<select id="lf-user"><option value="">Todos</option></select></label>
+        <label class="f" for="lf-action">Ação<select id="lf-action"><option value="">Todas</option></select></label>
+        <label class="f" for="lf-from">De<input type="date" id="lf-from"></label>
+        <label class="f" for="lf-to">Até<input type="date" id="lf-to"></label>
+      </div>
+      <div class="row"><button class="btn sm" id="lf-go" type="button">Filtrar</button><a class="btn sm ghost" id="lf-csv" href="/api/admin/logs.csv">Exportar CSV</a><span class="muted" id="lf-total"></span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Data e hora</th><th>Usuário</th><th>Ação</th><th>Detalhes</th><th>IP</th></tr></thead>
+        <tbody id="logrows"></tbody>
+      </table></div>
+      <div class="pager"><button class="btn sm ghost" id="pg-prev" type="button">← Anteriores</button><span id="pg-info" class="muted"></span><button class="btn sm ghost" id="pg-next" type="button">Próximos →</button></div>
+    </div>
+  </section>
+</main>
+<script src="/assets/common.js"></script>
+<script>
+(async () => {
+  const { api, fmtDate } = Estudio;
+  const $ = (id) => document.getElementById(id);
+  const me = await Estudio.mountTopbar('admin');
+  const LABEL = {
+    login: ['Entrou', 'ok'], login_falhou: ['Login falhou', 'err'], logout: ['Saiu', 'off'], senha_alterada: ['Trocou a senha', 'off'],
+    gerar_post: ['Gerou post', 'ok'], gerar_carrossel: ['Gerou carrossel', 'ok'], erro_ia: ['Erro na IA', 'err'],
+    salvar_historico: ['Salvou no histórico', ''], atualizar_historico: ['Atualizou histórico', ''], abrir_historico: ['Abriu do histórico', ''], excluir_historico: ['Excluiu do histórico', 'warn'],
+    baixar_post: ['Baixou post', 'ok'], baixar_carrossel: ['Baixou carrossel', 'ok'], baixar_slide: ['Baixou slide', 'ok'], copiar_legenda: ['Copiou legenda', ''],
+    usuario_criado: ['Criou usuário', 'warn'], usuario_alterado: ['Alterou usuário', 'warn'],
+  };
+  const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
+  const pill = (a) => el('span', { className: 'pill ' + ((LABEL[a] || [])[1] || ''), textContent: (LABEL[a] || [a])[0] });
+
+  // abas
+  document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+    ['resumo', 'usuarios', 'logs'].forEach((t) => $(t).hidden = t !== b.dataset.tab);
+    if (b.dataset.tab === 'logs') loadLogs(0);
+  });
+
+  // resumo
+  async function loadSummary() {
+    const s = await api('/api/admin/summary');
+    const k = $('kpis'); k.replaceChildren();
+    for (const [v, t] of [[s.hoje.geracoes, 'gerações hoje'], [s.hoje.downloads, 'downloads hoje'], [s.hoje.acessos, 'pessoas entraram hoje'], [s.hoje.erros, 'erros hoje (IA ou login)'], [s.historico, 'artes no histórico'], [s.usuarios, 'usuários ativos']]) {
+      k.append(el('div', { className: 'kpi' }, el('b', { textContent: v }), el('span', { textContent: t })));
+    }
+    const max = Math.max(1, ...s.semana.map((d) => Math.max(d.geracoes, d.downloads)));
+    const w = $('week'); w.replaceChildren();
+    if (!s.semana.length) w.append(el('tr', {}, el('td', { colSpan: 5, className: 'muted', textContent: 'Ainda não há uso registrado nesta semana.' })));
+    for (const d of s.semana) {
+      const [y, m, dd] = d.dia.split('-');
+      w.append(el('tr', {},
+        el('td', { textContent: dd + '/' + m }),
+        el('td', { className: 'num', textContent: d.geracoes }), el('td', { style: 'width:30%' }, el('div', { className: 'bar', style: `width:${d.geracoes / max * 100}%` })),
+        el('td', { className: 'num', textContent: d.downloads }), el('td', { style: 'width:30%' }, el('div', { className: 'bar b', style: `width:${d.downloads / max * 100}%` }))));
+    }
+  }
+
+  // usuários
+  let users = [];
+  async function loadUsers() {
+    users = (await api('/api/admin/users')).users;
+    const tb = $('users'); tb.replaceChildren();
+    for (const u of users) {
+      const acts = el('div', { className: 'acts' });
+      const msg = $('u-msg');
+      const patch = async (body, ok) => {
+        try { await api('/api/admin/users/' + u.id, { method: 'PATCH', body }); msg.className = 'msg ok'; msg.textContent = ok; loadUsers(); }
+        catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+      };
+      if (u.id !== me.id) {
+        acts.append(el('button', { className: 'btn sm ghost', type: 'button', textContent: u.active ? 'Desativar' : 'Reativar', onclick: () => patch({ active: !u.active }, u.active ? u.name + ' foi desativado.' : u.name + ' foi reativado.') }));
+        acts.append(el('button', { className: 'btn sm ghost', type: 'button', textContent: u.role === 'admin' ? 'Tornar editor' : 'Tornar admin', onclick: () => patch({ role: u.role === 'admin' ? 'editor' : 'admin' }, 'Perfil de ' + u.name + ' alterado.') }));
+      }
+      const pwWrap = el('div', { className: 'pwbox', hidden: true });
+      const pwIn = el('input', { type: 'text', placeholder: 'nova senha provisória', ariaLabel: 'Nova senha provisória para ' + u.name });
+      pwWrap.append(pwIn, el('button', { className: 'btn sm', type: 'button', textContent: 'Salvar', onclick: () => patch({ password: pwIn.value }, 'Senha de ' + u.name + ' redefinida. Ele troca no próximo acesso.') }));
+      acts.append(el('button', { className: 'btn sm ghost', type: 'button', textContent: 'Redefinir senha', onclick: () => { pwWrap.hidden = !pwWrap.hidden; if (!pwWrap.hidden) pwIn.focus(); } }));
+      tb.append(el('tr', {},
+        el('td', {}, el('b', { textContent: u.name }), el('div', { className: 'muted', textContent: u.email })),
+        el('td', {}, el('span', { className: 'pill', textContent: u.role === 'admin' ? 'Admin' : 'Editor' })),
+        el('td', {}, el('span', { className: 'pill ' + (u.active ? 'ok' : 'off'), textContent: u.active ? (u.must_change ? 'Ativo · 1º acesso' : 'Ativo') : 'Desativado' })),
+        el('td', { textContent: fmtDate(u.last_login_at) }),
+        el('td', { className: 'num', textContent: u.geracoes }),
+        el('td', { className: 'num', textContent: u.downloads }),
+        el('td', {}, acts, pwWrap)));
+    }
+    const sel = $('lf-user'), cur = sel.value; sel.replaceChildren(el('option', { value: '', textContent: 'Todos' }));
+    for (const u of users) sel.append(el('option', { value: u.id, textContent: u.name }));
+    sel.value = cur;
+  }
+  $('newUser').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('nu-msg');
+    try {
+      await api('/api/admin/users', { method: 'POST', body: { name: $('nu-name').value, email: $('nu-email').value, password: $('nu-pass').value, role: $('nu-role').value } });
+      msg.className = 'msg ok'; msg.textContent = 'Usuário criado. Passe o e-mail e a senha provisória para a pessoa.'; e.target.reset(); loadUsers();
+    } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+  });
+
+  // logs
+  let offset = 0; const PAGE = 50;
+  function describe(l) {
+    let d = {}; try { d = l.detail ? JSON.parse(l.detail) : {}; } catch {}
+    const parts = [];
+    for (const [k, v] of Object.entries(d)) { if (v === '' || v === null || v === undefined) continue; if (k === 'ms') parts.push('tempo: ' + (v / 1000).toFixed(1) + 's'); else parts.push(k + ': ' + v); }
+    if (l.post_id) parts.push('arte #' + l.post_id);
+    return parts.join(' · ');
+  }
+  async function loadLogs(off) {
+    offset = Math.max(0, off);
+    const p = new URLSearchParams();
+    for (const [k, id] of [['user', 'lf-user'], ['action', 'lf-action'], ['from', 'lf-from'], ['to', 'lf-to']]) if ($(id).value) p.set(k, $(id).value);
+    $('lf-csv').href = '/api/admin/logs.csv?' + p.toString();
+    p.set('limit', PAGE); p.set('offset', offset);
+    const r = await api('/api/admin/logs?' + p.toString());
+    const sa = $('lf-action');
+    if (sa.options.length === 1) for (const a of r.actions) sa.append(el('option', { value: a, textContent: (LABEL[a] || [a])[0] }));
+    const tb = $('logrows'); tb.replaceChildren();
+    if (!r.logs.length) tb.append(el('tr', {}, el('td', { colSpan: 5, className: 'muted', textContent: 'Nenhum registro com esses filtros.' })));
+    for (const l of r.logs) tb.append(el('tr', {},
+      el('td', { textContent: fmtDate(l.created_at), style: 'white-space:nowrap' }),
+      el('td', {}, el('span', { textContent: l.user_name || '—' })),
+      el('td', {}, pill(l.action)),
+      el('td', { className: 'detail', textContent: describe(l) }),
+      el('td', { className: 'muted', textContent: l.ip || '' })));
+    $('lf-total').textContent = r.total + ' registro(s)';
+    $('pg-info').textContent = r.total ? `${offset + 1}–${Math.min(offset + PAGE, r.total)} de ${r.total}` : '';
+    $('pg-prev').disabled = offset === 0; $('pg-next').disabled = offset + PAGE >= r.total;
+  }
+  $('lf-go').onclick = () => loadLogs(0);
+  $('pg-prev').onclick = () => loadLogs(offset - PAGE);
+  $('pg-next').onclick = () => loadLogs(offset + PAGE);
+
+  loadSummary().catch(() => {}); loadUsers().catch(() => {});
+})();
+</script>
+</body>
+</html>
