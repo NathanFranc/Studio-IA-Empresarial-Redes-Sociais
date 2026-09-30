@@ -16,14 +16,15 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 .tabs button[aria-selected=true]{color:var(--fg);border-color:var(--accent)}
 .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
-.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpi{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:18px;right:18px;top:0;height:2px;background:var(--brasa);opacity:.8}
 .kpi b{display:block;font-family:var(--font-display);font-size:40px;font-weight:400;line-height:1.05;font-variant-numeric:tabular-nums}
 .kpi span{color:var(--muted);font-size:14px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:end}
 .acts{display:flex;gap:6px;flex-wrap:wrap}
 .detail{font-size:13px;color:var(--muted);max-width:420px;overflow-wrap:anywhere}
 .pager{display:flex;gap:10px;align-items:center;justify-content:flex-end}
-.bar{height:10px;border-radius:5px;background:var(--accent);min-width:2px}
+.bar{height:10px;border-radius:5px;background:var(--brasa);min-width:2px}
 .bar.b{background:var(--ok)}
 .pwbox{display:flex;gap:6px;align-items:center;margin-top:6px}
 .pwbox input{max-width:200px}
