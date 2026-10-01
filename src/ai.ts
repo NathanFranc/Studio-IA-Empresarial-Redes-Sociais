@@ -47,6 +47,36 @@ export function aiReady(): boolean {
 }
 
 /** Envia o prompt (e as fotos) e devolve o JSON interpretado. */
+/** Traduz o erro da API da Anthropic para uma mensagem clara (e registra o original nos logs do servidor). */
+function explain(e: unknown): AiError {
+  const err = e as { status?: number; message?: string; error?: { error?: { type?: string; message?: string } } };
+  const status = err.status;
+  const detail = String(err.error?.error?.message ?? err.message ?? '');
+  const type = String(err.error?.error?.type ?? '');
+  console.error('[ia] erro', status ?? '-', type, detail.slice(0, 300));
+  if (status === 401) return new AiError('A chave da IA é inválida ou foi desativada. Gere outra em console.anthropic.com e troque ANTHROPIC_API_KEY no .env do servidor.', 503);
+  if (status === 403) return new AiError('A chave da IA não tem permissão para usar este modelo. Confira a chave e o ANTHROPIC_MODEL no .env.', 503);
+  if (status === 404 || type === 'not_found_error') return new AiError(`O modelo "${config.anthropicModel}" não foi encontrado para esta chave. Confira ANTHROPIC_MODEL no .env.`, 503);
+  if (/credit balance|billing|purchase credits/i.test(detail)) return new AiError('A conta da Anthropic está sem créditos. Adicione créditos em console.anthropic.com > Billing.', 503);
+  if (status === 429) return new AiError('Muitos pedidos à IA agora (ou o limite da conta foi atingido). Espere um minuto e tente de novo.', 429);
+  if (status === 529 || type === 'overloaded_error') return new AiError('A IA está sobrecarregada neste momento. Tente de novo em alguns segundos.', 503);
+  if (status === 400) return new AiError('A IA recusou o pedido' + (detail ? ': ' + detail.slice(0, 160) : '.') , 400);
+  if (!status) return new AiError('O servidor não conseguiu falar com a API da Anthropic (rede ou firewall do VPS). Tente de novo em instantes.');
+  return new AiError('Não consegui falar com a IA agora (erro ' + status + '). Tente de novo em instantes.');
+}
+
+/** Teste rápido da chave e do modelo, para o painel do administrador. */
+export async function testAi(): Promise<{ ok: boolean; model: string; message: string; ms: number }> {
+  const t0 = Date.now();
+  if (!client) return { ok: false, model: config.anthropicModel, message: 'A chave da IA (ANTHROPIC_API_KEY) não está configurada no servidor.', ms: 0 };
+  try {
+    await client.messages.create({ model: config.anthropicModel, max_tokens: 5, messages: [{ role: 'user', content: 'Responda apenas: ok' }] });
+    return { ok: true, model: config.anthropicModel, message: 'A IA respondeu normalmente.', ms: Date.now() - t0 };
+  } catch (e) {
+    return { ok: false, model: config.anthropicModel, message: explain(e).message, ms: Date.now() - t0 };
+  }
+}
+
 export async function askJson(prompt: string, images: string[]): Promise<unknown> {
   if (!client) throw new AiError('A chave da IA (ANTHROPIC_API_KEY) não está configurada no servidor.', 503);
   let msg;
@@ -58,11 +88,7 @@ export async function askJson(prompt: string, images: string[]): Promise<unknown
       messages: [{ role: 'user', content: [...imageBlocks(images), { type: 'text', text: prompt }] }],
     });
   } catch (e: unknown) {
-    const status = (e as { status?: number }).status;
-    if (status === 401) throw new AiError('A chave da IA é inválida. Confira ANTHROPIC_API_KEY.', 503);
-    if (status === 429) throw new AiError('Muitos pedidos à IA agora. Espere um minuto e tente de novo.', 429);
-    if (status === 400) throw new AiError('A IA recusou o pedido. Tente fotos menores ou uma descrição mais curta.', 400);
-    throw new AiError('Não consegui falar com a IA agora. Tente de novo em instantes.');
+    throw explain(e);
   }
   const text = msg.content.map((c) => (c.type === 'text' ? c.text : '')).join('');
   if (msg.stop_reason === 'max_tokens') throw new AiError('A resposta ficou longa demais. Tente com menos slides.');

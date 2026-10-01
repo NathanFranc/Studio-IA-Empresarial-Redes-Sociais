@@ -79,6 +79,10 @@ td.actcell{min-width:300px}
   </div>
 
   <section id="resumo" role="tabpanel" aria-labelledby="t-resumo" class="page" style="padding:0;width:100%;max-width:none">
+    <div class="panel">
+      <div class="row" style="justify-content:space-between"><div><h2>Conexão com a IA</h2><p class="muted" style="margin-top:4px">Testa a chave da Anthropic e o modelo configurados no servidor.</p></div><button class="btn sm" type="button" id="ai-test">Testar agora</button></div>
+      <div class="msg" id="ai-msg" role="status" aria-live="polite"></div>
+    </div>
     <div class="kpis" id="kpis"></div>
     <div class="panel">
       <h2>Últimos 7 dias</h2>
@@ -207,6 +211,12 @@ td.actcell{min-width:300px}
         el('td', { className: 'num', textContent: d.downloads }), el('td', { style: 'width:30%' }, el('div', { className: 'bar b', style: `width:${d.downloads / max * 100}%` }))));
     }
   }
+
+  $('ai-test').onclick = async () => {
+    const b = $('ai-test'), m = $('ai-msg'); b.disabled = true; m.className = 'msg'; m.textContent = 'Testando…';
+    try { const r = await api('/api/admin/test-ai', { method: 'POST' }); m.className = 'msg ' + (r.ok ? 'ok' : 'err'); m.textContent = (r.ok ? '✓ ' : '') + r.message + ' Modelo: ' + r.model + (r.ok ? ' · ' + (r.ms / 1000).toFixed(1) + 's' : ''); }
+    catch (e) { m.className = 'msg err'; m.textContent = e.message; } finally { b.disabled = false; }
+  };
 
   // usuários e acessos
   const genPass = () => {

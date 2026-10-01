@@ -7,10 +7,15 @@ import { Router } from 'express';
 import { endAllSessionsOf, hashPassword, passwordProblem } from '../auth.js';
 import { db, type UserRow } from '../db.js';
 import { ACTIONS, logAction } from '../logs.js';
+import { testAi } from '../ai.js';
 
 export const adminRouter = Router();
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+adminRouter.post('/test-ai', async (_req, res) => {
+  res.json(await testAi());
+});
 
 adminRouter.get('/users', (_req, res) => {
   const users = db.prepare(

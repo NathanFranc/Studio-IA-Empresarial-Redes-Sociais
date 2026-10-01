@@ -106,6 +106,11 @@ O Estúdio publica posts e carrosséis direto no perfil da loja usando a API ofi
 - Limites do Instagram: até 10 imagens por carrossel, 2.200 caracteres e 30 hashtags na legenda, e até 100 publicações pela API a cada 24 horas.
 - Cada publicação fica nos logs (**Publicou no Instagram**), no histórico (selo **No Instagram**) e na lista da aba Instagram.
 
+## Problemas com a IA (não gera o post)
+1. Em **Administração › Resumo**, clique em **Testar agora** (Conexão com a IA). A mensagem diz o motivo: chave inválida, conta sem créditos, modelo não encontrado ou falta de rede.
+2. Veja o erro original no servidor: `docker compose logs app --tail 50 | grep "\[ia\]"`.
+3. Para trocar a chave ou o modelo, edite o `.env` e rode **`docker compose up -d`** (o `restart` não relê o `.env`).
+
 ## Perfis
 
 | | Editor | Administrador |
