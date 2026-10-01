@@ -9,6 +9,7 @@ import { config } from '../config.js';
 import { db } from '../db.js';
 import { logAction } from '../logs.js';
 import { carouselPrompt, postPrompt } from '../prompts.js';
+import { pickCompany } from '../companies.js';
 
 export const aiRouter = Router();
 
@@ -40,9 +41,9 @@ aiRouter.post('/post', async (req, res) => {
   const photoWhite = typeof req.body?.photoWhite === 'boolean' ? req.body.photoWhite : null;
   const started = Date.now();
   try {
-    const result = await askJson(postPrompt(desc, images.length, photoWhite), images);
+    const result = await askJson(postPrompt(pickCompany(req.body?.company), desc, images.length, photoWhite), images);
     const r = result as { titulo?: string; modelo?: string };
-    logAction(req, 'gerar_post', { detail: { titulo: r.titulo ?? '', modelo: r.modelo ?? '', fotos: images.length, ms: Date.now() - started } });
+    logAction(req, 'gerar_post', { detail: { empresa: pickCompany(req.body?.company).name, titulo: r.titulo ?? '', modelo: r.modelo ?? '', fotos: images.length, ms: Date.now() - started } });
     res.json({ result });
   } catch (e) {
     const err = e instanceof AiError ? e : new AiError('Algo falhou na geração.');
@@ -66,9 +67,9 @@ aiRouter.post('/carousel', async (req, res) => {
   const images = readImages(req.body);
   const started = Date.now();
   try {
-    const result = await askJson(carouselPrompt(desc, images.length, tema, n), images);
+    const result = await askJson(carouselPrompt(pickCompany(req.body?.company), desc, images.length, tema, n), images);
     const r = result as { produto?: string };
-    logAction(req, 'gerar_carrossel', { detail: { produto: r.produto ?? '', slides: n, tema, fotos: images.length, ms: Date.now() - started } });
+    logAction(req, 'gerar_carrossel', { detail: { empresa: pickCompany(req.body?.company).name, produto: r.produto ?? '', slides: n, tema, fotos: images.length, ms: Date.now() - started } });
     res.json({ result });
   } catch (e) {
     const err = e instanceof AiError ? e : new AiError('Algo falhou na geração.');

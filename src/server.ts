@@ -22,6 +22,7 @@ import crypto from 'node:crypto';
 import { authorizeUrl, cleanMedia, finishConnect, igConfigured, IgError, refreshIfNeeded } from './instagram.js';
 import { seedAdmin } from './seed.js';
 import { logAction } from './logs.js';
+import { COMPANIES, pickCompany } from './companies.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pub = path.join(root, 'public');
@@ -67,6 +68,9 @@ app.use('/api/posts', requireUser, postsRouter);
 app.use('/api/events', requireUser, eventsRouter);
 app.use('/api/admin', requireUser, requireAdmin, adminRouter);
 app.use('/api/instagram', requireUser, instagramRouter);
+app.get('/api/companies', requireUser, (_req, res) => {
+  res.json({ companies: Object.values(COMPANIES).map((c) => ({ id: c.id, name: c.name, handle: c.handle })) });
+});
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Rota não encontrada.' });
 });
@@ -84,19 +88,21 @@ app.get('/conta', requireUser, page('conta.html'));
 // ----- Instagram: conectar (admin) e imagens temporárias que o Instagram baixa
 app.get('/instagram/conectar', requireUser, requireAdmin, (req, res) => {
   if (!igConfigured()) return void res.redirect('/admin?ig=config#instagram');
+  const co = pickCompany(req.query.empresa).id;
   const state = crypto.randomBytes(18).toString('base64url');
-  res.cookie('ig_state', state, { httpOnly: true, sameSite: 'lax', secure: config.cookieSecure, maxAge: 10 * 60_000, path: '/instagram' });
+  res.cookie('ig_state', state + '.' + co, { httpOnly: true, sameSite: 'lax', secure: config.cookieSecure, maxAge: 10 * 60_000, path: '/instagram' });
   res.redirect(authorizeUrl(state));
 });
 app.get('/instagram/retorno', requireUser, requireAdmin, async (req, res) => {
-  const back = (q: string) => res.redirect('/admin?' + q + '#instagram');
-  const expected = req.cookies?.ig_state;
+  const [expected, co] = String(req.cookies?.ig_state ?? '').split('.');
+  const back = (q: string) => res.redirect('/admin?' + q + '&empresa=' + encodeURIComponent(co || '') + '#instagram');
   res.clearCookie('ig_state', { path: '/instagram' });
   if (req.query.error) return back('ig=cancelado');
   if (!expected || req.query.state !== expected || typeof req.query.code !== 'string') return back('ig=invalido');
   try {
-    const acc = await finishConnect(req.query.code, req.user!.id);
-    logAction(req, 'instagram_conectado', { detail: { conta: acc.username } });
+    const company = pickCompany(co);
+    const acc = await finishConnect(req.query.code, req.user!.id, company.id);
+    logAction(req, 'instagram_conectado', { detail: { empresa: company.name, conta: acc.username } });
     back('ig=ok');
   } catch (e) {
     const msg = e instanceof IgError ? e.message : 'Não foi possível conectar.';

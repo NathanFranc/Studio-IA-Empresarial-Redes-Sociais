@@ -8,27 +8,30 @@ import { requireAdmin } from '../auth.js';
 import { db } from '../db.js';
 import { disconnect, editorsCanPublish, IgError, publish, setEditorsCanPublish, status } from '../instagram.js';
 import { logAction } from '../logs.js';
+import { pickCompany } from '../companies.js';
 
 export const instagramRouter = Router();
 
 const canPublish = (req: Request) => req.user!.role === 'admin' || editorsCanPublish();
 
 instagramRouter.get('/status', (req, res) => {
-  const s = status();
+  const co = pickCompany(req.query.company);
+  const s = { ...status(co.id), company: co.id, companyName: co.name, handle: co.handle };
   if (req.user!.role !== 'admin') { delete (s as Partial<typeof s>).redirectUri; }
   res.json({ ...s, canPublish: canPublish(req) });
 });
 
 instagramRouter.post('/settings', requireAdmin, (req, res) => {
   if (typeof req.body?.editorsCanPublish === 'boolean') setEditorsCanPublish(req.body.editorsCanPublish);
-  res.json(status());
+  res.json(status(pickCompany(req.body?.company).id));
 });
 
 instagramRouter.post('/disconnect', requireAdmin, (req, res) => {
-  const s = status();
-  disconnect();
-  logAction(req, 'instagram_desconectado', { detail: { conta: s.username } });
-  res.json(status());
+  const co = pickCompany(req.body?.company);
+  const s = status(co.id);
+  disconnect(co.id);
+  logAction(req, 'instagram_desconectado', { detail: { empresa: co.name, conta: s.username } });
+  res.json(status(co.id));
 });
 
 // Uma publicação por vez, para não sair post duplicado com cliques repetidos.
@@ -43,6 +46,7 @@ instagramRouter.post('/publish', async (req: Request, res: Response, next: NextF
   const caption = String(req.body?.caption ?? '').trim();
   const postId = Number(req.body?.postId) || null;
   const kind = images.length > 1 ? 'carrossel' : 'post';
+  const co = pickCompany(req.body?.company);
   if (!images.length || images.length > 10) return void res.status(400).json({ error: 'Envie de 1 a 10 imagens.' });
   if (!images.every((i) => typeof i === 'string' && JPEG.test(i))) return void res.status(400).json({ error: 'As imagens precisam estar em JPEG.' });
   if (caption.length > 2200) return void res.status(400).json({ error: `A legenda tem ${caption.length} caracteres. O Instagram aceita até 2.200.` });
@@ -55,16 +59,16 @@ instagramRouter.post('/publish', async (req: Request, res: Response, next: NextF
   busy = true;
   const t0 = Date.now();
   try {
-    const r = await publish(buffers, caption);
+    const r = await publish(co.id, buffers, caption);
     const validPost = postId && db.prepare('SELECT 1 FROM posts WHERE id = ?').get(postId) ? postId : null;
-    db.prepare('INSERT INTO ig_posts (user_id, post_id, media_id, permalink, kind, username) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(req.user!.id, validPost, r.mediaId, r.permalink, kind, r.username);
-    logAction(req, 'publicar_instagram', { postId: validPost, detail: { conta: r.username, tipo: kind, imagens: buffers.length, link: r.permalink, ms: Date.now() - t0 } });
+    db.prepare('INSERT INTO ig_posts (user_id, company, post_id, media_id, permalink, kind, username) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(req.user!.id, co.id, validPost, r.mediaId, r.permalink, kind, r.username);
+    logAction(req, 'publicar_instagram', { postId: validPost, detail: { empresa: co.name, conta: r.username, tipo: kind, imagens: buffers.length, link: r.permalink, ms: Date.now() - t0 } });
     res.json({ ok: true, ...r });
   } catch (e) {
     const err = e instanceof IgError ? e : new IgError('Não foi possível publicar agora. Tente de novo.');
     if (!(e instanceof IgError)) console.error(e);
-    logAction(req, 'erro_instagram', { postId, detail: { motivo: err.message, tipo: kind } });
+    logAction(req, 'erro_instagram', { postId, detail: { empresa: co.name, motivo: err.message, tipo: kind } });
     res.status(err.status).json({ error: err.message });
   } finally {
     busy = false;

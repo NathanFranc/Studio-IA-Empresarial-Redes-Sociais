@@ -127,6 +127,12 @@ Abas **Resumo / Usuários / Logs**: resumo do dia e semana, cadastro e desativa�
 - Administração › **Usuários e acessos**: criar e-mail e senha (com gerador), cartão para copiar o acesso, editar nome/e-mail, nova senha.
 - Administração › **Instagram**: conectar a conta via OAuth (API do Instagram com login do Instagram) e publicar posts e carrosséis direto do Estúdio (`src/instagram.ts`, `src/routes/instagram.ts`). Token de 60 dias criptografado e renovado sozinho; imagens temporárias públicas em `/ig-media/`. Passo a passo da Meta no README.
 
+## 4.2 Segunda empresa: IDM Shop (01/10/2026)
+- Troca de empresa no topo do Estúdio (lembrada no navegador). Cada empresa tem logos, cores, modelos, formato, exemplo, histórico (coluna `posts.company`), legenda e conta do Instagram (`settings` `ig_account:<empresa>`) próprios.
+- IDM Shop (@idmshopoficial): loja de áudio e vídeo. Posts em **1080×1080**, fundo escuro, laranja/amarelo/dourado, logo 3D (`public/assets/idmshop-logo.png`, versão `-escura` para fundo claro).
+- 6 modelos criados a partir das 13 primeiras postagens: Lançamento premium (Loud STA), Ficha laranja (Pure Acoustics Supernova), Destaque amarelo (Yamaha HS5), Data comemorativa (Dia dos Pais), Ambiente elegante (JBL Control paisagismo), Conteúdo da marca (curiosidades JBL). Carrossel próprio no estilo das curiosidades JBL. Os 2 reels (vídeos com apresentadora) não viraram modelo.
+- Campos novos da IA: `frase` {topo, destaque, base} e `resumo`. Para adicionar outra empresa: `src/companies.ts` + objeto em `COMPANIES_FE` no `public/index.html` (+ logos em `public/assets`).
+
 ## 5. Variáveis de ambiente (`.env`)
 
 ```

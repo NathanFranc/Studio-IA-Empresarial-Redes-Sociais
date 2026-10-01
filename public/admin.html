@@ -60,6 +60,10 @@ td.actcell{min-width:300px}
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;color:var(--fg)}
 .steps code,#ig-redirect{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:2px 6px;overflow-wrap:anywhere}
 #ig-redirect{display:block;margin-top:6px;padding:8px 10px}
+.cosw{display:flex;gap:4px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:16px;width:max-content;max-width:100%;flex-wrap:wrap}
+.cosw button{font:inherit;font-weight:700;color:var(--muted);background:transparent;border:0;border-radius:12px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.cosw button[aria-pressed=true]{background:var(--panel-3);color:#fff;box-shadow:inset 0 0 0 1px var(--line-2)}
+.cosw img{height:22px;width:auto}
 .edit .tgl{font-size:13px;color:var(--muted)}
 </style>
 </head>
@@ -109,21 +113,22 @@ td.actcell{min-width:300px}
   </section>
 
   <section id="instagram" role="tabpanel" aria-labelledby="t-instagram" hidden class="page" style="padding:0;width:100%;max-width:none">
+    <div class="cosw" id="ig-co" role="group" aria-label="Empresa"></div>
     <div class="panel">
       <div class="igc">
         <span class="igmark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/></svg></span>
-        <div class="igc-t"><h2>Instagram</h2><p class="muted" id="ig-sub">Conecte a conta da loja para publicar direto pelo Estúdio.</p></div>
+        <div class="igc-t"><h2>Instagram <span id="ig-coname" class="muted" style="font-size:.7em"></span></h2><p class="muted" id="ig-sub">Conecte a conta da loja para publicar direto pelo Estúdio.</p></div>
         <span class="pill" id="ig-pill">…</span>
       </div>
       <div class="msg" id="ig-msg" role="status" aria-live="polite"></div>
       <div id="ig-connected" hidden class="igc-body">
         <dl class="igdl"><dt>Conta</dt><dd id="ig-user"></dd><dt>Conectada em</dt><dd id="ig-since"></dd><dt>Acesso válido até</dt><dd id="ig-until"></dd></dl>
         <label class="tgl"><input type="checkbox" id="ig-editors"> Editores também podem publicar (administradores sempre podem)</label>
-        <div class="row"><a class="btn ghost sm" href="/instagram/conectar">Reconectar</a><button class="btn ghost sm" type="button" id="ig-off">Desconectar</button></div>
+        <div class="row"><a class="btn ghost sm ig-link" href="/instagram/conectar">Reconectar</a><button class="btn ghost sm" type="button" id="ig-off">Desconectar</button></div>
         <p class="muted" style="font-size:13px">O acesso vale 60 dias e é renovado sozinho enquanto o sistema estiver no ar.</p>
       </div>
       <div id="ig-disconnected" hidden class="igc-body">
-        <a class="btn" href="/instagram/conectar" id="ig-connect">Conectar Instagram</a>
+        <a class="btn ig-link" href="/instagram/conectar" id="ig-connect">Conectar Instagram</a>
         <p class="muted" style="font-size:13px">Você vai para o Instagram, entra com a conta da loja e autoriza o Estúdio a publicar. A conta precisa ser profissional (Empresa ou Criador de conteúdo).</p>
       </div>
       <div id="ig-setup" hidden class="igc-body">
@@ -131,7 +136,7 @@ td.actcell{min-width:300px}
         <ol class="steps">
           <li>Em <b>developers.facebook.com</b>, crie um app do tipo <b>Empresa</b> e adicione o produto <b>Instagram</b> › <b>API com login do Instagram</b>.</li>
           <li>Em <b>Configurar login comercial do Instagram</b>, cadastre este endereço de redirecionamento:<code id="ig-redirect"></code></li>
-          <li>Em <b>Funções do app</b> › <b>Testadores do Instagram</b>, adicione <b>@loja_megadino</b> e aceite o convite no app do Instagram (Configurações › Apps e sites).</li>
+          <li>Em <b>Funções do app</b> › <b>Testadores do Instagram</b>, adicione as contas das lojas (<b>@loja_megadino</b>, <b>@idmshopoficial</b>) e aceite o convite no app do Instagram (Configurações › Apps e sites).</li>
           <li>No <code>.env</code> do servidor, preencha <code>IG_APP_ID</code> e <code>IG_APP_SECRET</code> (ID e chave secreta do app do Instagram) e rode <code>docker compose up -d</code>.</li>
         </ol>
       </div>
@@ -290,18 +295,31 @@ td.actcell{min-width:300px}
   });
 
   // instagram
+  let IGCO = new URLSearchParams(location.search).get('empresa') || 'megadino', COS = [];
+  const LOGO = { megadino: '/assets/megadino-logo-branca.png', idmshop: '/assets/idmshop-logo.png' };
+  async function renderIgCo() {
+    if (!COS.length) COS = (await api('/api/companies')).companies;
+    if (!COS.some((c) => c.id === IGCO)) IGCO = COS[0].id;
+    const g = $('ig-co'); g.replaceChildren();
+    for (const c of COS) { const b = el('button', { type: 'button', onclick: () => { IGCO = c.id; loadIg(); } }, el('img', { src: LOGO[c.id] || '', alt: '' }), c.name); b.setAttribute('aria-pressed', String(c.id === IGCO)); g.append(b); }
+  }
   async function loadIg() {
-    const s = await api('/api/instagram/status');
+    await renderIgCo();
+    const co = COS.find((c) => c.id === IGCO);
+    $('ig-coname').textContent = '· ' + co.name;
+    document.querySelectorAll('.ig-link').forEach((a) => { a.href = '/instagram/conectar?empresa=' + IGCO; });
+    const s = await api('/api/instagram/status?company=' + IGCO);
     const pill = $('ig-pill');
     $('ig-setup').hidden = s.configured; $('ig-connected').hidden = !(s.configured && s.connected); $('ig-disconnected').hidden = !(s.configured && !s.connected);
     $('ig-redirect').textContent = s.redirectUri || 'defina DOMAIN ou PUBLIC_URL no .env para ver o endereço';
     if (!s.configured) { pill.className = 'pill off'; pill.textContent = 'Não configurado'; $('ig-sub').textContent = 'Configure o app da Meta para liberar a publicação direta.'; }
     else if (s.connected) { pill.className = 'pill ok'; pill.textContent = 'Conectado'; $('ig-sub').textContent = 'O Estúdio pode publicar posts e carrosséis nesta conta.'; }
-    else { pill.className = 'pill ' + (s.expired ? 'err' : 'warn'); pill.textContent = s.expired ? 'Expirado' : 'Desconectado'; $('ig-sub').textContent = s.expired ? 'A conexão expirou. Conecte de novo.' : 'Conecte a conta da loja para publicar direto pelo Estúdio.'; }
+    else { pill.className = 'pill ' + (s.expired ? 'err' : 'warn'); pill.textContent = s.expired ? 'Expirado' : 'Desconectado'; $('ig-sub').textContent = s.expired ? 'A conexão expirou. Conecte de novo.' : 'Conecte a conta @' + co.handle + ' para publicar direto pelo Estúdio.'; }
     $('ig-user').textContent = s.username ? '@' + s.username : '—';
     $('ig-since').textContent = fmtDate(s.connectedAt); $('ig-until').textContent = fmtDate(s.expiresAt);
     $('ig-editors').checked = !!s.editorsCanPublish;
-    const r = await api('/api/admin/logs?action=publicar_instagram&limit=20&offset=0');
+    const r = await api('/api/admin/logs?action=publicar_instagram&limit=100&offset=0');
+    r.logs = r.logs.filter((l) => { let d = {}; try { d = JSON.parse(l.detail || '{}'); } catch {} return (d.empresa || 'Megadino') === co.name; }).slice(0, 20);
     const tb = $('ig-rows'); tb.replaceChildren();
     if (!r.logs.length) tb.append(el('tr', {}, el('td', { colSpan: 4, className: 'muted', textContent: 'Nada publicado pelo Estúdio ainda.' })));
     for (const l of r.logs) {
@@ -313,14 +331,14 @@ td.actcell{min-width:300px}
   }
   $('ig-editors').onchange = async (e) => {
     const m = $('ig-msg');
-    try { await api('/api/instagram/settings', { method: 'POST', body: { editorsCanPublish: e.target.checked } }); m.className = 'msg ok'; m.textContent = e.target.checked ? 'Editores agora podem publicar.' : 'Só administradores podem publicar.'; }
+    try { await api('/api/instagram/settings', { method: 'POST', body: { company: IGCO, editorsCanPublish: e.target.checked } }); m.className = 'msg ok'; m.textContent = e.target.checked ? 'Editores agora podem publicar.' : 'Só administradores podem publicar.'; }
     catch (err) { m.className = 'msg err'; m.textContent = err.message; }
   };
   let offArmed = false;
   $('ig-off').onclick = async () => {
     const b = $('ig-off');
     if (!offArmed) { offArmed = true; b.textContent = 'Confirmar desconexão'; setTimeout(() => { offArmed = false; b.textContent = 'Desconectar'; }, 3500); return; }
-    try { await api('/api/instagram/disconnect', { method: 'POST' }); $('ig-msg').className = 'msg ok'; $('ig-msg').textContent = 'Instagram desconectado.'; loadIg(); }
+    try { await api('/api/instagram/disconnect', { method: 'POST', body: { company: IGCO } }); $('ig-msg').className = 'msg ok'; $('ig-msg').textContent = 'Instagram desconectado.'; loadIg(); }
     catch (err) { $('ig-msg').className = 'msg err'; $('ig-msg').textContent = err.message; }
   };
   {

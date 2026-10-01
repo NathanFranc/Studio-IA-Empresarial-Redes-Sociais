@@ -6,6 +6,7 @@ Sistema interno para a equipe da Megadino criar as artes do Instagram. A pessoa 
 - **Logs** de acessos (entradas, saídas e tentativas erradas), gerações com IA, downloads, cópias de legenda e alterações de usuários
 - **Histórico reutilizável**: cada arte gerada fica salva com textos, ajustes, legenda e fotos, pronta para abrir e reusar
 - **Painel de administração**: resumo do dia e da semana, gestão da equipe e consulta de logs com filtros e exportação CSV
+- **Várias empresas**: Megadino (1080×1350) e IDM Shop (1080×1080), cada uma com logos, cores, modelos, histórico, legenda e conta do Instagram próprios. A troca fica no topo do Estúdio.
 - **Publicar direto no Instagram**: posts e carrosséis saem do Estúdio para o perfil da loja, com confirmação antes
 - **IA pela chave da empresa**: os textos são escritos no servidor, então a chave nunca aparece no navegador
 
@@ -159,7 +160,8 @@ src/
   logs.ts          gravação dos logs
   ai.ts            chamada à API da Anthropic
   prompts.ts       instruções enviadas à IA (post e carrossel)
-  catalog.ts       modelos, ícones e cores (manter igual ao public/index.html)
+  catalog.ts       modelos, ícones e cores da Megadino (manter igual ao public/index.html)
+  companies.ts     empresas: nome, @, jeito da legenda, cores e modelos de cada uma
   instagram.ts     conexão (OAuth), token criptografado e publicação no Instagram
   routes/          auth, ai, posts (histórico), events (downloads), admin, instagram
 public/

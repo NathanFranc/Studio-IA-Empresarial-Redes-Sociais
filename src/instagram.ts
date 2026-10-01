@@ -17,6 +17,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { config, igMediaDir } from './config.js';
 import { getSetting, setSetting } from './db.js';
+import { companyIds } from './companies.js';
 
 export class IgError extends Error {
   constructor(message: string, public status = 502) { super(message); }
@@ -57,8 +58,8 @@ function open(box: string): string {
   return Buffer.concat([d.update(enc), d.final()]).toString('utf8');
 }
 
-export function getAccount(): Account | null {
-  const raw = getSetting('ig_account');
+export function getAccount(co: string): Account | null {
+  const raw = getSetting('ig_account:' + co);
   if (!raw || !config.igAppSecret) return null;
   try {
     return JSON.parse(open(raw)) as Account;
@@ -66,11 +67,11 @@ export function getAccount(): Account | null {
     return null; // segredo do app mudou: precisa conectar de novo
   }
 }
-function saveAccount(a: Account | null): void {
-  setSetting('ig_account', a ? seal(JSON.stringify(a)) : null);
+function saveAccount(co: string, a: Account | null): void {
+  setSetting('ig_account:' + co, a ? seal(JSON.stringify(a)) : null);
 }
-export function disconnect(): void {
-  saveAccount(null);
+export function disconnect(co: string): void {
+  saveAccount(co, null);
 }
 
 /** Se os editores também podem publicar (o admin sempre pode). */
@@ -81,8 +82,8 @@ export function setEditorsCanPublish(v: boolean): void {
   setSetting('ig_editors_publish', v ? '1' : '0');
 }
 
-export function status() {
-  const a = getAccount();
+export function status(co: string) {
+  const a = getAccount(co);
   return {
     configured: igConfigured(),
     connected: !!a && a.expiresAt > Date.now(),
@@ -139,7 +140,7 @@ export function authorizeUrl(state: string): string {
   return `${config.igAuthUrl}?${q.toString()}`;
 }
 
-export async function finishConnect(code: string, userId: number): Promise<Account> {
+export async function finishConnect(code: string, userId: number, co: string): Promise<Account> {
   const form = new URLSearchParams({
     client_id: config.igAppId,
     client_secret: config.igAppSecret,
@@ -166,20 +167,23 @@ export async function finishConnect(code: string, userId: number): Promise<Accou
     connectedAt: now,
   };
   if (!acc.igUserId) throw new IgError('Não foi possível identificar a conta do Instagram.');
-  saveAccount(acc);
+  saveAccount(co, acc);
   return acc;
 }
 
 /** Renova o token quando faltam menos de 20 dias (a API só renova tokens com mais de 24 h). */
 export async function refreshIfNeeded(): Promise<void> {
-  const a = getAccount();
+  for (const co of companyIds) await refreshOne(co);
+}
+async function refreshOne(co: string): Promise<void> {
+  const a = getAccount(co);
   if (!a || a.expiresAt <= Date.now()) return;
   if (a.expiresAt - Date.now() > 20 * DAY || Date.now() - a.obtainedAt < DAY) return;
   try {
     const r = await call(`${config.igGraphUrl}/refresh_access_token?` + new URLSearchParams({ grant_type: 'ig_refresh_token', access_token: a.token }).toString());
     const now = Date.now();
-    saveAccount({ ...a, token: String(r.access_token ?? a.token), expiresAt: now + Number(r.expires_in ?? 60 * 86_400) * 1000, obtainedAt: now });
-    console.log('[instagram] token renovado');
+    saveAccount(co, { ...a, token: String(r.access_token ?? a.token), expiresAt: now + Number(r.expires_in ?? 60 * 86_400) * 1000, obtainedAt: now });
+    console.log('[instagram] token renovado:', co);
   } catch (e) {
     console.error('[instagram] falha ao renovar o token:', (e as Error).message);
   }
@@ -222,9 +226,9 @@ export interface PublishResult { mediaId: string; permalink: string | null; user
  * Publica 1 imagem (post) ou de 2 a 10 (carrossel) com a legenda.
  * `jpegs` são os arquivos já em JPEG 1080×1350.
  */
-export async function publish(jpegs: Buffer[], caption: string, onStep?: (s: string) => void): Promise<PublishResult> {
-  const a = getAccount();
-  if (!a) throw new IgError('O Instagram não está conectado. Peça ao administrador para conectar em Administração > Instagram.', 400);
+export async function publish(co: string, jpegs: Buffer[], caption: string, onStep?: (s: string) => void): Promise<PublishResult> {
+  const a = getAccount(co);
+  if (!a) throw new IgError('O Instagram desta empresa não está conectado. Peça ao administrador para conectar em Administração > Instagram.', 400);
   if (a.expiresAt <= Date.now()) throw new IgError('A conexão com o Instagram expirou. Peça ao administrador para conectar de novo.', 400);
   const me = a.igUserId, token = a.token;
   const files: string[] = [];

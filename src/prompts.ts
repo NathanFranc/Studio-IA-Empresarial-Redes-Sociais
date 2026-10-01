@@ -3,18 +3,17 @@
  * Uso, cópia, modificação ou distribuição só com autorização por escrito do autor. Ver LICENSE.
  */
 /** Textos enviados para a IA. Montados no servidor para que ninguém use a chave com outro fim. */
-import { COLOR_KEYS, ICON_KEYS, MODELS } from './catalog.js';
+import { ICON_KEYS } from './catalog.js';
+import type { Company } from './companies.js';
 
-const CLOSING = 'Acesse o link na bio e garanta o seu com envio rápido pela Megadino! 📦';
-
-export function postPrompt(desc: string, nImg: number, photoWhite: boolean | null): string {
+export function postPrompt(co: Company, desc: string, nImg: number, photoWhite: boolean | null): string {
   const withImage = nImg > 0;
   const photoNote = photoWhite === null
     ? 'Ainda não há foto.'
     : photoWhite
       ? 'A foto tem fundo branco (produto isolado).'
       : 'A foto NÃO tem fundo branco (provavelmente produto em uso ou num ambiente).';
-  return `Você cria posts de feed do Instagram para a Megadino, loja online brasileira que vende eletroportáteis, utilidades domésticas e produtos de cuidado pessoal (Wahl, KitchenAid, Philco, Britânia...).
+  return `Você cria posts de feed do Instagram para a ${co.about}.
 ${withImage ? 'A imagem anexada é a foto do produto. ' : ''}${photoNote}
 Leia a descrição/ficha técnica abaixo e devolva SOMENTE um JSON com os textos da arte, o modelo indicado e a legenda.
 
@@ -36,14 +35,16 @@ REGRAS
 - "variacoes": se a descrição oferecer o produto em mais de um tamanho, capacidade, voltagem ou cor, liste cada opção curta (ex.: ["3L","4,5L","7L"] ou ["110V","220V"]). Senão, lista vazia.
 - "data_comemorativa": se a descrição citar uma data (ex.: "Dia dos Pais", "Natal", "Black Friday"), escreva-a; senão "".
 - "chamada": frase curta de impacto para o rodapé, até 24 caracteres.
-- "cor": a cor que combina com o produto/categoria, uma destas: ${COLOR_KEYS.join(', ')}.
+- "frase": manchete em até 3 partes para modelos de impacto: {"topo": até 16 caracteres em caixa alta (ex.: "MONITOR DE", "SOM QUE"), "destaque": a parte forte, até 22 caracteres (ex.: "REFERÊNCIA", "ELEVA SUA EXPERIÊNCIA", "CONEXÃO TOTAL."), "base": opcional, até 16 caracteres (ex.: "PROFISSIONAL")}.
+- "resumo": 1 frase de até 110 caracteres sobre o que o produto entrega ao cliente.
+- "cor": a cor que combina com o produto/categoria, uma destas: ${co.colors.join(', ')}.
 - "modelo": o modelo de arte mais adequado, um destes ids:
-${MODELS.map((m) => '  ' + m.id + ' = ' + m.name + ': ' + m.when).join('\n')}
+${co.models.map((m) => '  ' + m.id + ' = ' + m.name + ': ' + m.when).join('\n')}
 - "motivo": por que esse modelo, em até 90 caracteres, falando com a equipe da loja.
-- "legenda": legenda no estilo da loja: abre com uma pergunta ou dor do cliente, 2 a 3 parágrafos curtos explicando benefícios e especificações, emojis com moderação, fecha com "${CLOSING}" e 6 a 8 hashtags incluindo #Megadino.
+- "legenda": legenda no estilo da loja: ${co.captionStyle}; fecha com "${co.closing}" e 6 a 8 hashtags incluindo ${co.hashtag}.
 
 FORMATO
-{"marca":"","selo":"","tipo":"","titulo":"","subtitulo":"","linha":"","manchete":{"topo":"","destaque":"","script":""},"badge":"","carimbo":{"topo":"","base":"","icone":""},"publico":"","beneficios":[{"titulo":"","texto":"","icone":""}],"extras":[{"titulo":"","texto":"","icone":""}],"cta":{"titulo":"","texto":""},"especificacoes":[{"rotulo":"","valor":""}],"variacoes":[],"data_comemorativa":"","chamada":"","cor":"","modelo":"","motivo":"","legenda":""}
+{"marca":"","selo":"","tipo":"","titulo":"","subtitulo":"","linha":"","manchete":{"topo":"","destaque":"","script":""},"badge":"","carimbo":{"topo":"","base":"","icone":""},"publico":"","beneficios":[{"titulo":"","texto":"","icone":""}],"extras":[{"titulo":"","texto":"","icone":""}],"cta":{"titulo":"","texto":""},"especificacoes":[{"rotulo":"","valor":""}],"variacoes":[],"data_comemorativa":"","chamada":"","frase":{"topo":"","destaque":"","base":""},"resumo":"","cor":"","modelo":"","motivo":"","legenda":""}
 
 DESCRIÇÃO DO PRODUTO
 """
@@ -51,8 +52,8 @@ ${desc.slice(0, 8000)}
 """`;
 }
 
-export function carouselPrompt(desc: string, nImg: number, tema: string, n: number): string {
-  return `Você cria carrosséis de conteúdo para o Instagram da Megadino, loja online brasileira de eletroportáteis, utilidades domésticas e cuidado pessoal.
+export function carouselPrompt(co: Company, desc: string, nImg: number, tema: string, n: number): string {
+  return `Você cria carrosséis de conteúdo para o Instagram da ${co.about}.
 ${nImg > 1 ? 'As ' + nImg + ' imagens anexadas são as fotos 1 a ' + nImg + ' do MESMO produto, em ângulos diferentes, nessa ordem. ' : nImg === 1 ? 'A imagem anexada é a foto do produto. ' : ''}Monte um carrossel de ${n} slides sobre o produto abaixo: 1 capa, ${n - 2} slides de conteúdo e 1 slide final de chamada.
 ${tema ? 'Tema pedido pela equipe: ' + tema.slice(0, 200) : 'Escolha o tema que mais ajuda o cliente a decidir a compra (ex.: motivos para ter, como usar, dicas de uso, como escolher).'}
 
@@ -70,7 +71,7 @@ REGRAS
   "icone" de cada slide é um destes: ${ICON_KEYS.join(', ')}.
 - "cta.titulo" parte escura até 20 caracteres (ex.: "Mais praticidade e"); "cta.destaque" parte colorida até 20 caracteres (ex.: "mais tempo livre"); "cta.texto" até 70 caracteres.
 - "produto": nome curto do produto.
-${nImg > 1 ? '- "foto": em cada slide, na capa e no cta, o número (1 a ' + nImg + ') da foto que melhor ilustra aquele conteúdo (ex.: tampa aberta no slide sobre limpeza). Use a foto mais bonita e completa na capa e varie as fotos entre os slides.\n' : ''}- "legenda": legenda do carrossel no estilo da loja: abre com pergunta, convida a arrastar, resume o conteúdo em 2 parágrafos curtos, fecha com "${CLOSING}" e 6 a 8 hashtags incluindo #Megadino.
+${nImg > 1 ? '- "foto": em cada slide, na capa e no cta, o número (1 a ' + nImg + ') da foto que melhor ilustra aquele conteúdo (ex.: tampa aberta no slide sobre limpeza). Use a foto mais bonita e completa na capa e varie as fotos entre os slides.\n' : ''}- "legenda": legenda do carrossel no estilo da loja: abre com pergunta, convida a arrastar, resume o conteúdo em 2 parágrafos curtos, fecha com "${co.closing}" e 6 a 8 hashtags incluindo ${co.hashtag}.
 
 FORMATO
 {"produto":"","capa":{"gancho":"","pilula":"","destaque":"","script":"","apoio":""${nImg > 1 ? ',"foto":1' : ''}},"slides":[{"tipo":"problema","titulo":"","destaque":"","texto":"","problema":"","solucao":"","numero":"","numero_rotulo":"","itens":[],"icone":""${nImg > 1 ? ',"foto":2' : ''}}],"cta":{"titulo":"","destaque":"","texto":""${nImg > 1 ? ',"foto":1' : ''}},"legenda":""}

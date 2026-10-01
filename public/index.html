@@ -91,7 +91,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .strip button{flex:0 0 auto;padding:0;border:2px solid transparent;border-radius:9px;background:none;cursor:pointer;opacity:.7;transition:opacity .15s}
 .strip button:hover{opacity:1}
 .strip button[aria-current=true]{border-color:var(--accent);opacity:1}
-.strip canvas{width:84px;height:105px;display:block;border-radius:7px}
+.strip canvas{width:84px;height:auto;aspect-ratio:var(--ar,4/5);display:block;border-radius:7px}
 .fields textarea{min-height:80px}
 .current{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border:1px solid var(--line);background:var(--panel-2);border-radius:12px;padding:10px 14px}
 .current b{font-size:16px}
@@ -112,7 +112,7 @@ summary::marker{color:var(--accent)}
   background:radial-gradient(600px 380px at 50% 30%,rgba(240,69,47,.10),transparent 70%),
     radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/18px 18px,#0E0E10}
 @media (max-width:960px){.stage{padding:14px}}
-.canvasbox{width:100%;max-width:560px;aspect-ratio:4/5;background:#1a1a1d;border-radius:12px;overflow:hidden;
+.canvasbox{width:100%;max-width:560px;aspect-ratio:var(--ar,4/5);background:#1a1a1d;border-radius:12px;overflow:hidden;
   box-shadow:0 0 0 1px rgba(255,255,255,.06),0 30px 80px -30px rgba(0,0,0,.95),0 0 60px -20px rgba(240,69,47,.35)}
 .canvasbox canvas{width:100%;height:100%;display:block}
 .tag{align-self:center;font-size:11.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--warn);background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.25);border-radius:999px;padding:5px 12px}
@@ -128,7 +128,7 @@ summary::marker{color:var(--accent)}
 .card{font:inherit;color:inherit;text-align:left;background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:8px;position:relative;min-width:0;transition:border-color .15s,transform .15s,box-shadow .15s}
 .card:hover{border-color:var(--line-2);transform:translateY(-2px);box-shadow:0 18px 40px -24px rgba(0,0,0,.9)}
 .card[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 18px 40px -20px rgba(240,69,47,.5)}
-.card canvas{width:100%;aspect-ratio:4/5;border-radius:10px;display:block;background:#fff;max-width:100%}
+.card canvas{width:100%;aspect-ratio:var(--ar,4/5);border-radius:10px;display:block;background:#fff;max-width:100%}
 .card .nm{font-weight:700;font-size:15px;line-height:1.2;padding-inline:2px}
 .card .wh{font-size:12.5px;color:var(--muted);line-height:1.35;padding:0 2px 2px}
 .badge{position:absolute;top:14px;left:14px;background:var(--brasa);color:#fff;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border-radius:999px;padding:4px 10px;box-shadow:0 6px 16px -6px rgba(240,69,47,.8)}
@@ -138,7 +138,7 @@ summary::marker{color:var(--accent)}
 .hist{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
 .hc{background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0;transition:border-color .15s}
 .hc:hover{border-color:var(--line-2)}
-.hc img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;display:block;background:#fff}
+.hc img{width:100%;aspect-ratio:var(--ar,4/5);object-fit:cover;border-radius:10px;display:block;background:#fff}
 .hc .ht{font-weight:700;line-height:1.2;overflow-wrap:anywhere}
 .hc .hm{font-size:12.5px;color:var(--muted)}
 .hc .hb{display:flex;gap:6px}
@@ -155,6 +155,19 @@ summary::marker{color:var(--accent)}
 .logo figcaption span{display:flex;flex-direction:column}
 .logo small{color:var(--muted)}
 .logo .btn{padding:10px 16px}
+/* ---- Troca de empresa ---- */
+.cosw{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:18px;width:100%}
+@media (max-width:480px){.cosw{grid-template-columns:minmax(0,1fr)}}
+.cosw button{font:inherit;color:var(--muted);background:transparent;border:0;border-radius:14px;padding:8px 12px;min-width:0;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:52px;transition:background .15s,color .15s}
+.cosw button:hover{background:var(--panel-2);color:var(--fg)}
+.cosw button[aria-pressed=true]{background:var(--panel-3);color:#fff;box-shadow:inset 0 0 0 1px var(--line-2)}
+.cosw button:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.cosw img{height:24px;width:auto;display:block}
+.cosw .idm img{height:30px}
+.cosw small{font-size:12px;color:var(--muted);display:block;line-height:1.2;text-align:left}
+.cosw b{display:block;font-size:14px;line-height:1.2;text-align:left}
+.hero-r{display:flex;flex-direction:column;gap:12px;align-items:stretch;width:min(560px,100%)}
+@media (max-width:760px){.hero-r{align-items:flex-start}}
 /* ---- Publicar no Instagram ---- */
 .igbox{width:100%;max-width:560px;display:flex;flex-direction:column;gap:12px}
 .btn.ig{width:100%;background:linear-gradient(90deg,#FEDA75,#FA7E1E 25%,#D62976 55%,#962FBF 80%,#4F5BD5);box-shadow:0 10px 26px -12px rgba(214,41,118,.7),inset 0 1px 0 rgba(255,255,255,.25)}
@@ -220,7 +233,7 @@ summary::marker{color:var(--accent)}
 .media{position:relative;background:#111;user-select:none}
 .track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 .track::-webkit-scrollbar{display:none}
-.track canvas{flex:0 0 100%;width:100%;aspect-ratio:4/5;display:block;scroll-snap-align:center}
+.track canvas{flex:0 0 100%;width:100%;aspect-ratio:var(--ar,4/5);display:block;scroll-snap-align:center}
 .count{position:absolute;top:12px;right:12px;background:rgba(18,18,18,.72);color:#fff;font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;font-variant-numeric:tabular-nums}
 .nav{position:absolute;top:50%;translate:0 -50%;width:28px;height:28px;border-radius:50%;border:0;background:rgba(255,255,255,.85);color:#111;cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 .nav svg{width:14px;height:14px}
@@ -285,8 +298,11 @@ summary::marker{color:var(--accent)}
 <div class="wrap">
   <header class="hero">
     <div><span class="eyebrow"><i></i>Estúdio de criação</span>
-    <h1>Estúdio <span>Megadino</span></h1></div>
-    <p>Envie a foto do produto e a ficha técnica. A arte do feed (1080×1350) e a legenda saem prontas para postar, e tudo fica salvo no histórico.</p>
+    <h1>Estúdio <span id="coName">Megadino</span></h1></div>
+    <div class="hero-r">
+      <div class="cosw" id="cosw" role="group" aria-label="Empresa"></div>
+      <p id="heroTxt">Envie a foto do produto e a ficha técnica. A arte do feed e a legenda saem prontas para postar, e tudo fica salvo no histórico.</p>
+    </div>
   </header>
 
   <div class="modes" role="group" aria-label="Tipo de publicação">
@@ -474,15 +490,15 @@ summary::marker{color:var(--accent)}
 <script>
 (function(){
 const {api,logEvent,downloadBlob}=Estudio;
-const W=1080,H=1350;
+const W=1080;let H=1350;
 const _gc=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(t,o){const c=_gc.call(this,t,o);if(c&&t==='2d'){c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high'}return c};
 const IW=i=>i.naturalWidth||i.width,IH=i=>i.naturalHeight||i.height;
 const cv=document.getElementById('cv'), mainCtx=cv.getContext('2d');
 let ctx=mainCtx;
 const $=id=>document.getElementById(id);
 
-const COLORS={vermelho:'#C8261C',azul:'#1F3F94',laranja:'#E0521B',verde:'#1F7A4D',rosa:'#D6246E',dourado:'#B8893A',preto:'#151515'};
-const MODELS=[
+let COLORS={vermelho:'#C8261C',azul:'#1F3F94',laranja:'#E0521B',verde:'#1F7A4D',rosa:'#D6246E',dourado:'#B8893A',preto:'#151515'};
+let MODELS=[
  {id:'claro',name:'Ficha clara',when:'Fundo branco, marca grande e produto em destaque (estilo capas Wahl Travel Shaver e Style Pro).',why:'a foto tem fundo branco e o produto fala por si'},
  {id:'ficha',name:'Ficha colorida',when:'Fundo na cor do produto, 3 benefícios e público ideal (estilo Wahl KM2+).',why:'destaca bem os benefícios de um produto único'},
  {id:'faixa',name:'Destaque de marca',when:'Marca forte: manchete, lista de benefícios, dados técnicos e faixa de vantagens (estilo KitchenAid).',why:'a marca é conhecida e a ficha tem especificações fortes'},
@@ -493,7 +509,7 @@ const MODELS=[
  {id:'dicas',name:'Capa de carrossel',when:'Número grande, frase com destaque e manuscrito (estilo "3 tarefas simples").',why:'dá para explicar os benefícios em formato de dicas'},
  {id:'data',name:'Data comemorativa',when:'Fundo escuro de loja, data gigante, selo redondo e barra de confiança (estilo Dia dos Pais).',why:'a descrição cita uma data comemorativa'},
  {id:'cupom',name:'Cupom / promoção',when:'Laranja vibrante, cupom em cartão tracejado e chamada final (estilo cupom Shopee).',why:'a descrição fala de cupom ou promoção'}];
-const MODEL_BY=Object.fromEntries(MODELS.map(m=>[m.id,m]));
+let MODEL_BY=Object.fromEntries(MODELS.map(m=>[m.id,m]));
 const ICONS={
  raio:'M13 2L4 14h7l-1 8 9-12h-7l1-8z',
  escudo:'M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z M9 12l2 2 4-4',
@@ -532,7 +548,7 @@ const ICONS={
 const ICON_KEYS=Object.keys(ICONS);
 const iconPaths={}; for(const k of ICON_KEYS) iconPaths[k]=new Path2D(ICONS[k]);
 
-const EXAMPLE={
+let EXAMPLE={
  marca:'', selo:'NOVIDADE NA LOJA', tipo:'PIPOQUEIRA', titulo:'PIPOQUEIRA', subtitulo:'antiaderente com manivela', linha:'ANTIADERENTE · COM MANIVELA',
  badge:'PIPOCA DE CINEMA NA SUA CASA', carimbo:{topo:'ESTOURA POR IGUAL',base:'MENOS QUEIMADO',icone:'fogo'},
  manchete:{topo:'MAIS',destaque:'PIPOCA, MENOS QUEIMADO,',script:'toda sessão!'},
@@ -583,8 +599,8 @@ function specs(){return (state.data.especificacoes||[]).filter(s=>s&&s.valor).sl
 function variants(){return (state.data.variacoes||[]).map(v=>String(v).trim()).filter(Boolean).slice(0,4)}
 
 // ---------- logos
-const LOGO_SRC={preta:'/assets/megadino-logo-preta.png',branca:'/assets/megadino-logo-branca.png'};
-const LOGOS={};for(const k in LOGO_SRC){const i=new Image();i.onload=()=>draw();i.src=LOGO_SRC[k];LOGOS[k]=i}
+let LOGO_SRC={preta:'/assets/megadino-logo-preta.png',branca:'/assets/megadino-logo-branca.png'};
+let LOGOS={};function loadLogos(){LOGOS={};for(const k in LOGO_SRC){const i=new Image();i.onload=()=>draw();i.src=LOGO_SRC[k];LOGOS[k]=i}}loadLogos();
 function wordmark(x,y,color,align,size){size=size||42;const want=state.logo==='auto'?(color==='#FFFFFF'?'branca':'preta'):state.logo;const L=LOGOS[want];
  if(L&&L.complete&&L.naturalWidth){const h=size*1.25,w=h*L.naturalWidth/L.naturalHeight;const X=align==='right'?x-w:align==='center'?x-w/2:x;ctx.drawImage(L,X,y-h*0.86,w,h);return}
  font(800,size,'b');spacing(-1);ctx.fillStyle=color;ctx.textAlign=align||'left';ctx.fillText('megadino',x,y);ctx.textAlign='left';spacing(0)}
@@ -830,6 +846,150 @@ function tplCupom(A){const d=state.data,dark=mix(A,'#000000',0.38);
  ctx.fillStyle='#FFFFFF';ctx.beginPath();ctx.moveTo(0,H-104);ctx.quadraticCurveTo(W/2,H-156,W,H-104);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();wordmark(W/2,H-36,'#111111','center',60)}
 
 const TPL={claro:tplClaro,ficha:tplFicha,faixa:tplFaixa,tamanhos:tplTamanhos,kit:tplKit,premium:tplPremium,ambiente:tplAmbiente,dicas:tplDicas,data:tplData,cupom:tplCupom};
+
+// ---------- IDM Shop: modelos (1080×1080, visual escuro de áudio e vídeo)
+// Baseados nas 13 primeiras postagens de @idmshopoficial: lançamento Loud, ficha Supernova,
+// destaque Yamaha HS5, Dia dos Pais, paisagismo JBL Control e curiosidades JBL.
+function F(){const d=state.data,f=d.frase||{};return{topo:f.topo||'',destaque:f.destaque||'',base:f.base||''}}
+function modelName(){const d=state.data;return((d.linha||'').split('·')[0].trim()||d.titulo||'').toUpperCase()}
+function feats(n){const a=items(),b=extras();const out=[...a];for(const e of b){if(out.length>=n)break;if(!out.some(o=>(o.titulo||'').toLowerCase()===(e.titulo||'').toLowerCase()))out.push(e)}return out.slice(0,n)}
+function seeded(seed){let s=seed;return()=>{s=(s*16807)%2147483647;return(s-1)/2147483646}}
+function idmLogo(x,y,w,align){const L=LOGOS.branca;if(!(L&&L.complete&&L.naturalWidth)){font(900,w*0.2,'b');ctx.fillStyle='#FFB400';ctx.textAlign=align||'left';ctx.fillText('IDM SHOP',x,y);ctx.textAlign='left';return}
+ const h=w*L.naturalHeight/L.naturalWidth,X=align==='right'?x-w:align==='center'?x-w/2:x;ctx.drawImage(L,X,y-h,w,h)}
+function vgrad(y0,y1,stops){const g=ctx.createLinearGradient(0,y0,0,y1);stops.forEach(([o,c])=>g.addColorStop(o,c));return g}
+function glow(x,y,rx,ry,c){ctx.save();ctx.translate(x,y);ctx.scale(1,ry/rx);blob(0,0,rx,c);ctx.restore()}
+function ring(k,cx,cy,r,acc,fill){ctx.lineWidth=2.5;ctx.strokeStyle=acc;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill()}ctx.stroke();icon(k,cx,cy,r*1.05,acc,2)}
+function boxIcon(k,cx,cy,s,acc){ctx.lineWidth=2.5;ctx.strokeStyle=acc;rr(cx-s/2,cy-s/2,s,s,s*0.22);ctx.stroke();icon(k,cx,cy,s*0.56,acc,2)}
+function tagline(x,y,acc,align){const t=CO.tagline||['',''];font(700,21,'b');spacing(0.5);ctx.textAlign=align||'left';ctx.fillStyle='#FFFFFF';ctx.fillText(t[0],x,y);
+ const last=t[1].split(' ').pop(),first=t[1].slice(0,t[1].length-last.length);font(500,21,'b');const w1=ctx.measureText(first).width;font(800,21,'b');const w2=ctx.measureText(last).width;
+ const X=align==='right'?x-w1-w2:x;ctx.textAlign='left';font(500,21,'b');ctx.fillStyle='#FFFFFF';ctx.fillText(first,X,y+28);font(800,21,'b');ctx.fillStyle=acc;ctx.fillText(last,X+w1,y+28);spacing(0)}
+function shield(cx,cy,s,c){ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(cx,cy-s*0.55);ctx.lineTo(cx+s*0.45,cy-s*0.38);ctx.lineTo(cx+s*0.42,cy+s*0.08);ctx.quadraticCurveTo(cx+s*0.32,cy+s*0.42,cx,cy+s*0.58);ctx.quadraticCurveTo(cx-s*0.32,cy+s*0.42,cx-s*0.42,cy+s*0.08);ctx.lineTo(cx-s*0.45,cy-s*0.38);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#14100C';ctx.lineWidth=s*0.09;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(cx-s*0.18,cy+s*0.02);ctx.lineTo(cx-s*0.03,cy+s*0.17);ctx.lineTo(cx+s*0.22,cy-s*0.12);ctx.stroke()}
+/** Texto em uma linha com partes de cores diferentes, ex.: [['HS','#fff'],['5','#FC0']]. */
+function multi(parts,x,y){let X=x;for(const [t,c] of parts){ctx.fillStyle=c;ctx.fillText(t,X,y);X+=ctx.measureText(t).width}return X-x}
+function digitsParts(t,base,acc){const out=[];for(const ch of t){const c=/[0-9]/.test(ch)?acc:base;if(out.length&&out[out.length-1][1]===c)out[out.length-1][0]+=ch;else out.push([ch,c])}return out}
+function bgNight(A){ctx.fillStyle=vgrad(0,H,[[0,'#0D1016'],[0.55,'#07080B'],[1,'#050506']]);ctx.fillRect(0,0,W,H);
+ const r=seeded(7);for(let i=0;i<70;i++){const x=380+r()*700,y=10+r()*230,s=2+r()*7;ctx.fillStyle='rgba(255,'+(170+Math.floor(r()*60))+','+(80+Math.floor(r()*60))+','+(0.15+r()*0.45)+')';ctx.beginPath();ctx.arc(x,y,s,0,Math.PI*2);ctx.fill()}
+ ctx.fillStyle=vgrad(0,300,[[0,'rgba(7,8,11,0)'],[1,'rgba(7,8,11,0.95)']]);ctx.fillRect(0,0,W,300);glow(900,420,330,260,'rgba(255,190,110,0.10)');glow(150,1000,520,140,'rgba(255,200,140,0.06)')}
+function bgWood(){ctx.fillStyle=vgrad(0,H,[[0,'#1B110A'],[0.6,'#0E0906'],[1,'#080504']]);ctx.fillRect(0,0,W,H);
+ for(let x=500;x<W;x+=90){ctx.fillStyle='rgba(255,170,90,0.035)';ctx.fillRect(x,0,3,760)}glow(770,520,520,420,'rgba(255,130,30,0.22)');glow(260,120,260,180,'rgba(255,150,60,0.10)');
+ ctx.fillStyle=vgrad(760,H,[[0,'#3A2316'],[1,'#120B07']]);ctx.fillRect(0,760,W,H-760);const r=seeded(3);for(let i=0;i<26;i++){ctx.fillStyle='rgba(0,0,0,'+(0.1+r()*0.18)+')';ctx.fillRect(0,770+r()*300,W,1+r()*3)}ctx.fillStyle='rgba(255,180,110,0.25)';ctx.fillRect(0,760,W,2)}
+function bgStudio(acc){ctx.fillStyle='#050505';ctx.fillRect(0,0,W,H);const r=seeded(11);for(let i=0;i<14;i++){ctx.fillStyle='rgba(120,130,150,'+(0.04+r()*0.06)+')';rr(380+r()*640,120+r()*420,60+r()*160,14+r()*40,6);ctx.fill()}
+ glow(820,1000,460,140,rgba(acc,0.45));glow(760,640,420,380,'rgba(255,255,255,0.04)');ctx.fillStyle=vgrad(820,H,[[0,'rgba(0,0,0,0)'],[1,'rgba(0,0,0,0.6)']]);ctx.fillRect(0,820,W,H-820)}
+function waves(cx,cy,acc){ctx.save();ctx.lineWidth=2.5;for(let i=0;i<5;i++){ctx.strokeStyle=rgba(acc,0.55-i*0.09);ctx.beginPath();ctx.arc(cx,cy,90+i*34,Math.PI*0.72,Math.PI*1.28);ctx.stroke()}ctx.restore()}
+function photoBox(x,y,w,h,o){return drawPhoto(x,y,w,h,true,Object.assign({align:'bottom'},o||{}))}
+function photoWide(){const src=photoSrc();return src?IW(src)/IH(src)>1.25:false}
+
+// 1) Lançamento premium (Loud STA 2150)
+function tplILanc(A){const d=state.data,f=F(),gold=A;bgNight(A);
+ const sel=(d.selo||'LANÇAMENTO').toUpperCase();font(800,24,'b');spacing(1.5);const pw=ctx.measureText(sel).width+52;ctx.fillStyle=vgrad(56,108,[[0,mix(gold,'#FFFFFF',0.25)],[1,mix(gold,'#000000',0.15)]]);rr(48,56,pw,50,25);ctx.fill();ctx.fillStyle='#14100A';ctx.textBaseline='middle';ctx.fillText(sel,74,82);ctx.textBaseline='alphabetic';spacing(0);
+ let bx=48;const brand=(d.marca||'').trim();if(brand){const s=fit(brand.toLowerCase(),800,'b',72,40,330);ctx.fillStyle='#FFFFFF';ctx.fillText(brand.toLowerCase(),48,190);bx=48+ctx.measureText(brand.toLowerCase()).width+28;ctx.fillStyle='rgba(255,255,255,0.55)';ctx.fillRect(bx,138,2,62);bx+=28}
+ font(300,22,'b');spacing(6);ctx.fillStyle='#FFFFFF';ctx.fillText((d.tipo||'NOVA LINHA').toUpperCase(),bx,160);font(500,22,'b');ctx.fillStyle=gold;ctx.fillText(((d.linha||'').split('·')[1]||d.subtitulo||'').trim().toUpperCase().slice(0,30),bx,194);spacing(0);
+ const wide=photoWide(),TW=wide?980:470;let y=262;
+ const head=(t,c)=>{const T=t.toUpperCase();let S=fit(T,800,'b',74,46,TW);let L=[T];if(ctx.measureText(T).width>TW){font(800,S,'b');L=wrap(T,TW).slice(0,2)}ctx.fillStyle=c;L.forEach(l=>{ctx.fillText(l,48,y+S*0.76);y+=S*1.05})};if(f.topo)head(f.topo,'#FFFFFF');if(f.destaque)head(f.destaque,gold);y+=6;
+ const prod=((d.marca?d.marca+' ':'')+((d.linha||'').split('·')[0].trim()||d.titulo)).trim();font(400,28,'b');ctx.fillStyle='rgba(255,255,255,0.88)';wrap(d.subtitulo||'',TW).slice(0,wide?1:2).forEach(l=>{ctx.fillText(l,48,y+30);y+=36});if(prod){font(800,28,'b');ctx.fillStyle='#FFFFFF';ctx.fillText(prod,48,y+30);y+=36}y+=24;
+ const fl=feats(5),cols=wide?fl.length:Math.min(3,fl.length);const cw=wide?Math.min(140,(W-96)/Math.max(1,cols)):150;
+ fl.forEach((b,i)=>{const row=wide?0:Math.floor(i/3),col=wide?i:i%3,cx=48+col*cw+cw/2,cy=y+30+row*140;icon(b.icone,cx,cy,46,'#FFFFFF',1.8);font(600,15,'b');spacing(0.5);ctx.textAlign='center';ctx.fillStyle='#FFFFFF';
+  wrap((b.titulo||'').toUpperCase(),cw-14).slice(0,2).forEach((l,k)=>ctx.fillText(l,cx,cy+50+k*18));ctx.textAlign='left';spacing(0);if(col>0){ctx.fillStyle='rgba(255,255,255,0.22)';ctx.fillRect(48+col*cw,cy-24,1.5,96)}});
+ if(wide){photoBox(40,y+150,W-80,Math.max(200,890-(y+150)))}else{photoBox(520,250,540,690)}
+ const sp=specs();if(sp.length){const bw=Math.min(W-160,sp.length*210),bxx=(W-bw)/2;ctx.fillStyle='rgba(22,22,26,0.88)';rr(bxx,904,bw,58,14);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1.5;ctx.stroke();
+  const cw2=bw/sp.length;sp.forEach((s,i)=>{const cx=bxx+cw2*i+cw2/2;ctx.textAlign='center';font(800,21,'b');ctx.fillStyle='#FFFFFF';ctx.fillText(s.valor,cx,930);font(400,14,'b');ctx.fillStyle='rgba(255,255,255,0.7)';ctx.fillText(s.rotulo.toUpperCase(),cx,950);ctx.textAlign='left'})}
+ idmLogo(40,1050,230);ctx.fillStyle=gold;ctx.beginPath();ctx.moveTo(612,1000);ctx.lineTo(632,1000);ctx.lineTo(644,1034);ctx.lineTo(624,1034);ctx.closePath();ctx.fill();tagline(660,1012,gold)}
+
+// 2) Ficha laranja (Pure Acoustics Supernova)
+function tplITorre(A){const d=state.data,f=F(),acc=A;bgWood();
+ photoBox(470,190,600,720);
+ ctx.save();ctx.fillStyle='rgba(10,7,5,0.92)';ctx.beginPath();ctx.moveTo(700,-2);ctx.quadraticCurveTo(650,4,650,60);ctx.lineTo(650,150);ctx.quadraticCurveTo(650,210,720,210);ctx.lineTo(W+2,210);ctx.lineTo(W+2,-2);ctx.closePath();ctx.fill();ctx.strokeStyle=acc;ctx.lineWidth=3;ctx.stroke();ctx.restore();idmLogo(865,170,330,'center');
+ let y=92;if(d.marca){font(300,44,'b');spacing(1);ctx.fillStyle='#FFFFFF';ctx.fillText(d.marca.toUpperCase(),48,y);spacing(0);y+=10}
+ const mn=modelName()||'PRODUTO';const S=fit(mn,400,'d',142,60,590);ctx.fillStyle=vgrad(y,y+S,[[0,mix(acc,'#FFFFFF',0.35)],[1,acc]]);ctx.fillText(mn,44,y+S*0.98);y+=S+16;
+ font(500,26,'b');ctx.fillStyle='#FFFFFF';wrap(((d.tipo||'')+' '+(d.subtitulo||'')).trim().toUpperCase(),560).slice(0,2).forEach(l=>{ctx.fillText(l,48,y+24);y+=34});
+ const vals=specs().map(s=>s.valor).slice(0,3).join(' · ');if(vals){font(600,28,'b');ctx.fillStyle=acc;ctx.fillText(vals.toUpperCase(),48,y+28);y+=40}
+ ctx.fillStyle=(()=>{const g=ctx.createLinearGradient(48,0,470,0);g.addColorStop(0,acc);g.addColorStop(1,rgba(acc,0));return g})();ctx.fillRect(48,y+14,420,3);y+=40;
+ if(f.topo){font(800,38,'b');ctx.fillStyle='#FFFFFF';ctx.fillText(f.topo.toUpperCase(),48,y+34);y+=42}if(f.destaque){font(800,38,'b');ctx.fillStyle=acc;wrap(f.destaque.toUpperCase(),400).slice(0,2).forEach(l=>{ctx.fillText(l,48,y+34);y+=42})}
+ if(d.resumo){font(400,21,'b');ctx.fillStyle='rgba(255,255,255,0.86)';wrap(d.resumo,390).slice(0,3).forEach(l=>{ctx.fillText(l,48,y+30);y+=27});y+=6}
+ const rows=items(),rh=Math.min(64,(905-y-10)/Math.max(1,rows.length));rows.forEach((b,i)=>{const cy=y+16+i*rh+rh/2;ring(b.icone,76,cy,Math.min(24,rh*0.38),acc,'rgba(0,0,0,0.35)');font(700,22,'b');ctx.fillStyle='#FFFFFF';ctx.fillText((b.titulo||'').toUpperCase(),114,cy-2);font(400,16,'b');ctx.fillStyle='rgba(255,255,255,0.8)';ctx.fillText(b.texto||'',114,cy+20);
+  if(i<rows.length-1){ctx.fillStyle=rgba(acc,0.25);ctx.fillRect(48,cy+rh/2,380,1)}});
+ ctx.fillStyle='rgba(12,8,5,0.9)';rr(24,926,W-48,130,18);ctx.fill();ctx.strokeStyle=acc;ctx.lineWidth=2;ctx.stroke();shield(94,990,64,acc);
+ font(800,26,'b');ctx.fillStyle=acc;ctx.fillText('QUALIDADE',148,972);ctx.fillText('QUE VOCÊ OUVE!',148,1002);{const t=(d.marca?d.marca+'. ':'')+(d.chamada||'Performance que impressiona.');fit(t,400,'b',18,12,330);ctx.fillStyle='rgba(255,255,255,0.85)';ctx.fillText(t,148,1032)}
+ ctx.fillStyle='rgba(255,255,255,0.25)';ctx.fillRect(500,950,1.5,82);
+ ctx.fillStyle=acc;rr(548,946,420,58,10);ctx.fill();icon('carrinho',590,975,34,'#14100C',2.4);fit((d.cta?.titulo||'COMPRE AGORA').toUpperCase(),800,'b',30,18,320);ctx.fillStyle='#14100C';ctx.fillText((d.cta?.titulo||'COMPRE AGORA').toUpperCase(),628,986);
+ font(400,21,'b');ctx.fillStyle='#FFFFFF';ctx.textAlign='center';ctx.fillText((d.cta?.texto||'e transforme seu som!').slice(0,42),758,1036);ctx.textAlign='left'}
+
+// 3) Destaque amarelo (Yamaha HS5)
+function tplIRef(A){const d=state.data,f=F(),acc=A;bgStudio(acc);waves(560,600,acc);photoBox(430,200,640,720);
+ let y=40;if(f.topo){fit(f.topo.toUpperCase(),800,'b',62,36,560);ctx.fillStyle=vgrad(y,y+62,[[0,'#FFFFFF'],[1,'#CFCFCF']]);ctx.fillText(f.topo.toUpperCase(),40,y+58);y+=70}
+ if(f.destaque){const S=fit(f.destaque.toUpperCase(),'italic 900','b',112,50,640);ctx.fillStyle=vgrad(y,y+S,[[0,mix(acc,'#FFFFFF',0.3)],[1,acc]]);ctx.fillText(f.destaque.toUpperCase(),36,y+S*0.92);y+=S+8}
+ if(f.base){fit(f.base.toUpperCase(),800,'b',62,36,560);ctx.fillStyle=vgrad(y,y+62,[[0,'#FFFFFF'],[1,'#CFCFCF']]);ctx.fillText(f.base.toUpperCase(),40,y+58);y+=74}
+ y+=18;if(d.marca){fit(d.marca.toUpperCase(),800,'b',50,30,380);ctx.fillStyle='#FFFFFF';ctx.fillText(d.marca.toUpperCase(),42,y+44);y+=56}
+ const mn=modelName();if(mn){const S=fit(mn,'italic 900','b',150,64,400);multi(digitsParts(mn,'#FFFFFF',acc),36,y+S*0.88);y+=S+10}
+ font(800,27,'b');const bl=wrap((d.badge||'').toUpperCase(),290).slice(0,4);if(bl.length){const bh=bl.length*36+34;ctx.fillStyle='rgba(0,0,0,0.6)';rr(40,y,330,bh,14);ctx.fill();ctx.strokeStyle=acc;ctx.lineWidth=2.5;ctx.stroke();font(800,27,'b');bl.forEach((l,i)=>{ctx.fillStyle=i%2?acc:'#FFFFFF';ctx.fillText(l,60,y+46+i*36)});y+=bh+24}
+ const rows=items().slice(0,3),rh=Math.min(72,(930-y)/Math.max(1,rows.length));rows.forEach((b,i)=>{const cy=y+rh*i+rh/2;ring(b.icone,70,cy,26,acc);font(500,20,'b');ctx.fillStyle='#FFFFFF';ctx.fillText((b.titulo||'').toUpperCase(),110,cy-3);ctx.fillText((b.texto||'').toUpperCase().slice(0,26),110,cy+21)});
+ ctx.fillStyle=vgrad(950,1030,[[0,mix(acc,'#FFFFFF',0.25)],[1,acc]]);rr(40,952,440,80,12);ctx.fill();ctx.fillStyle='#141414';rr(52,962,60,60,10);ctx.fill();icon('carrinho',82,992,36,acc,2.4);
+ fit((d.cta?.titulo||'GARANTA O SEU!').toUpperCase(),'italic 900','b',36,20,340);ctx.fillStyle='#141414';ctx.fillText((d.cta?.titulo||'GARANTA O SEU!').toUpperCase(),128,1005);idmLogo(1040,1050,330,'right')}
+
+// 4) Data comemorativa (Dia dos Pais)
+function tplIData(A){const d=state.data,f=F(),acc=A;ctx.fillStyle=vgrad(0,H,[[0,'#2A1B10'],[1,'#0C0805']]);ctx.fillRect(0,0,W,H);
+ for(let i=0;i<4;i++){const yy=120+i*190;ctx.fillStyle='rgba(255,196,120,0.10)';ctx.fillRect(0,yy,W,3);glow(300+i*180,yy+40,220,60,'rgba(255,190,110,0.07)')}glow(780,520,420,360,'rgba(255,170,80,0.12)');
+ ctx.strokeStyle=rgba(acc,0.85);ctx.lineWidth=2;rr(22,22,W-44,H-44,18);ctx.stroke();photoBox(380,280,680,650);
+ const words=(d.data_comemorativa||f.destaque||'OFERTA').toUpperCase().split(/\s+/);const big=words.pop(),small=words.join(' ');let y=80;
+ if(small){font(700,40,'b');ctx.fillStyle='#FFFFFF';ctx.fillText(small,58,y+36);y+=44}const S=fit(big,400,'d',220,90,520);ctx.fillStyle=acc;ctx.fillText(big,52,y+S*0.95);const bw=ctx.measureText(big).width;
+ ctx.save();ctx.strokeStyle=acc;ctx.lineWidth=3;const hx=52+bw+8,hy=y+S*0.85;ctx.beginPath();ctx.moveTo(hx,hy+22);ctx.bezierCurveTo(hx-30,hy,hx-14,hy-26,hx,hy-8);ctx.bezierCurveTo(hx+14,hy-26,hx+30,hy,hx,hy+22);ctx.stroke();ctx.restore();y+=S+20;
+ const l1=(d.data_comemorativa?f.topo:'')||'PRESENTEIE COM',l2=(d.data_comemorativa?f.destaque:f.base)||d.chamada||'';font(400,30,'b');ctx.fillStyle='#FFFFFF';ctx.fillText(l1.toUpperCase(),58,y+30);if(l2){font('italic 700',36,'b');ctx.fillStyle=acc;ctx.fillText(l2.toUpperCase().slice(0,22),58,y+72)}y+=110;
+ ctx.fillStyle=acc;rr(-20,y,370,96,16);ctx.fill();{let l1=((d.tipo||'')+' '+(d.marca||'')).trim().toUpperCase();font(800,26,'b');if(ctx.measureText(l1).width>310)l1=(d.marca||d.tipo||'').toUpperCase();fit(l1,800,'b',26,14,310);ctx.fillStyle='#16110A';ctx.fillText(l1,40,y+40);fit(modelName(),800,'b',24,14,310);ctx.fillText(modelName(),40,y+74)}y+=130;
+ items().slice(0,3).forEach((b,i)=>{const cy=y+30+i*84;boxIcon(b.icone,84,cy,54,acc);fit(b.titulo||'',600,'b',23,15,240);ctx.fillStyle='#FFFFFF';ctx.fillText(b.titulo||'',128,cy-3);fit(b.texto||'',400,'b',20,13,240);ctx.fillStyle='rgba(255,255,255,0.8)';ctx.fillText(b.texto||'',128,cy+23)});
+ ctx.fillStyle=acc;rr(58,960,54,54,10);ctx.fill();icon('sacola',85,987,32,'#16110A',2.2);font(700,26,'b');ctx.fillStyle='#FFFFFF';ctx.fillText((d.cta?.titulo||'GARANTA O PRESENTE').toUpperCase().slice(0,24),130,982);font(700,26,'b');ctx.fillStyle=acc;ctx.fillText((d.cta?.texto||'').toUpperCase().slice(0,26),130,1014);idmLogo(1036,1040,230,'right')}
+
+// 5) Ambiente elegante (JBL Control no paisagismo)
+function tplIAmb(A){const d=state.data,f=F(),acc=A;const scene=state.photo&&(state.whiteRatio<0.12||state.bgMode==='orig');
+ if(scene){drawCover(0,0,W,H);ctx.fillStyle=(()=>{const g=ctx.createLinearGradient(0,0,760,560);g.addColorStop(0,'rgba(0,0,0,0.72)');g.addColorStop(0.6,'rgba(0,0,0,0.25)');g.addColorStop(1,'rgba(0,0,0,0)');return g})();ctx.fillRect(0,0,W,H)}
+ else{ctx.fillStyle=vgrad(0,H,[[0,'#1A2130'],[0.45,'#141821'],[0.62,'#0E120E'],[1,'#070907']]);ctx.fillRect(0,0,W,H);glow(820,560,520,140,'rgba(255,190,110,0.20)');const r=seeded(5);for(let i=0;i<9;i++){const x=60+r()*960,y=640+r()*380;glow(x,y,70,26,'rgba(255,200,120,0.28)');ctx.fillStyle='rgba(255,220,160,0.9)';ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill()}
+  glow(780,980,300,60,'rgba(255,200,130,0.18)');photoBox(500,420,540,600)}
+ let y=96;if(f.topo){font(300,30,'b');spacing(5);ctx.fillStyle='#FFFFFF';ctx.fillText(f.topo.toUpperCase(),56,y);spacing(0);y+=16}
+ if(f.destaque){font(300,62,'b');spacing(2);ctx.fillStyle='#FFFFFF';wrap(f.destaque.toUpperCase(),640).slice(0,2).forEach(l=>{ctx.fillText(l,52,y+62);y+=70});spacing(0)}
+ y+=18;ctx.fillStyle=acc;ctx.fillRect(56,y,90,3);y+=44;
+ const brand=(d.marca||'').toUpperCase(),mn=modelName();font(800,40,'b');spacing(1);ctx.fillStyle='#FFFFFF';const bw=brand?ctx.measureText(brand+' ').width:0;if(brand)ctx.fillText(brand+' ',56,y+20);ctx.fillStyle=acc;ctx.fillText(mn,56+bw,y+20);spacing(0);y+=56;
+ font(300,22,'b');spacing(3);ctx.fillStyle='rgba(255,255,255,0.92)';wrap((d.subtitulo||d.resumo||'').toUpperCase(),460).slice(0,3).forEach(l=>{ctx.fillText(l,56,y+8);y+=30});spacing(0);
+ idmLogo(1036,1046,190,'right')}
+
+// 6) Conteúdo da marca (curiosidades JBL)
+function tplICurio(A){const d=state.data,acc=A;ctx.fillStyle='#050505';ctx.fillRect(0,0,W,H);glow(820,560,480,460,rgba(acc,0.28));
+ const wm=((d.marca||d.titulo||'IDM').toUpperCase()).slice(0,6);ctx.save();font(400,520,'d');ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=3;ctx.strokeText(wm,300,560);ctx.restore();
+ photoBox(470,170,600,830);
+ const bt=(d.marca||'IDM').toUpperCase();fit(bt,400,'d',44,20,190);const tw=ctx.measureText(bt).width;ctx.fillStyle=acc;rr(40,40,Math.max(96,tw+40),96,14);ctx.fill();ctx.fillStyle='#FFFFFF';ctx.textAlign='center';ctx.fillText(bt,40+Math.max(96,tw+40)/2,104);ctx.textAlign='left';
+ const n=String(Math.max(2,items().length||3));font(400,330,'d');ctx.fillStyle='#FFFFFF';ctx.fillText(n,32,480);
+ let y=548;font(400,74,'d');ctx.fillStyle='#FFFFFF';ctx.fillText('MOTIVOS PARA',40,y);y+=80;ctx.fillText('ESCOLHER',40,y);y+=96;
+ const S=fit((d.titulo||'').toUpperCase(),400,'d',96,48,520);ctx.fillStyle=acc;wrap((d.titulo||'').toUpperCase(),520).slice(0,2).forEach(l=>{ctx.fillText(l,40,y);y+=S*1.02});
+ if(d.marca){const t=('DA '+d.marca).toUpperCase();fit(t,400,'d',58,30,440);ctx.fillStyle='#FFFFFF';ctx.fillText(t,40,y+6);icon('som',40+ctx.measureText(t).width+40,y-16,46,acc,2.4)}
+ ctx.fillStyle=acc;rr(40,1020,64,8,4);ctx.fill();ctx.fillStyle='rgba(255,255,255,0.25)';rr(112,1020,64,8,4);ctx.fill();idmLogo(1040,1046,180,'right')}
+Object.assign(TPL,{i_lanc:tplILanc,i_torre:tplITorre,i_ref:tplIRef,i_data:tplIData,i_amb:tplIAmb,i_curio:tplICurio});
+
+// ---------- IDM Shop: carrossel (estilo "curiosidades", 1080×1080)
+function idmFrame(A,i,n,tag){ctx.fillStyle='#050505';ctx.fillRect(0,0,W,H);glow(840,560,460,440,rgba(A,0.22));
+ const wm=((state.car.produto||'IDM').split(/\s+/)[0]||'IDM').toUpperCase().slice(0,6);ctx.save();font(400,500,'d');ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=3;ctx.strokeText(wm,330,540);ctx.restore();
+ idmLogo(40,118,200);font(600,22,'b');ctx.fillStyle='rgba(255,255,255,0.6)';ctx.textAlign='right';ctx.fillText((i+1)+'/'+n,W-48,88);ctx.textAlign='left';
+ for(let k=0;k<n;k++){ctx.fillStyle=k===i?A:'rgba(255,255,255,0.22)';rr(40+k*52,1026,44,8,4);ctx.fill()}
+ if(i<n-1){font(600,21,'b');ctx.fillStyle='rgba(255,255,255,0.6)';ctx.textAlign='right';ctx.fillText('arraste →',W-48,1036);ctx.textAlign='left'}
+ if(tag){font(800,20,'b');spacing(1.5);const tw=ctx.measureText(tag).width+36;ctx.strokeStyle=A;ctx.lineWidth=2.5;rr(40,170,tw,44,22);ctx.stroke();ctx.fillStyle=A;ctx.fillText(tag,58,200);spacing(0)}}
+function idmTitle(t1,t2,y,A,maxW){maxW=maxW||560;if(t1){const S=fit(t1.toUpperCase(),400,'d',84,44,maxW);ctx.fillStyle='#FFFFFF';ctx.fillText(t1.toUpperCase(),40,y+S*0.92);y+=S*1.02}
+ if(t2){const S=fit(t2.toUpperCase(),400,'d',84,44,maxW);ctx.fillStyle=A;wrap(t2.toUpperCase(),maxW).slice(0,2).forEach(l=>{ctx.fillText(l,40,y+S*0.92);y+=S*1.02})}return y}
+function idmBody(text,y,maxW,max){font(400,27,'b');ctx.fillStyle='rgba(255,255,255,0.9)';wrap(text||'',maxW||520).slice(0,max||7).forEach(l=>{ctx.fillText(l,40,y+28);y+=36});return y}
+function paintSlideIdm(target,i){ctx=target;const A=COLORS[state.color]||COLORS.laranja,S=carSlides(),s=S[i]||S[0];curPh=slidePhoto(S,i);ctx.save();ctx.clearRect(0,0,W,H);spacing(0);ctx.textAlign='left';ctx.textBaseline='alphabetic';
+ try{const n=S.length;
+  if(s.tipo==='capa'){const c=state.car.capa||{};idmFrame(A,i,n,'');photoBox(500,160,560,840);const g=(c.gancho||'').trim(),mm=g.match(/^(\d+)\s+(.*)$/);let y=180;
+   if(mm){font(400,300,'d');ctx.fillStyle='#FFFFFF';ctx.fillText(mm[1],34,y+270);y+=290}const rest=(mm?mm[2]:g).toUpperCase();font(400,66,'d');ctx.fillStyle='#FFFFFF';wrap(rest,500).slice(0,2).forEach(l=>{ctx.fillText(l,40,y+60);y+=70});
+   if(c.pilula){font(400,66,'d');ctx.fillStyle='#FFFFFF';wrap(c.pilula.toUpperCase(),500).slice(0,2).forEach(l=>{ctx.fillText(l,40,y+60);y+=70})}
+   if(c.destaque){const SS=fit(c.destaque.toUpperCase(),400,'d',110,56,520);ctx.fillStyle=A;ctx.fillText(c.destaque.toUpperCase(),40,y+SS*0.92);y+=SS*1.02}
+   const tail=((c.script||'')+' '+(c.apoio||'')).trim();if(tail){font(400,48,'d');ctx.fillStyle='#FFFFFF';wrap(tail.toUpperCase(),520).slice(0,2).forEach(l=>{ctx.fillText(l,40,y+46);y+=52})}}
+  else if(s.tipo==='cta'){const c=state.car.cta||{};idmFrame(A,i,n,'GARANTA O SEU');photoBox(520,240,540,760);let y=idmTitle(c.titulo,c.destaque,250,A,480)+16;y=idmBody(c.texto,y,460,4)+24;
+   ctx.fillStyle=A;rr(40,y,420,64,32);ctx.fill();icon('carrinho',80,y+32,32,'#FFFFFF',2.4);font(800,24,'b');ctx.fillStyle='#FFFFFF';ctx.fillText('LINK NA BIO',110,y+41)}
+  else{const k=S.slice(1,i+1).filter(x=>x.tipo==='topico').length;const tag={topico:'DESTAQUE '+k,problema:'PROBLEMA E SOLUÇÃO',passos:'PASSO A PASSO',specs:'FICHA TÉCNICA'}[s.tipo]||'DESTAQUE';
+   idmFrame(A,i,n,tag);photoBox(560,250,500,750);let y=idmTitle(s.titulo,s.destaque,240,A,500)+18;
+   if(s.tipo==='problema'){font(800,22,'b');ctx.fillStyle=A;ctx.fillText('O PROBLEMA',40,y+22);y=idmBody(s.problema,y+28,500,3)+14;font(800,22,'b');ctx.fillStyle=A;ctx.fillText('A SOLUÇÃO',40,y+22);y=idmBody(s.solucao,y+28,500,3)+16;
+    (s.itens||[]).filter(Boolean).slice(0,4).forEach((t,j)=>{icon('check',54,y+18+j*42,26,A,2.6);font(600,23,'b');ctx.fillStyle='#FFFFFF';ctx.fillText(t,80,y+26+j*42)})}
+   else if(s.tipo==='passos'){(s.itens||[]).filter(Boolean).slice(0,5).forEach((t,j)=>{const cy=y+30+j*92;ctx.fillStyle=A;ctx.beginPath();ctx.arc(62,cy,24,0,Math.PI*2);ctx.fill();font(400,30,'d');ctx.fillStyle='#FFFFFF';ctx.textAlign='center';ctx.fillText(String(j+1),62,cy+11);ctx.textAlign='left';font(500,24,'b');ctx.fillStyle='#FFFFFF';wrap(t,420).slice(0,2).forEach((l,q)=>ctx.fillText(l,102,cy+8+q*28-(wrap(t,420).length>1?12:0)))})}
+   else if(s.tipo==='specs'){(s.itens||[]).filter(Boolean).slice(0,6).forEach((t,j)=>{const [r,...v]=String(t).split(':');const cy=y+j*72;ctx.fillStyle='rgba(255,255,255,0.18)';ctx.fillRect(40,cy+58,480,1);font(500,20,'b');ctx.fillStyle='rgba(255,255,255,0.7)';ctx.fillText(r.trim().toUpperCase(),40,cy+22);font(800,30,'b');ctx.fillStyle=A;ctx.fillText((v.join(':')||'').trim(),40,cy+50)})}
+   else{if(s.numero){font(400,120,'d');ctx.fillStyle=A;ctx.fillText(s.numero,40,y+104);font(600,24,'b');ctx.fillStyle='#FFFFFF';ctx.fillText((s.numero_rotulo||'').toUpperCase(),44,y+136);y+=160}idmBody(s.texto,y,500,7)}}}
+ catch(e){console.error(e)}ctx.restore();ctx=mainCtx;curPh=null}
 function paint(target,model){ctx=target;const A=COLORS[state.color]||COLORS.vermelho;ctx.save();ctx.clearRect(0,0,W,H);spacing(0);ctx.textAlign='left';ctx.textBaseline='alphabetic';try{(TPL[model]||tplClaro)(A)}catch(e){console.error(e)}ctx.restore();ctx=mainCtx}
 
 // ---------- rendering + showcase thumbnails
@@ -839,7 +999,7 @@ function draw(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>state.mo
 function drawThumbs(){document.querySelectorAll('.card canvas').forEach(c=>{paint(offCtx,c.dataset.model);const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.drawImage(off,0,0,c.width,c.height)})}
 function renderVitrine(){const v=$('vit');v.replaceChildren();for(const m of MODELS){const b=document.createElement('button');b.type='button';b.className='card';b.setAttribute('aria-pressed',String(state.model===m.id));b.setAttribute('aria-label','Usar modelo '+m.name);
   if(state.rec&&state.rec.model===m.id){const s=document.createElement('span');s.className='badge';s.textContent='Indicado';b.append(s)}
-  const c=document.createElement('canvas');c.width=360;c.height=450;c.dataset.model=m.id;const n=document.createElement('span');n.className='nm';n.textContent=m.name;const w=document.createElement('span');w.className='wh';w.textContent=m.when;b.append(c,n,w);
+  const c=document.createElement('canvas');c.width=360;c.height=Math.round(360*H/W);c.dataset.model=m.id;const n=document.createElement('span');n.className='nm';n.textContent=m.name;const w=document.createElement('span');w.className='wh';w.textContent=m.when;b.append(c,n,w);
   b.onclick=()=>{state.model=m.id;syncModel();draw();document.querySelector('.canvasbox').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'})};v.append(b)}
  drawThumbs()}
 function syncModel(){$('curModel').textContent=MODEL_BY[state.model].name;document.querySelectorAll('.card').forEach((c,i)=>c.setAttribute('aria-pressed',String(MODELS[i].id===state.model)))}
@@ -866,7 +1026,8 @@ function sep(t){const s=document.createElement('div');s.className='sep';s.textCo
 function renderFields(){const f=$('fields'),d=state.data;f.replaceChildren();
  d.manchete=d.manchete||{};d.carimbo=d.carimbo||{};d.cta=d.cta||{};d.extras=d.extras||[];d.confianca=d.confianca||[];
  f.append(field('Título (nome curto)',d.titulo,v=>d.titulo=v,'full'),field('Subtítulo',d.subtitulo,v=>d.subtitulo=v,'full'),field('Marca do fabricante',d.marca,v=>d.marca=v),field('Tipo do produto',d.tipo,v=>d.tipo=v),field('Modelo / versão (use · para 2 partes)',d.linha,v=>d.linha=v,'full'),field('Selo',d.selo,v=>d.selo=v),field('Público ("Ideal para…")',d.publico,v=>d.publico=v),field('Chamada / slogan',d.chamada,v=>d.chamada=v,'full'));
- f.append(sep('Manchete'),field('Palavra de abertura (ex.: MAIS)',d.manchete.topo,v=>d.manchete.topo=v),field('Manuscrito (ex.: todos os dias!)',d.manchete.script,v=>d.manchete.script=v),field('Frase em destaque',d.manchete.destaque,v=>d.manchete.destaque=v,'full'));
+ d.frase=d.frase||{};if(CO.id==='idmshop')f.append(sep('Manchete de impacto'),field('Linha de cima (ex.: SOM QUE)',d.frase.topo,v=>d.frase.topo=v),field('Linha de baixo (opcional)',d.frase.base,v=>d.frase.base=v),field('Parte em destaque (ex.: ELEVA SUA EXPERIÊNCIA)',d.frase.destaque,v=>d.frase.destaque=v,'full'),field('Resumo (1 frase)',d.resumo||'',v=>d.resumo=v,'full'));
+ if(CO.id==='megadino')f.append(sep('Manchete'),field('Palavra de abertura (ex.: MAIS)',d.manchete.topo,v=>d.manchete.topo=v),field('Manuscrito (ex.: todos os dias!)',d.manchete.script,v=>d.manchete.script=v),field('Frase em destaque',d.manchete.destaque,v=>d.manchete.destaque=v,'full'));
  f.append(sep('Selos'),field('Faixa com estrela (topo)',d.badge,v=>d.badge=v,'full'),field('Selo redondo · linha de cima',d.carimbo.topo,v=>d.carimbo.topo=v),field('Selo redondo · linha de baixo',d.carimbo.base,v=>d.carimbo.base=v));
  f.append(sep('Benefícios'));
  while(d.beneficios.length<4)d.beneficios.push({titulo:'',texto:'',icone:'check'});
@@ -965,7 +1126,8 @@ function clean(r){const s=(v,n)=>String(v??'').trim().slice(0,n);const out={marc
  manchete:{topo:s(r.manchete?.topo,12),destaque:s(r.manchete?.destaque,34),script:s(r.manchete?.script,24)},
  carimbo:{topo:s(r.carimbo?.topo,22),base:s(r.carimbo?.base,22),icone:ICONS[r.carimbo?.icone]?r.carimbo.icone:'estrela'},
  extras:(Array.isArray(r.extras)?r.extras:[]).slice(0,4).map(b=>({titulo:s(b?.titulo,22),texto:s(b?.texto,48),icone:ICONS[b?.icone]?b.icone:'check'})),
- cta:{titulo:s(r.cta?.titulo,26),texto:s(r.cta?.texto,50)}};
+ cta:{titulo:s(r.cta?.titulo,26),texto:s(r.cta?.texto,50)},
+ frase:{topo:s(r.frase?.topo,20),destaque:s(r.frase?.destaque,28),base:s(r.frase?.base,20)},resumo:s(r.resumo,120)};
  if(COLORS[r.cor])out.cor=r.cor;out.modelo=MODEL_BY[r.modelo]?r.modelo:'';out.motivo=s(r.motivo,120);return out}
 
 let ctl=null;
@@ -977,9 +1139,9 @@ $('gen').onclick=async()=>{const desc=$('desc').value.trim();if(!desc){setStatus
  if(state.mode==='car')return genCar(desc);
  ctl=new AbortController();busy(true,'Lendo a ficha e escrevendo os textos… (leva de 10 a 40 segundos)');
  try{const img=state.file?await fileToDataUrl(state.file,1400):null;
-  const {result}=await api('/api/ai/post',{method:'POST',body:{desc,images:img?[img]:[],photoWhite:state.photo?state.whiteRatio>=0.12:null},signal:ctl.signal});
+  const {result}=await api('/api/ai/post',{method:'POST',body:{company:CO.id,desc,images:img?[img]:[],photoWhite:state.photo?state.whiteRatio>=0.12:null},signal:ctl.signal});
   const d=clean(result||{});if(!d.titulo)throw new Error('A resposta veio incompleta. Clique em gerar de novo.');
-  const model=d.modelo||recommendLocal(desc),why=d.motivo||MODEL_BY[model].why;delete d.modelo;delete d.motivo;
+  const model=d.modelo||(CO.id==='idmshop'?recommendIdm(desc):recommendLocal(desc)),why=d.motivo||MODEL_BY[model].why;delete d.modelo;delete d.motivo;
   state.data=d;state.postGenerated=true;if(d.cor)state.color=d.cor;state.model=model;state.rec={model,why};
   $('exampleTag').hidden=true;$('cap').value=d.legenda;renderChips();renderFields();renderVitrine();syncModel();showRec();draw();
   state.histId=null;await saveHistory(true);
@@ -992,16 +1154,16 @@ $('stop').onclick=()=>ctl?.abort();
 function slug(t){return (t||'post').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'post'}
 $('dl').onclick=async()=>{if(state.mode==='car')return dlCar();const note=$('dlnote');if(!state.photo){note.textContent='Envie a foto do produto antes de baixar.';return}
  paint(mainCtx,state.model);const blob=await new Promise(r=>cv.toBlob(r,'image/png'));if(!blob){note.textContent='Não consegui gerar o PNG. Tente de novo.';return}
- downloadBlob('megadino-'+slug(state.data.titulo)+'-'+state.model+'.png',blob);note.textContent='Arte baixada.';logEvent('baixar_post',{titulo:state.data.titulo,modelo:MODEL_BY[state.model].name,cor:state.color},state.histId)};
+ downloadBlob(CO.file+'-'+slug(state.data.titulo)+'-'+state.model+'.png',blob);note.textContent='Arte baixada.';logEvent('baixar_post',{titulo:state.data.titulo,modelo:MODEL_BY[state.model].name,cor:state.color},state.histId)};
 $('copy').onclick=async()=>{const t=$('cap');logEvent('copiar_legenda',{},state.histId);try{await navigator.clipboard.writeText(t.value);$('dlnote').textContent='Legenda copiada.'}catch(e){t.focus();t.select();$('dlnote').textContent='Legenda selecionada. Use Ctrl+C para copiar.'}};
 
 // ---------- brand files
 $('lgPreta').src=LOGO_SRC.preta;$('lgBranca').src=LOGO_SRC.branca;
 document.querySelectorAll('[data-logo]').forEach(b=>b.onclick=async()=>{const k=b.dataset.logo,note=$('brandnote');
- try{const r=await fetch(LOGO_SRC[k]);downloadBlob('megadino-logo-'+k+'.png',await r.blob());note.textContent='Logo '+k+' baixada.'}catch(e){note.textContent='Não consegui baixar agora. Tente de novo.'}});
+ try{const r=await fetch(LOGO_SRC[k]);downloadBlob(CO.file+'-logo-'+k+'.png',await r.blob());note.textContent='Logo '+k+' baixada.'}catch(e){note.textContent='Não consegui baixar agora. Tente de novo.'}});
 
 // ---------- carousel (conteúdo)
-const CAR_EXAMPLE={produto:'Pipoqueira antiaderente',capa:{gancho:'4 motivos para ter uma',pilula:'pipoca de cinema',destaque:'pipoqueira',script:'em casa',apoio:'sem queimar nenhum grão.'},
+let CAR_EXAMPLE={produto:'Pipoqueira antiaderente',capa:{gancho:'4 motivos para ter uma',pilula:'pipoca de cinema',destaque:'pipoqueira',script:'em casa',apoio:'sem queimar nenhum grão.'},
  slides:[
   {tipo:'problema',titulo:'Mais sabor,',destaque:'menos trabalho.',problema:'Na panela comum o fundo queima e muito milho fica sem estourar.',solucao:'A manivela mexe o milho sem abrir a tampa e o calor se espalha por igual.',itens:['Estoura por igual','Sem abrir a tampa','Menos queimado','Fácil de limpar'],icone:'girar'},
   {tipo:'topico',titulo:'Limpeza',destaque:'em segundos.',texto:'O revestimento antiaderente não deixa o óleo grudar. Um pano com água e detergente neutro já resolve.',numero:'',numero_rotulo:'',itens:[],icone:'gota'},
@@ -1052,10 +1214,10 @@ function sCta(A,P){const c=state.car.cta||{};photoAt(520,420,520,620,P);let y=14
  pill('LINK NA BIO',W/2,H-176,P.dark?'#121212':'#FFFFFF',P.acc,24,34,'center');wordmark(W/2,H-38,P.dark&&A==='#151515'?'#111111':'#FFFFFF','center',58)}
 function slidePhoto(S,i){const n=state.gallery.length;if(!n)return null;const s=S[i]||{};const src=s.tipo==='capa'?state.car.capa:s.tipo==='cta'?state.car.cta:s;if(Number.isInteger(src.foto)&&src.foto>=0&&src.foto<n)return state.gallery[src.foto];
  if(s.tipo==='capa'||n===1)return state.gallery[0];if(s.tipo==='cta')return state.gallery[n>2?n-1:0];return state.gallery[i%n]}
-function paintSlide(target,i){ctx=target;const A=COLORS[state.color]||COLORS.vermelho,P=pal(A),S=carSlides(),s=S[i]||S[0];curPh=slidePhoto(S,i);ctx.save();ctx.clearRect(0,0,W,H);spacing(0);ctx.textAlign='left';ctx.textBaseline='alphabetic';
+function paintSlide(target,i){if(CO.id==='idmshop')return paintSlideIdm(target,i);ctx=target;const A=COLORS[state.color]||COLORS.vermelho,P=pal(A),S=carSlides(),s=S[i]||S[0];curPh=slidePhoto(S,i);ctx.save();ctx.clearRect(0,0,W,H);spacing(0);ctx.textAlign='left';ctx.textBaseline='alphabetic';
  try{frame(P,i,S.length);const k=S.slice(1,i+1).filter(x=>x.tipo==='topico'||x.tipo==='problema').length;({capa:sCapa,topico:sTopico,problema:sProblema,passos:sPassos,specs:sSpecs,cta:sCta}[s.tipo]||sTopico)(A,P,s,k)}catch(e){console.error(e)}ctx.restore();ctx=mainCtx;curPh=null}
-function drawStrip(){const st=$('strip'),S=carSlides();if(st.children.length!==S.length){st.replaceChildren();S.forEach((_,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('aria-label','Ver slide '+(i+1));const c=document.createElement('canvas');c.width=168;c.height=210;b.append(c);b.onclick=()=>goSlide(i);st.append(b)})}
- [...st.children].forEach((b,i)=>{b.setAttribute('aria-current',String(i===state.carIdx));paintSlide(offCtx,i);const x=b.firstChild.getContext('2d');x.clearRect(0,0,168,210);x.drawImage(off,0,0,168,210)})}
+function drawStrip(){const st=$('strip'),S=carSlides();if(st.children.length!==S.length){st.replaceChildren();S.forEach((_,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('aria-label','Ver slide '+(i+1));const c=document.createElement('canvas');c.width=168;c.height=Math.round(168*H/W);b.append(c);b.onclick=()=>goSlide(i);st.append(b)})}
+ [...st.children].forEach((b,i)=>{b.setAttribute('aria-current',String(i===state.carIdx));paintSlide(offCtx,i);const x=b.firstChild.getContext('2d');const c=b.firstChild;if(c.height!==Math.round(168*H/W))c.height=Math.round(168*H/W);x.clearRect(0,0,c.width,c.height);x.drawImage(off,0,0,c.width,c.height)})}
 function goSlide(i){const n=carSlides().length;state.carIdx=(i+n)%n;$('slideN').textContent='Slide '+(state.carIdx+1)+' de '+n;draw()}
 $('prev').onclick=()=>goSlide(state.carIdx-1);$('next').onclick=()=>goSlide(state.carIdx+1);
 function renderCarStyle(){const g=$('carStyle');g.replaceChildren();for(const [k,n] of [['claro','Claro'],['escuro','Escuro']]){const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=n;b.setAttribute('aria-pressed',String(state.carStyle===k));b.onclick=()=>{state.carStyle=k;renderCarStyle();draw()};g.append(b)}}
@@ -1110,7 +1272,7 @@ function cleanCar(r,n,k){const s=(v,m)=>String(v??'').trim().slice(0,m);const fo
  if(!out.cta.titulo)out.cta.titulo='Garanta o seu';if(!out.cta.destaque)out.cta.destaque='agora mesmo';return out}
 async function genCar(desc){const n=+$('nslides').value,tema=$('tema').value.trim();ctl=new AbortController();busy(true,'Escrevendo o conteúdo dos slides… (leva de 20 a 60 segundos)');
  try{const imgs=(await Promise.all(state.gallery.slice(0,5).map(g=>fileToDataUrl(g.file,1200)))).filter(Boolean);
-  const {result}=await api('/api/ai/carousel',{method:'POST',body:{desc,tema,n,images:imgs},signal:ctl.signal});
+  const {result}=await api('/api/ai/carousel',{method:'POST',body:{company:CO.id,desc,tema,n,images:imgs},signal:ctl.signal});
   const c=cleanCar(result||{},n,imgs.length);if(!c.slides.length||!c.capa.gancho)throw new Error('A resposta veio incompleta. Clique em gerar de novo.');
   state.car=c;state.carGenerated=true;state.carIdx=0;state.capCar=c.legenda;$('cap').value=c.legenda;$('exampleTag').hidden=true;$('strip').replaceChildren();renderCarFields();goSlide(0);
   state.histId=null;await saveHistory(true);
@@ -1119,20 +1281,20 @@ async function genCar(desc){const n=+$('nslides').value,tema=$('tema').value.tri
  finally{busy(false);ctl=null}}
 function saveBlob(name,blob,note){downloadBlob(name,blob);note.textContent='Arquivo baixado.';return true}
 async function dlCar(){const note=$('dlnote');if(!state.photo){note.textContent='Envie a foto do produto antes de baixar.';return}
- const S=carSlides(),base='megadino-carrossel-'+slug(state.car.produto||state.data.titulo);
+ const S=carSlides(),base=CO.file+'-carrossel-'+slug(state.car.produto||state.data.titulo);
  if(!window.JSZip){note.textContent='Não consegui montar o ZIP aqui. Use "Baixar só este slide" em cada slide.';return}
  note.textContent='Montando o ZIP com '+S.length+' slides…';const zip=new JSZip();
  for(let i=0;i<S.length;i++){paintSlide(offCtx,i);const b=await new Promise(r=>off.toBlob(r,'image/png'));zip.file(base+'-'+String(i+1).padStart(2,'0')+'.png',b)}
  const blob=await zip.generateAsync({type:'blob'});saveBlob(base+'.zip',blob,note);logEvent('baixar_carrossel',{produto:state.car.produto,slides:S.length,estilo:state.carStyle},state.histId)}
-$('dlOne').onclick=async()=>{const note=$('dlnote');if(!state.photo){note.textContent='Envie a foto do produto antes de baixar.';return}paintSlide(offCtx,state.carIdx);const b=await new Promise(r=>off.toBlob(r,'image/png'));saveBlob('megadino-carrossel-'+slug(state.car.produto||state.data.titulo)+'-'+String(state.carIdx+1).padStart(2,'0')+'.png',b,note);logEvent('baixar_slide',{produto:state.car.produto,slide:state.carIdx+1},state.histId)};
+$('dlOne').onclick=async()=>{const note=$('dlnote');if(!state.photo){note.textContent='Envie a foto do produto antes de baixar.';return}paintSlide(offCtx,state.carIdx);const b=await new Promise(r=>off.toBlob(r,'image/png'));saveBlob(CO.file+'-carrossel-'+slug(state.car.produto||state.data.titulo)+'-'+String(state.carIdx+1).padStart(2,'0')+'.png',b,note);logEvent('baixar_slide',{produto:state.car.produto,slide:state.carIdx+1},state.histId)};
 renderCarStyle();renderCarFields();
 
 // ---------- histórico
 let ME=null;Object.assign(state,{histId:null,photosDirty:false,hScope:'mine',hOffset:0});
-async function makeThumb(){const c=document.createElement('canvas');c.width=216;c.height=270;if(state.mode==='car')paintSlide(offCtx,0);else paint(offCtx,state.model);c.getContext('2d').drawImage(off,0,0,216,270);return c.toDataURL('image/jpeg',0.72)}
+async function makeThumb(){const c=document.createElement('canvas');c.width=216;c.height=Math.round(216*H/W);if(state.mode==='car')paintSlide(offCtx,0);else paint(offCtx,state.model);c.getContext('2d').drawImage(off,0,0,c.width,c.height);return c.toDataURL('image/jpeg',0.72)}
 function snapshot(){const base={desc:$('desc').value,bgMode:state.bgMode,logo:state.logo,tol:state.tol,shadowCut:state.shadowCut,holes:state.holes,softShadow:state.softShadow,choke:state.choke};
- if(state.mode==='car')return{mode:'carrossel',title:state.car.produto||state.data.titulo||'Carrossel',model:'carrossel',color:state.color,caption:$('cap').value,data:{...base,car:state.car,carStyle:state.carStyle,tema:$('tema').value,nslides:$('nslides').value}};
- return{mode:'post',title:state.data.titulo||'Post',model:state.model,color:state.color,caption:$('cap').value,data:{...base,post:state.data,rec:state.rec}}}
+ if(state.mode==='car')return{company:CO.id,mode:'carrossel',title:state.car.produto||state.data.titulo||'Carrossel',model:'carrossel',color:state.color,caption:$('cap').value,data:{...base,car:state.car,carStyle:state.carStyle,tema:$('tema').value,nslides:$('nslides').value}};
+ return{company:CO.id,mode:'post',title:state.data.titulo||'Post',model:state.model,color:state.color,caption:$('cap').value,data:{...base,post:state.data,rec:state.rec}}}
 async function saveHistory(asNew){const note=$('histnote');const s=snapshot();s.thumb=await makeThumb();const isNew=asNew||!state.histId;
  if(isNew||state.photosDirty)s.photos=(await Promise.all(state.gallery.map(g=>fileToDataUrl(g.file,2000,true)))).filter(Boolean);
  try{if(isNew){const r=await api('/api/posts',{method:'POST',body:s});state.histId=r.id;note.textContent='Salvo no histórico (#'+r.id+').'}else{await api('/api/posts/'+state.histId,{method:'PUT',body:s});note.textContent='Alterações salvas no histórico (#'+state.histId+').'}state.photosDirty=false;loadHistory(0)}
@@ -1147,7 +1309,7 @@ async function openHistory(id){const note=$('histnote');note.textContent='Abrind
   $('tol').value=state.tol;$('tolv').textContent=state.tol;$('shadowCut').checked=state.shadowCut;$('holes').checked=state.holes;$('softShadow').checked=state.softShadow;$('choke').checked=state.choke;renderBgMode();$('cutrow').hidden=state.bgMode!=='auto';
   $('desc').value=d.desc||'';if(p.color)state.color=p.color;
   if(p.mode==='carrossel'){if(d.car)state.car=d.car;state.carStyle=d.carStyle||'claro';$('tema').value=d.tema||'';if(d.nslides)$('nslides').value=d.nslides;state.carGenerated=true;state.capCar=p.caption||'';state.carIdx=0;renderCarStyle()}
-  else{state.data=Object.assign(JSON.parse(JSON.stringify(EXAMPLE)),d.post||{});state.model=MODEL_BY[p.model]?p.model:'claro';state.rec=d.rec||null;state.postGenerated=true;state.capPost=p.caption||''}
+  else{state.data=Object.assign(JSON.parse(JSON.stringify(EXAMPLE)),d.post||{});state.model=MODEL_BY[p.model]?p.model:MODELS[0].id;state.rec=d.rec||null;state.postGenerated=true;state.capPost=p.caption||''}
   $('cap').value=p.caption||'';$('exampleTag').hidden=true;
   afterPhotos();state.histId=p.id;state.photosDirty=false;
   renderChips();renderFields();renderCarFields();renderVitrine();syncModel();showRec();if(state.mode==='car'){$('strip').replaceChildren();goSlide(0)}else draw();
@@ -1157,7 +1319,7 @@ async function openHistory(id){const note=$('histnote');note.textContent='Abrind
 function renderHScope(){const g=$('hscope');g.replaceChildren();for(const [k,n] of [['mine','Minhas'],['all','De toda a equipe']]){const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=n;b.setAttribute('aria-pressed',String(state.hScope===k));b.onclick=()=>{state.hScope=k;renderHScope();loadHistory(0)};g.append(b)}}
 let hT=0;$('hq').oninput=()=>{clearTimeout(hT);hT=setTimeout(()=>loadHistory(0),300)};
 async function loadHistory(off){state.hOffset=off;const L=$('hlist');
- try{const q=new URLSearchParams({scope:state.hScope,q:$('hq').value.trim(),limit:'24',offset:String(off)});const {posts}=await api('/api/posts?'+q.toString());
+ try{const q=new URLSearchParams({company:CO.id,scope:state.hScope,q:$('hq').value.trim(),limit:'24',offset:String(off)});const {posts}=await api('/api/posts?'+q.toString());
   if(off===0)L.replaceChildren();if(!posts.length&&off===0){const p=document.createElement('p');p.className='hempty';p.textContent=$('hq').value.trim()?'Nada encontrado com essa busca.':'Nenhuma arte salva ainda. Gere a primeira e ela aparece aqui.';L.append(p)}
   for(const it of posts){const c=document.createElement('article');c.className='hc';const im=document.createElement('img');im.alt='Miniatura de '+it.title;if(it.thumb)im.src=it.thumb;const t=document.createElement('div');t.className='ht';t.textContent=it.title;
    const m=document.createElement('div');m.className='hm';m.textContent=(it.mode==='carrossel'?'Carrossel':(MODEL_BY[it.model]?.name||'Post'))+' · '+Estudio.fmtDate(it.updated_at)+(state.hScope==='all'&&it.user_name?' · '+it.user_name:'');
@@ -1169,28 +1331,80 @@ async function loadHistory(off){state.hOffset=off;const L=$('hlist');
 $('hmore').onclick=()=>loadHistory(state.hOffset+24);
 renderHScope();Estudio.mountTopbar('estudio').then(u=>{ME=u;loadHistory(0);loadIg()});
 
+// ---------- empresas (Megadino / IDM Shop)
+const MD={id:'megadino',name:'Megadino',handle:'loja_megadino',file:'megadino',h:1350,
+ logos:{preta:'/assets/megadino-logo-preta.png',branca:'/assets/megadino-logo-branca.png'},
+ colors:COLORS,models:MODELS,example:EXAMPLE,carExample:CAR_EXAMPLE,defColor:'vermelho',defModel:'claro',carStyles:true,
+ capPost:'Pipoca estourando e nada de queimar no fundo da panela? 🍿\n\n(Exemplo) A legenda do seu produto aparece aqui depois de gerar.\n\nAcesse o link na bio e garanta o seu com envio rápido pela Megadino! 📦\n\n#Megadino',
+ capCar:'Já pensou em fazer pipoca de cinema em casa, sem queimar nenhum grão? 🍿\n\n(Exemplo) A legenda do carrossel aparece aqui depois de gerar.\n\nAcesse o link na bio e garanta o seu com envio rápido pela Megadino! 📦\n\n#Megadino'};
+const IDM_MODELS=[
+ {id:'i_lanc',name:'Lançamento premium',when:'Fundo escuro noturno, selo dourado, marca + nova linha, manchete branca e dourada, recursos com ícones e barra de dados (estilo Loud STA 2150).',why:'é um lançamento ou eletrônico com muitos recursos'},
+ {id:'i_torre',name:'Ficha laranja',when:'Modelo gigante em laranja, chamada de experiência, recursos com ícones e barra Compre agora (estilo Pure Acoustics Supernova).',why:'a ficha tem bons dados técnicos para mostrar'},
+ {id:'i_ref',name:'Destaque amarelo',when:'Manchete com a palavra forte em amarelo, marca e modelo gigantes, caixa com frase e botão amarelo (estilo Yamaha HS5).',why:'é um produto profissional ou de referência'},
+ {id:'i_data',name:'Data comemorativa',when:'Moldura dourada, data gigante, faixa com o nome do produto e 3 recursos (estilo Dia dos Pais).',why:'a descrição cita uma data comemorativa'},
+ {id:'i_amb',name:'Ambiente elegante',when:'Foto no ambiente com título fino e espaçado, nome do produto e detalhe dourado (estilo JBL Control no paisagismo).',why:'a foto mostra o produto instalado no ambiente'},
+ {id:'i_curio',name:'Conteúdo da marca',when:'Fundo preto com a cor da marca, número gigante de motivos e manchete forte (estilo curiosidades JBL).',why:'a marca é forte e o post é para engajar'}];
+const IDM_EXAMPLE={marca:'Pure Acoustics',selo:'LANÇAMENTO',tipo:'CAIXAS ACÚSTICAS TORRE',titulo:'SUPERNOVA 8F',subtitulo:'par com três woofers de 6,5 polegadas',linha:'SUPERNOVA 8F · TORRE',
+ badge:'PRECISÃO QUE VOCÊ OUVE, RESULTADOS QUE VOCÊ SENTE',carimbo:{topo:'',base:'',icone:'som'},manchete:{topo:'',destaque:'',script:''},
+ frase:{topo:'SOM QUE',destaque:'ELEVA SUA EXPERIÊNCIA',base:''},resumo:'Caixas torre que entregam potência, definição e graves profundos para músicas, filmes e muito mais.',
+ beneficios:[{titulo:'3 woofers de 6,5"',texto:'Graves potentes e impactantes',icone:'som'},{titulo:'250W RMS',texto:'Potência para grandes ambientes',icone:'raio'},{titulo:'8 Ohms',texto:'Compatível com sistemas Hi-Fi',icone:'check'},{titulo:'Som envolvente',texto:'Médios claros e agudos precisos',icone:'brilho'}],
+ extras:[{titulo:'Hi-Fi',texto:'Alta fidelidade',icone:'estrela'}],especificacoes:[{rotulo:'Potência',valor:'250W RMS'},{rotulo:'Impedância',valor:'8 Ohms'},{rotulo:'Woofers',valor:'3 × 6,5"'}],
+ variacoes:[],data_comemorativa:'',publico:'',cta:{titulo:'COMPRE AGORA',texto:'e transforme seu som!'},chamada:'Performance que impressiona.',legenda:'',confianca:[],cupom:'',canal:''};
+const IDM_CAR={produto:'Supernova 8F',capa:{gancho:'3 motivos para ter',pilula:'caixas torre na',destaque:'sua sala',script:'',apoio:'e como escolher a sua.'},
+ slides:[{tipo:'topico',titulo:'Graves de verdade,',destaque:'sem subwoofer.',texto:'Três woofers de 6,5 polegadas em cada caixa entregam graves cheios para filmes e músicas.',numero:'3×6,5"',numero_rotulo:'woofers por caixa',itens:[],icone:'som'},
+  {tipo:'problema',titulo:'Som abafado?',destaque:'Nunca mais.',problema:'Caixas pequenas não preenchem a sala e distorcem no volume alto.',solucao:'Com 250W RMS, a Supernova 8F preenche o ambiente com clareza.',itens:['250W RMS','8 Ohms','Hi-Fi','Torre'],icone:'raio'},
+  {tipo:'specs',titulo:'Ficha',destaque:'técnica',itens:['Potência: 250W RMS','Impedância: 8 Ohms','Woofers: 3 × 6,5"','Tipo: Torre'],icone:'caixa'}],
+ cta:{titulo:'Seu som no',destaque:'próximo nível',texto:'Fale com a nossa assessoria e escolha o sistema ideal para o seu espaço.'},legenda:''};
+const IDM={id:'idmshop',name:'IDM Shop',handle:'idmshopoficial',file:'idmshop',h:1080,
+ logos:{preta:'/assets/idmshop-logo-escura.png',branca:'/assets/idmshop-logo.png'},
+ colors:{laranja:'#FF8A1A',amarelo:'#FFC21A',dourado:'#D9B26A',vermelho:'#FF4F1F',azul:'#3D8BFF',verde:'#3DBE7A'},models:IDM_MODELS,example:IDM_EXAMPLE,carExample:IDM_CAR,defColor:'laranja',defModel:'i_torre',carStyles:false,
+ tagline:['SOM DE ALTA PERFORMANCE','PARA QUEM EXIGE O MELHOR.'],
+ capPost:'🚀 (Exemplo) A legenda do seu produto aparece aqui depois de gerar.\n\n✨ Destaques:\n\n* 🔊 3 woofers de 6,5"\n* 🔥 250W RMS\n\n📍 Encontre na IDM SHOP.\n\n👉 Acesse o link na bio e conheça!\n\n#IDMShop #HiFi #Audio',
+ capCar:'Já pensou em ter som de cinema na sua sala? 🎬\n\n(Exemplo) A legenda do carrossel aparece aqui depois de gerar.\n\n👉 Acesse o link na bio e conheça!\n\n#IDMShop #HomeTheater'};
+const COMPANIES_FE={megadino:MD,idmshop:IDM};
+let CO=MD;
+function recommendIdm(desc){const t=(desc||'').toLowerCase(),d=state.data;
+ if(/dia d[oa]s? (pais|m[aã]es|namorados)|natal|black friday|p[aá]scoa/.test(t)||d.data_comemorativa)return 'i_data';
+ if(state.photo&&state.whiteRatio<0.12)return 'i_amb';
+ if(/amplificador|receiver|streaming|lan[cç]amento|toca-?discos|vitrola/.test(t))return 'i_lanc';
+ if(/monitor|est[uú]dio|profissional|refer[eê]ncia|mixagem/.test(t))return 'i_ref';
+ if(/caixa|torre|bookshelf|subwoofer|soundbar|woofer/.test(t))return 'i_torre';
+ return 'i_lanc'}
+function renderCoSwitch(){const g=$('cosw');g.replaceChildren();for(const c of Object.values(COMPANIES_FE)){const b=document.createElement('button');b.type='button';b.className=c.id==='idmshop'?'idm':'';b.setAttribute('aria-pressed',String(CO.id===c.id));b.setAttribute('aria-label','Usar a empresa '+c.name);
+  const im=document.createElement('img');im.src=c.logos.branca;im.alt='';const t=document.createElement('span');const n=document.createElement('b');n.textContent=c.name;const h=document.createElement('small');h.textContent='@'+c.handle+' · '+(c.h===1080?'1080×1080':'1080×1350');t.append(n,h);b.append(im,t);
+  b.onclick=()=>{if(CO.id!==c.id)applyCompany(c.id)};g.append(b)}}
+/** Troca a empresa: logos, cores, modelos, formato da arte, exemplo, histórico e Instagram. Mantém as fotos e a descrição. */
+function applyCompany(id,boot){const c=COMPANIES_FE[id]||MD;CO=c;try{localStorage.setItem('estudio_empresa',c.id)}catch(e){}
+ COLORS=c.colors;MODELS=c.models;MODEL_BY=Object.fromEntries(MODELS.map(m=>[m.id,m]));EXAMPLE=c.example;LOGO_SRC=c.logos;loadLogos();
+ H=c.h;cv.height=H;off.height=H;document.documentElement.style.setProperty('--ar',W+'/'+H);
+ $('coName').textContent=c.name;document.title='Estúdio '+c.name;
+ if(!boot){$('igPanel').hidden=true;$('histnote').textContent='';}
+ state.data=JSON.parse(JSON.stringify(c.example));state.model=c.defModel;state.color=c.defColor;state.rec=null;state.postGenerated=false;state.carGenerated=false;state.histId=null;
+ state.car=JSON.parse(JSON.stringify(c.carExample));state.carIdx=0;state.carStyle=c.carStyles?'claro':'escuro';$('carStyle').closest('.mini').hidden=!c.carStyles;
+ state.capPost=c.capPost;state.capCar=c.capCar;$('cap').value=state.mode==='car'?c.capCar:c.capPost;$('exampleTag').hidden=false;
+ $('lgPreta').src=LOGO_SRC.preta;$('lgBranca').src=LOGO_SRC.branca;document.querySelector('.bnav .me img').src=c.logos.branca;
+ renderCoSwitch();renderChips();renderFields();renderCarStyle();renderCarFields();renderVitrine();syncModel();showRec();$('strip').replaceChildren();
+ if(state.mode==='car')goSlide(0);else draw();
+ if(!boot){PH.grid=null;loadHistory(0);loadIg();if(VIEW==='feed')refreshPhone();setStatus('Empresa: '+c.name+'. As fotos e a descrição continuam; gere de novo para criar com os modelos da '+c.name+'.','')}}
 // ---------- boot
-renderChips();renderFields();renderVitrine();syncModel();
-state.capCar='Já pensou em fazer pipoca de cinema em casa, sem queimar nenhum grão? 🍿\n\n(Exemplo) A legenda do carrossel aparece aqui depois de gerar.\n\nAcesse o link na bio e garanta o seu com envio rápido pela Megadino! 📦\n\n#Megadino';
-$('cap').value='Pipoca estourando e nada de queimar no fundo da panela? 🍿\n\n(Exemplo) A legenda do seu produto aparece aqui depois de gerar.\n\nAcesse o link na bio e garanta o seu com envio rápido pela Megadino! 📦\n\n#Megadino';
-draw();
+{let saved='megadino';try{saved=localStorage.getItem('estudio_empresa')||'megadino'}catch(e){}applyCompany(COMPANIES_FE[saved]?saved:'megadino',true)}
 Promise.all(['400 100px Anton','300 40px Outfit','400 40px Outfit','500 40px Outfit','600 40px Outfit','700 40px Outfit','800 40px Outfit','900 40px Outfit','italic 900 40px Outfit','400 40px "Kaushan Script"','800 40px "Roboto Slab"'].map(f=>document.fonts.load(f).catch(()=>{}))).then(draw);
 // ---------- publicar no Instagram
 let IG=null;
-async function loadIg(){try{IG=await api('/api/instagram/status')}catch(e){IG=null}renderIgBox()}
+async function loadIg(){try{IG=await api('/api/instagram/status?company='+CO.id)}catch(e){IG=null}renderIgBox()}
 function renderIgBox(){const box=$('igBox'),open=$('igOpen');
  if(!IG||(!IG.connected&&ME?.role!=='admin')||(IG.connected&&!IG.canPublish)){box.hidden=true;return}
  box.hidden=false;
  if(IG.connected){open.classList.remove('off');$('igOpenT').textContent='Publicar no Instagram';open.onclick=openIgPanel}
- else{open.classList.add('off');$('igOpenT').textContent=IG.expired?'Conexão com o Instagram expirou · reconectar':'Conectar o Instagram para publicar daqui';open.onclick=()=>{location.href='/admin#instagram'}}}
+ else{open.classList.add('off');$('igOpenT').textContent=IG.expired?'Conexão com o Instagram expirou · reconectar':'Conectar o Instagram para publicar daqui';open.onclick=()=>{location.href='/admin?empresa='+CO.id+'#instagram'}}}
 function igImages(){const n=state.mode==='car'?carSlides().length:1,out=[];for(let i=0;i<n;i++){if(state.mode==='car')paintSlide(offCtx,i);else paint(offCtx,state.model);out.push(off.toDataURL('image/jpeg',0.92))}return out}
 function igReady(){if(!state.photo)return 'Envie a foto do produto antes de publicar.';if(state.mode==='car'?!state.carGenerated:!state.postGenerated)return 'Gere a arte com o seu produto antes de publicar.';return ''}
 function openIgPanel(){const P=$('igPanel');if(!P.hidden){P.hidden=true;return}
  const st=$('igStatus');st.className='igp-status';st.textContent='';
  const why=igReady();$('igGo').disabled=!!why;if(why){st.className='igp-status err';st.textContent=why}
- $('igUser').textContent='@'+(IG.username||'conta conectada');
+ $('igUser').textContent='@'+(IG.username||CO.handle);document.querySelector('.igp-head .av img').src=CO.logos.branca;
  const n=state.mode==='car'?carSlides().length:1;$('igKind').textContent=n>1?'Carrossel · '+n+' imagens':'Post · 1 imagem';
- const T=$('igThumbs');T.replaceChildren();for(let i=0;i<n;i++){if(state.mode==='car')paintSlide(offCtx,i);else paint(offCtx,state.model);const c=document.createElement('canvas');c.width=176;c.height=220;c.getContext('2d').drawImage(off,0,0,176,220);T.append(c)}
+ const T=$('igThumbs');T.replaceChildren();for(let i=0;i<n;i++){if(state.mode==='car')paintSlide(offCtx,i);else paint(offCtx,state.model);const c=document.createElement('canvas');c.width=176;c.height=Math.round(176*H/W);c.getContext('2d').drawImage(off,0,0,c.width,c.height);T.append(c)}
  const cap=$('cap').value.trim();$('igCap').textContent=cap||'(sem legenda)';
  const tags=(cap.match(/#[\p{L}\p{N}_]+/gu)||[]).length,info=$('igCapInfo');info.textContent=cap.length+' de 2.200 caracteres · '+tags+' de 30 hashtags';
  const bad=cap.length>2200||tags>30;info.classList.toggle('bad',bad);if(bad&&!why){$('igGo').disabled=true;st.className='igp-status err';st.textContent='Ajuste a legenda: o Instagram aceita até 2.200 caracteres e 30 hashtags.'}
@@ -1199,7 +1413,7 @@ $('igCancel').onclick=()=>{$('igPanel').hidden=true};
 $('igGo').onclick=async()=>{const go=$('igGo'),st=$('igStatus'),cancel=$('igCancel');if(igReady())return;
  go.disabled=true;cancel.disabled=true;st.className='igp-status';st.innerHTML='<span class="spin"></span>Enviando para o Instagram… pode levar até um minuto. Não feche a página.';
  try{await saveHistory(false)}catch(e){}
- try{const r=await api('/api/instagram/publish',{method:'POST',body:{images:igImages(),caption:$('cap').value.trim(),postId:state.histId}});
+ try{const r=await api('/api/instagram/publish',{method:'POST',body:{company:CO.id,images:igImages(),caption:$('cap').value.trim(),postId:state.histId}});
   st.className='igp-status ok';st.replaceChildren(document.createTextNode('Publicado em @'+(r.username||IG.username)+'. '));
   if(r.permalink){const a=document.createElement('a');a.href=r.permalink;a.target='_blank';a.rel='noopener';a.textContent='Ver no Instagram ↗';st.append(a)}
   go.textContent='Publicado';loadHistory(0);
@@ -1223,12 +1437,12 @@ const SVG={
  stack:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2h13a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm-4 5v13a2 2 0 0 0 2 2h13v-2H5V7z"/></svg>'
 };
 const el=(t,cls,html)=>{const e=document.createElement(t);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e};
-function avatar(){const a=el('span','av');const i=el('span');const im=document.createElement('img');im.src='/assets/megadino-logo-branca.png';im.alt='';i.append(im);a.append(i);return a}
+function avatar(){const a=el('span','av');const i=el('span');const im=document.createElement('img');im.src=CO.logos.branca;im.alt='';i.append(im);a.append(i);return a}
 function artCanvases(w){const n=state.mode==='car'?carSlides().length:1,out=[];
- for(let i=0;i<n;i++){if(state.mode==='car')paintSlide(offCtx,i);else paint(offCtx,state.model);const c=document.createElement('canvas');c.width=w;c.height=Math.round(w*1.25);c.getContext('2d').drawImage(off,0,0,c.width,c.height);out.push(c)}return out}
+ for(let i=0;i<n;i++){if(state.mode==='car')paintSlide(offCtx,i);else paint(offCtx,state.model);const c=document.createElement('canvas');c.width=w;c.height=Math.round(w*H/W);c.getContext('2d').drawImage(off,0,0,c.width,c.height);out.push(c)}return out}
 function setView(v){VIEW=v;document.querySelectorAll('.viewsw button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===v)));
  $('stage').classList.toggle('feed',v==='feed');$('phoneWrap').hidden=v!=='feed';if(v==='feed'){PH.idx=state.mode==='car'?state.carIdx:0;refreshPhone()}}
-function capNodes(text){const frag=document.createDocumentFragment();const b=el('b');b.textContent='loja_megadino';frag.append(b);
+function capNodes(text){const frag=document.createDocumentFragment();const b=el('b');b.textContent=CO.handle;frag.append(b);
  for(const part of String(text||'').split(/(#[\p{L}\p{N}_]+)/u)){if(!part)continue;if(part.startsWith('#')){const h=el('span','hs');h.textContent=part;frag.append(h)}else frag.append(document.createTextNode(part))}return frag}
 function renderCaption(){const c=$('phCap');if(!c)return;const full=String($('cap').value||'').trim();
  const first=full.split('\n')[0],cut=first.length>72?first.slice(0,first.lastIndexOf(' ',72)>30?first.lastIndexOf(' ',72):72):first,short=cut!==full;
@@ -1238,7 +1452,7 @@ function likeTxt(){return PH.liked?'Curtido por você':'Seja o primeiro a curtir
 function setLike(v,pop){PH.liked=v;const b=$('phLike');if(b){b.setAttribute('aria-pressed',String(v));b.setAttribute('aria-label',v?'Descurtir':'Curtir')}const l=$('phLikes');if(l)l.textContent=likeTxt();
  if(pop){const p=$('phPop');p.classList.remove('go');void p.offsetWidth;p.classList.add('go')}}
 function renderPost(){const S=$('phScr');S.replaceChildren();
- const head=el('div','ph');const nm=el('span','nm');nm.innerHTML='<b>loja_megadino</b><small>Megadino</small>';head.append(avatar(),nm,el('span','',SVG.dots));
+ const head=el('div','ph');const nm=el('span','nm');nm.innerHTML='<b></b><small></small>';nm.firstChild.textContent=CO.handle;nm.lastChild.textContent=CO.name;head.append(avatar(),nm,el('span','',SVG.dots));
  const media=el('div','media');const track=el('div','track');const cs=artCanvases(720);cs.forEach((c,i)=>{c.setAttribute('aria-label','Imagem '+(i+1)+' de '+cs.length);track.append(c)});media.append(track);
  const pop=el('span','pop',SVG.bigheart);pop.id='phPop';media.append(pop);
  const acts=el('div','acts');
@@ -1259,9 +1473,9 @@ function renderPost(){const S=$('phScr');S.replaceChildren();
  const when=el('div','when');when.textContent='AGORA';
  S.append(head,media,acts,likes,cap,when);setLike(PH.liked,false);renderCaption()}
 async function loadGrid(){if(PH.grid&&Date.now()-PH.gridAt<60000)return PH.grid;
- try{const {posts}=await api('/api/posts?'+new URLSearchParams({scope:'all',limit:'14',offset:'0'}).toString());PH.grid=posts.filter(p=>p.thumb&&p.id!==state.histId);PH.gridAt=Date.now()}catch(e){PH.grid=[]}return PH.grid}
+ try{const {posts}=await api('/api/posts?'+new URLSearchParams({company:CO.id,scope:'all',limit:'14',offset:'0'}).toString());PH.grid=posts.filter(p=>p.thumb&&p.id!==state.histId);PH.gridAt=Date.now()}catch(e){PH.grid=[]}return PH.grid}
 async function renderGrid(){const S=$('phScr');S.replaceChildren();
- const pr=el('div','prof');const t=el('div');t.innerHTML='<b>loja_megadino</b><small>Loja Megadino · prévia da grade</small>';pr.append(avatar(),t);
+ const pr=el('div','prof');const t=el('div');t.innerHTML='<b></b><small></small>';t.firstChild.textContent=CO.handle;t.lastChild.textContent=CO.name+' · prévia da grade';pr.append(avatar(),t);
  const tabs=el('div','ptabs');tabs.innerHTML='<span>'+SVG.grid+'</span><span>'+SVG.reels+'</span><span>'+SVG.tag+'</span>';
  const g=el('div','grid3');const first=el('div','tl new');first.append(artCanvases(360)[0]);if(state.mode==='car')first.append(el('span','mk',SVG.stack));const nw=el('span','nw');nw.textContent='Nova';first.append(nw);g.append(first);
  const note=el('p','gnote');note.textContent='Na grade o Instagram mostra a arte em 3:4, cortando um pouco das laterais. As demais são artes salvas no histórico da equipe.';
@@ -1272,7 +1486,7 @@ async function renderGrid(){const S=$('phScr');S.replaceChildren();
 function refreshPhone(){const d=new Date();$('phTime').textContent=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
  $('phone').classList.toggle('light',PH.light);
  document.querySelectorAll('.bnav [data-tab]').forEach(b=>b.setAttribute('aria-current',String(b.dataset.tab===PH.tab)));
- $('abarT').firstElementChild.textContent=PH.tab==='grid'?'loja_megadino':'Publicações';$('abarT').lastElementChild.hidden=PH.tab==='grid';
+ $('abarT').firstElementChild.textContent=PH.tab==='grid'?CO.handle:'Publicações';$('abarT').lastElementChild.textContent=CO.handle;$('abarT').lastElementChild.hidden=PH.tab==='grid';
  const S=$('phScr'),y=S.scrollTop;if(PH.tab==='grid')renderGrid();else renderPost();S.scrollTop=y}
 function renderPhTheme(){const g=$('phTheme');g.replaceChildren();for(const [k,n] of [[false,'App escuro'],[true,'App claro']]){const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=n;b.setAttribute('aria-pressed',String(PH.light===k));b.onclick=()=>{PH.light=k;renderPhTheme();$('phone').classList.toggle('light',k)};g.append(b)}}
 document.querySelectorAll('.viewsw button').forEach(b=>b.onclick=()=>setView(b.dataset.view));

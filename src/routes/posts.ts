@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { uploadsDir } from '../config.js';
 import { db } from '../db.js';
+import { pickCompany } from '../companies.js';
 import { logAction } from '../logs.js';
 
 export const postsRouter = Router();
@@ -47,6 +48,7 @@ function clean(body: Record<string, unknown>) {
   const mode = body.mode === 'carrossel' ? 'carrossel' : 'post';
   const thumb = typeof body.thumb === 'string' && body.thumb.startsWith('data:image/jpeg;base64,') && body.thumb.length < 400_000 ? body.thumb : null;
   return {
+    company: pickCompany(body.company).id,
     mode,
     title: String(body.title ?? 'Sem título').slice(0, 120) || 'Sem título',
     model: body.model ? String(body.model).slice(0, 30) : null,
@@ -63,13 +65,13 @@ postsRouter.get('/', (req, res) => {
   const limit = Math.min(100, Number(req.query.limit) || 40);
   const offset = Math.max(0, Number(req.query.offset) || 0);
   const rows = db.prepare(
-    `SELECT p.id, p.user_id, p.mode, p.title, p.model, p.color, p.thumb, p.photos, p.created_at, p.updated_at, u.name AS user_name,
+    `SELECT p.id, p.user_id, p.company, p.mode, p.title, p.model, p.color, p.thumb, p.photos, p.created_at, p.updated_at, u.name AS user_name,
        (SELECT i.permalink FROM ig_posts i WHERE i.post_id = p.id ORDER BY i.id DESC LIMIT 1) AS ig_permalink,
        (SELECT COUNT(*) FROM ig_posts i WHERE i.post_id = p.id) AS ig_count
        FROM posts p LEFT JOIN users u ON u.id = p.user_id
-      WHERE (? = 0 OR p.user_id = ?) AND p.title LIKE ?
+      WHERE (? = 0 OR p.user_id = ?) AND p.title LIKE ? AND p.company = ?
       ORDER BY p.updated_at DESC LIMIT ? OFFSET ?`,
-  ).all(mine ? 1 : 0, req.user!.id, q, limit, offset);
+  ).all(mine ? 1 : 0, req.user!.id, q, pickCompany(req.query.company).id, limit, offset);
   res.json({ posts: rows });
 });
 
@@ -104,12 +106,12 @@ postsRouter.get('/:id/photo/:file', (req, res) => {
 postsRouter.post('/', (req, res) => {
   const v = clean(req.body ?? {});
   const info = db.prepare(
-    'INSERT INTO posts (user_id, mode, title, model, color, data, caption, thumb) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-  ).run(req.user!.id, v.mode, v.title, v.model, v.color, v.data, v.caption, v.thumb);
+    'INSERT INTO posts (user_id, company, mode, title, model, color, data, caption, thumb) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+  ).run(req.user!.id, v.company, v.mode, v.title, v.model, v.color, v.data, v.caption, v.thumb);
   const id = Number(info.lastInsertRowid);
   const n = savePhotos(id, req.body?.photos);
   if (n >= 0) db.prepare('UPDATE posts SET photos = ? WHERE id = ?').run(n, id);
-  logAction(req, 'salvar_historico', { postId: id, detail: { titulo: v.title, modo: v.mode, modelo: v.model } });
+  logAction(req, 'salvar_historico', { postId: id, detail: { empresa: pickCompany(v.company).name, titulo: v.title, modo: v.mode, modelo: v.model } });
   res.json({ id });
 });
 

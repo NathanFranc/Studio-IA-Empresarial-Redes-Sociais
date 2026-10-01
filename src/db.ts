@@ -81,6 +81,23 @@ CREATE TABLE IF NOT EXISTS ig_posts (
 CREATE INDEX IF NOT EXISTS ig_posts_post ON ig_posts(post_id);
 `);
 
+// Migrações: várias empresas (colunas novas em bancos antigos).
+function addColumn(table: string, col: string, ddl: string): void {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (!cols.some((c) => c.name === col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+}
+addColumn('posts', 'company', "company TEXT NOT NULL DEFAULT 'megadino'");
+addColumn('ig_posts', 'company', "company TEXT NOT NULL DEFAULT 'megadino'");
+db.exec('CREATE INDEX IF NOT EXISTS posts_company ON posts(company, updated_at)');
+{
+  // A conta do Instagram conectada antes de existirem várias empresas era da Megadino.
+  const old = db.prepare("SELECT value FROM settings WHERE key = 'ig_account'").get() as { value: string } | undefined;
+  if (old) {
+    db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES ('ig_account:megadino', ?)").run(old.value);
+    db.prepare("DELETE FROM settings WHERE key = 'ig_account'").run();
+  }
+}
+
 /** Configurações simples guardadas no banco (chave → texto). */
 export function getSetting(key: string): string | null {
   const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined;
