@@ -82,6 +82,20 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 .pic.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .pic .ph{aspect-ratio:1;background:#fff;display:grid;place-items:center;cursor:pointer}
 .pic .ph img{width:100%;height:100%;object-fit:contain}
+.pic .zoom{font:inherit;font-size:12px;font-weight:600;margin:0 8px 8px;padding:6px 8px;border-radius:8px;border:1px solid var(--line-2);background:transparent;color:var(--fg);cursor:pointer}
+.pic .zoom:hover{border-color:var(--accent)}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.82);display:grid;place-items:center;padding:16px}
+.lb-card{background:var(--panel);border:1px solid var(--line-2);border-radius:18px;padding:16px;width:min(1100px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.lb-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.lb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.lb-grid figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.lb-grid .frame{aspect-ratio:1;background:repeating-conic-gradient(#2a2a2e 0 25%,#1e1e22 0 50%) 0 0/18px 18px;border-radius:12px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--line)}
+.lb-grid .frame img{max-width:100%;max-height:100%;object-fit:contain}
+.lb-grid .frame.sq img{width:100%;height:100%;outline:2px dashed #F0452F;outline-offset:-2px}
+.lb-grid figcaption{font-size:13px}.lb-grid figcaption b{font-variant-numeric:tabular-nums}
+.lb .size{display:inline-block;padding:3px 9px;border-radius:999px;font-weight:700;font-size:12.5px}
+.lb .size.ok{background:rgba(123,216,143,.15);color:#7BD88F}.lb .size.bad{background:rgba(255,181,71,.15);color:#FFB547}
+@media (max-width:700px){.lb-grid{grid-template-columns:minmax(0,1fr)}}
 .pic figcaption{padding:6px 8px 8px;font-size:11.5px;color:var(--muted);line-height:1.3;display:flex;flex-direction:column;gap:3px}
 .pic .sel{position:absolute;top:8px;left:8px;width:22px;height:22px;accent-color:var(--accent)}
 .wm{position:absolute;top:8px;right:8px;max-width:calc(100% - 46px);font-size:11px;font-weight:800;color:#1A1200;background:#FFB547;border-radius:999px;padding:3px 8px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
@@ -140,6 +154,17 @@ summary{cursor:pointer;font-weight:700}
     <div class="status" id="st" role="status" aria-live="polite"></div>
     <div class="results" id="res"></div>
   </section>
+
+  <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-labelledby="lbt">
+    <div class="lb-card">
+      <div class="lb-head"><b id="lbt">Foto no padrão do anúncio</b><div class="row"><button class="btn sm ghost" type="button" id="lbdl">Baixar esta em 1200×1200</button><button class="btn sm" type="button" id="lbx">Fechar</button></div></div>
+      <div class="lb-grid">
+        <figure><div class="frame"><img id="lbo" alt="Foto original do Mercado Livre"></div><figcaption>Original do Mercado Livre · <b id="lbos">…</b></figcaption></figure>
+        <figure><div class="frame sq"><img id="lbn" alt="Foto convertida para 1200×1200"></div><figcaption>Como vai no anúncio · <span class="size" id="lbns">medindo…</span></figcaption></figure>
+      </div>
+      <p class="note">A foto da direita é o arquivo real que vai no ZIP e no AnyMarket, com a medida lida do próprio arquivo. A linha tracejada marca a borda do quadrado.</p>
+    </div>
+  </div>
 
   <section id="out" hidden>
     <div class="out">
@@ -355,7 +380,8 @@ summary{cursor:pointer;font-weight:700}
       const cap = el('figcaption', {}, el('span', { textContent: p.source }), el('span', { textContent: 'Sai em 1200×1200' + (p.w ? ' (original ' + p.w + '×' + p.h + ')' : '') }));
       if (p.watermark) cap.append(el('span', { className: 'wmnote', textContent: "⚠ Marca d'água: " + p.watermark }));
       else if (p.checked) cap.append(el('span', { className: 'okm', textContent: "Sem marca d'água" }));
-      fig.append(ph, cb, cap); if (p.watermark) fig.append(el('span', { className: 'wm', textContent: "Marca d'água" }));
+      const zoom = el('button', { type: 'button', className: 'zoom', textContent: 'Ver em 1200×1200', onclick: () => openLb(p, i) });
+      fig.append(ph, cb, cap, zoom); if (p.watermark) fig.append(el('span', { className: 'wm', textContent: "Marca d'água" }));
       pics.append(fig);
     });
     const nWm = d.pictures.filter((p) => p.watermark).length, nChk = d.pictures.filter((p) => p.checked).length;
@@ -388,6 +414,27 @@ summary{cursor:pointer;font-weight:700}
     if (!box.hidden) { box.hidden = true; return; }
     try { box.textContent = (await api('/api/ml/style?company=' + co)).style; box.hidden = false; } catch (err) { $('revst').textContent = err.message; }
   };
+  // Visualizador: original lado a lado com o arquivo 1200×1200 de verdade (medida lida do arquivo).
+  let lbBlob = null, lbName = '', lbBack = null;
+  async function openLb(p, i) {
+    lbBack = document.activeElement; $('lb').hidden = false; $('lbx').focus();
+    $('lbt').textContent = 'Foto ' + (i + 1) + ' no padrão do anúncio';
+    $('lbos').textContent = '…'; $('lbns').className = 'size'; $('lbns').textContent = 'medindo…'; $('lbn').removeAttribute('src'); lbBlob = null;
+    $('lbo').onload = () => { $('lbos').textContent = $('lbo').naturalWidth + '×' + $('lbo').naturalHeight + ' px'; };
+    $('lbo').src = img(p.url);
+    try {
+      const r = await fetch(img(p.url) + '&q=1200'); if (!r.ok) throw 0;
+      lbBlob = await r.blob(); lbName = slug($('t').value) + '-' + String(i + 1).padStart(2, '0') + '-1200x1200.jpg';
+      const u = URL.createObjectURL(lbBlob);
+      $('lbn').onload = () => { const w = $('lbn').naturalWidth, h = $('lbn').naturalHeight, ok = w === 1200 && h === 1200; $('lbns').className = 'size ' + (ok ? 'ok' : 'bad'); $('lbns').textContent = (ok ? '✓ ' : '') + w + '×' + h + ' px · ' + Math.round(lbBlob.size / 1024) + ' KB'; URL.revokeObjectURL(u); };
+      $('lbn').src = u;
+    } catch { $('lbns').className = 'size bad'; $('lbns').textContent = 'Não consegui converter esta foto agora.'; }
+  }
+  const closeLb = () => { $('lb').hidden = true; if (lbBack) lbBack.focus(); };
+  $('lbx').onclick = closeLb;
+  $('lb').onclick = (e) => { if (e.target === $('lb')) closeLb(); };
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('lb').hidden) closeLb(); });
+  $('lbdl').onclick = () => { if (lbBlob) downloadBlob(lbName, lbBlob); };
   const selectBy = (fn) => { if (!cur) return; cur.detail.pictures.forEach((p, i) => { const fig = $('pics').children[i], v = fn(p); if (v) sel.add(i); else sel.delete(i); fig.querySelector('.sel').checked = v; fig.classList.toggle('on', v); }); };
   $('pall').onclick = () => selectBy(() => true);
   $('pclean').onclick = () => selectBy((p) => !p.watermark);
