@@ -173,7 +173,7 @@ summary{cursor:pointer;font-weight:700}
   // conexão
   try {
     const s = await api('/api/ml/status');
-    if (!s.connected) {
+    if (!s.connected && !s.scraper) {
       const b = $('banner'); b.hidden = false;
       b.replaceChildren(document.createTextNode(s.configured ? 'O Mercado Livre ainda não está conectado. ' : 'O app do Mercado Livre ainda não foi configurado no servidor. '));
       if (me && me.role === 'admin') b.append(el('a', { href: '/admin#mercadolivre', textContent: 'Conectar em Administração › Mercado Livre' }));

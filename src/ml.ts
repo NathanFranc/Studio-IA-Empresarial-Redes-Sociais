@@ -186,6 +186,15 @@ export async function mlSearch(q: string): Promise<{ results: Candidate[]; notes
   const notes: string[] = [];
   const out: Candidate[] = [];
   const enc = encodeURIComponent(q);
+  // Sem conta do ML conectada no Studio: usa direto o sistema próprio (que já tem a conta e o scraping).
+  if (!getAcc() && scraperOn()) {
+    const s = await scraper({ acao: 'buscar', q });
+    if (!s) throw new MlError('O sistema de scraping não respondeu. Confira SCRAPER_URL e se o serviço está no ar.', 502);
+    for (const it of ((s.resultados as Record<string, unknown>[]) ?? []).slice(0, 24)) {
+      out.push({ kind: 'scraping', id: String(it.url ?? it.id ?? ''), title: String(it.titulo ?? ''), thumb: it.foto ? String(it.foto) : null, price: typeof it.preco === 'number' ? it.preco : null, seller: String(it.vendedor ?? ''), permalink: String(it.url ?? '') });
+    }
+    return { results: out, notes };
+  }
   const [cat, ads] = await Promise.all([
     ml(`/products/search?status=active&site_id=MLB&q=${enc}&limit=12`).catch((e) => { throw e; }),
     ml(`/sites/MLB/search?q=${enc}&limit=24`).catch(() => ({ status: 0, body: {} as Record<string, unknown> })),
