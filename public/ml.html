@@ -57,6 +57,15 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 .field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(240,69,47,.18)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips span{font-size:13px;font-weight:600;padding:6px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line-2)}
+.seo{list-style:none;display:flex;flex-direction:column;gap:2px;font-size:13px;margin:6px 0 2px}
+.seo li.bad,.rev li.bad{color:#FFB547}.seo li.ok,.rev li.ok{color:#7BD88F}
+.alt{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.alt .k{font:inherit;font-size:12.5px;padding:4px 10px;border-radius:999px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--fg)}
+.alt button.k{cursor:pointer}.alt button.k:hover{border-color:#F0452F}
+.rev{border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;margin:4px 0 14px}
+.revh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.rev ul{list-style:none;display:flex;flex-direction:column;gap:3px;font-size:13px}
+#stylebox{white-space:pre-wrap;max-height:320px;overflow:auto}
 .alerts{border:1px solid rgba(255,181,71,.35);background:rgba(255,181,71,.08);border-radius:12px;padding:10px 14px;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
 .alerts b{color:var(--warn)}
 .ficha{width:100%;border-collapse:collapse}
@@ -136,8 +145,11 @@ summary{cursor:pointer;font-weight:700}
     <div class="out">
       <div class="panel">
         <div class="field">
-          <span class="lab"><span>Título do anúncio</span><span class="cnt" id="tcnt">0/60</span></span>
+          <span class="lab"><span>Título do anúncio (SEO)</span><span class="cnt" id="tcnt">0/60</span></span>
           <input id="t" maxlength="60" aria-label="Título do anúncio">
+          <ul class="seo" id="tseo" aria-live="polite"></ul>
+          <div class="alt" id="talt" hidden><span class="note">Outras opções de título (clique para usar):</span></div>
+          <div class="alt" id="kw" hidden><span class="note">Palavras de busca:</span></div>
           <div class="row"><button class="btn sm ghost" type="button" data-copy="t">Copiar título</button><span class="note" id="tmsg"></span></div>
         </div>
         <div class="chips" id="dest"></div>
@@ -152,12 +164,20 @@ summary{cursor:pointer;font-weight:700}
           <table class="ficha"><tbody id="f"></tbody></table>
           <div class="row"><button class="btn sm ghost" type="button" id="fadd">+ Linha</button><button class="btn sm ghost" type="button" id="fcopy">Copiar ficha</button><span class="note" id="fmsg"></span></div>
         </div>
+        <div class="rev" id="rev">
+          <div class="revh"><b>Revisão</b><span class="note" id="revst"></span></div>
+          <ul id="revlist"></ul>
+          <div class="row"><button class="btn sm ghost" type="button" id="revgo">Revisar de novo com a IA</button><a class="note" href="#" id="revstyle">Ver o padrão de anúncio</a></div>
+          <pre class="orig" id="stylebox" hidden></pre>
+          <label class="tgl"><input type="checkbox" id="revok"> Revisei o título e a descrição e estão no padrão da loja</label>
+        </div>
         <div class="row"><button class="btn" type="button" id="all">Copiar tudo</button><span class="note" id="amsg"></span></div>
       </div>
 
       <div class="panel">
         <span class="lab"><span>Fotos</span><span class="cnt" id="pcnt"></span></span>
         <p class="note" id="wmsum"></p>
+        <p class="note">As fotos saem no padrão da loja: <b>1200×1200 px</b>, fundo branco e produto centralizado (no ZIP e no envio ao AnyMarket).</p>
         <div class="row"><button class="btn sm ghost" type="button" id="pall">Selecionar todas</button><button class="btn sm ghost" type="button" id="pclean">Só sem marca d'água</button><button class="btn sm ghost" type="button" id="pnone">Limpar</button></div>
         <div class="pics" id="pics"></div>
         <div class="row"><button class="btn" type="button" id="zip">Baixar selecionadas (ZIP)</button><span class="note" id="zmsg"></span></div>
@@ -279,8 +299,26 @@ summary{cursor:pointer;font-weight:700}
     finally { busy = false; }
   }
 
-  const cnt = () => { const t = $('t').value.length; $('tcnt').textContent = t + '/60'; $('tcnt').classList.toggle('bad', t > 60); $('dcnt').textContent = $('d').value.length.toLocaleString('pt-BR') + ' caracteres'; };
+  // Conferência do título SEO (mesmas regras do servidor, em src/listingStyle.ts).
+  const BANNED = ['promocao', 'promoção', 'oferta', 'frete gratis', 'frete grátis', 'original', 'lancamento', 'lançamento', 'melhor', 'top', 'barato', 'imperdivel', 'imperdível', 'queima'];
+  function titleIssues(t) {
+    const out = [], s = t.trim(), low = s.toLowerCase();
+    if (!s) return out;
+    if (s.length > 60) out.push('tem ' + s.length + ' caracteres (máximo 60)');
+    else if (s.length < 45) out.push('tem só ' + s.length + ' caracteres; use 55 a 60 com mais palavras de busca');
+    for (const b of BANNED) if (new RegExp('(^|\\s)' + b + '(\\s|$)').test(low)) out.push('tem a palavra "' + b + '", que o ML não recomenda');
+    const seen = new Set(); for (const w of low.split(/\s+/).filter((w) => w.length > 2)) { if (seen.has(w)) { out.push('repete a palavra "' + w + '"'); break; } seen.add(w); }
+    if (/[!?*#@$%|/\\]/.test(s) || /\p{Extended_Pictographic}/u.test(s)) out.push('tem símbolo ou emoji');
+    if (s.length > 8 && s === s.toUpperCase()) out.push('está todo em maiúsculas');
+    return out;
+  }
+  const cnt = () => {
+    const t = $('t').value.length; $('tcnt').textContent = t + '/60'; $('tcnt').classList.toggle('bad', t > 60); $('dcnt').textContent = $('d').value.length.toLocaleString('pt-BR') + ' caracteres';
+    const iss = titleIssues($('t').value);
+    $('tseo').replaceChildren(...(iss.length ? iss.map((x) => el('li', { className: 'bad', textContent: 'Título ' + x + '.' })) : $('t').value.trim() ? [el('li', { className: 'ok', textContent: 'Título no padrão SEO (tamanho, palavras e formato).' })] : []));
+  };
   $('t').oninput = cnt; $('d').oninput = cnt;
+  $('t').setAttribute('maxlength', '80');
 
   function fichaRow(n, v) {
     const tr = el('tr', {}, el('td', {}, el('input', { value: n, ariaLabel: 'Nome' })), el('td', {}, el('input', { value: v, ariaLabel: 'Valor' })),
@@ -298,6 +336,11 @@ summary{cursor:pointer;font-weight:700}
     const dest = $('dest'); dest.replaceChildren(...(ai.destaques || []).map((x) => el('span', { textContent: x })));
     const al = $('alerts'); al.replaceChildren(); const alerts = [...(ai.alertas || []), ...(d.notes || [])];
     al.hidden = !alerts.length; if (alerts.length) { al.append(el('b', { textContent: 'Confira antes de anunciar' })); alerts.forEach((a) => al.append(el('span', { textContent: '• ' + a }))); }
+    const chips = (box, list, onPick) => { const b = $(box); b.querySelectorAll('button,span.k').forEach((x) => x.remove()); b.hidden = !(list && list.length); (list || []).forEach((x) => b.append(onPick ? el('button', { type: 'button', className: 'k', textContent: x, onclick: () => onPick(x) }) : el('span', { className: 'k', textContent: x }))); };
+    const pickTitle = (x) => { const old = $('t').value; $('t').value = x; cnt(); if (old && old !== x) { ai.titulos = [old, ...ai.titulos.filter((y) => y !== x)]; chips('talt', ai.titulos, pickTitle); } };
+    chips('talt', ai.titulos, pickTitle);
+    chips('kw', ai.palavras);
+    renderReview(ai.revisao, !!r.revisado);
     const f = $('f'); f.replaceChildren(...((ai.ficha && ai.ficha.length) ? ai.ficha.map((x) => fichaRow(x.nome, x.valor)) : d.attributes.map((x) => fichaRow(x.name, x.value)))); fcount();
     cnt();
     // fotos
@@ -322,6 +365,29 @@ summary{cursor:pointer;font-weight:700}
     const srcs = $('srcs'); srcs.replaceChildren(...d.sources.map((s) => el('span', {}, el('b', { textContent: KIND[s.kind] + ': ' }), s.permalink ? el('a', { href: s.permalink, target: '_blank', rel: 'noopener', textContent: s.title || s.id }) : document.createTextNode(s.title || s.id))));
     $('origs').replaceChildren(...d.texts.map((t) => el('div', {}, el('p', { className: 'note', style: 'margin-top:12px', textContent: 'Texto original · ' + t.source }), el('div', { className: 'orig', textContent: t.text }))));
   }
+  function renderReview(rv, done) {
+    const L = $('revlist'); L.replaceChildren();
+    if (!rv) $('revst').textContent = cur && cur.ai ? 'A revisão automática não rodou. Clique em Revisar de novo.' : 'Sem texto da IA para revisar.';
+    else if (!rv.feita) $('revst').textContent = 'A revisão automática não terminou.';
+    else $('revst').textContent = 'Feita pela IA contra o padrão da loja · ' + (rv.correcoes.length ? rv.correcoes.length + ' correção(ões)' : 'nada a corrigir');
+    for (const c of (rv && rv.correcoes) || []) L.append(el('li', { className: 'ok', textContent: '✓ ' + c }));
+    for (const c of (rv && rv.pendencias) || []) L.append(el('li', { className: 'bad', textContent: 'Conferir: ' + c }));
+    $('revok').checked = done;
+  }
+  $('revgo').onclick = async () => {
+    if (!cur) return; const b = $('revgo'); b.disabled = true; $('revst').textContent = 'Revisando…';
+    try {
+      const d = cur.detail, attrs = d.attributes.length ? d.attributes : [...$('f').children].map((tr) => { const [a, c] = tr.querySelectorAll('input'); return { name: a.value, value: c.value }; });
+      const r = await api('/api/ml/review', { method: 'POST', body: { company: co, titulo: $('t').value, descricao: $('d').value, contexto: { title: d.title, brand: d.brand, model: d.model, attributes: attrs, texts: d.texts } } });
+      $('t').value = r.titulo; $('d').value = r.descricao; cnt(); cur.ai = { ...(cur.ai || {}), revisao: r.revisao }; renderReview(r.revisao, false);
+    } catch (e) { $('revst').textContent = e.message; }
+    finally { b.disabled = false; }
+  };
+  $('revstyle').onclick = async (e) => {
+    e.preventDefault(); const box = $('stylebox');
+    if (!box.hidden) { box.hidden = true; return; }
+    try { box.textContent = (await api('/api/ml/style?company=' + co)).style; box.hidden = false; } catch (err) { $('revst').textContent = err.message; }
+  };
   const selectBy = (fn) => { if (!cur) return; cur.detail.pictures.forEach((p, i) => { const fig = $('pics').children[i], v = fn(p); if (v) sel.add(i); else sel.delete(i); fig.querySelector('.sel').checked = v; fig.classList.toggle('on', v); }); };
   $('pall').onclick = () => selectBy(() => true);
   $('pclean').onclick = () => selectBy((p) => !p.watermark);
@@ -344,14 +410,14 @@ summary{cursor:pointer;font-weight:700}
     try {
       for (const i of list) {
         m.textContent = 'Baixando foto ' + (n + 1) + ' de ' + list.length + '…';
-        const p = cur.detail.pictures[i], r = await fetch(img(p.url)); if (!r.ok) continue;
-        const b = await r.blob(), ext = (b.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
-        zip.file(String(++n).padStart(2, '0') + (p.watermark ? '-marca-dagua' : '') + '.' + ext, b); if (p.watermark) wm++;
+        const p = cur.detail.pictures[i], r = await fetch(img(p.url) + '&q=1200'); if (!r.ok) continue;
+        const b = await r.blob();
+        zip.file(String(++n).padStart(2, '0') + (p.watermark ? '-marca-dagua' : '') + '.jpg', b); if (p.watermark) wm++;
       }
       if (!n) { m.textContent = 'Não consegui baixar as fotos agora.'; return; }
       zip.file('anuncio.txt', $('t').value + '\n\n' + $('d').value + '\n\nFICHA TÉCNICA\n' + fichaText() + '\n');
       downloadBlob(slug($('t').value) + '.zip', await zip.generateAsync({ type: 'blob' }));
-      m.textContent = n + ' foto(s) baixada(s)' + (wm ? ', ' + wm + " com marca d'água (nome do arquivo indica)" : '') + '.';
+      m.textContent = n + ' foto(s) em 1200×1200 baixada(s)' + (wm ? ', ' + wm + " com marca d'água (nome do arquivo indica)" : '') + '.';
       logEvent('ml_baixar_fotos', { produto: $('t').value, fotos: n, com_marca: wm });
     } catch { m.textContent = 'Falhou ao montar o ZIP. Tente de novo.'; }
     finally { $('zip').disabled = false; }
@@ -381,6 +447,7 @@ summary{cursor:pointer;font-weight:700}
       ficha: [...$('f').children].map((tr) => { const [a, b] = tr.querySelectorAll('input'); return { nome: a.value.trim(), valor: b.value.trim() }; }).filter((x) => x.nome && x.valor),
       fotos: [...sel].sort((a, b) => a - b).map((i) => d.pictures[i].url),
       destaques: [...$('dest').children].map((x) => x.textContent), alertas: (cur.ai && cur.ai.alertas) || [],
+      titulos: (cur.ai && cur.ai.titulos) || [], palavras: (cur.ai && cur.ai.palavras) || [], revisao: (cur.ai && cur.ai.revisao) || null, revisado: $('revok').checked,
       pictures: d.pictures, sources: d.sources, texts: d.texts, notes: d.notes, brand: d.brand, model: d.model, origemTitulo: d.title, am: amForm() };
   }
   async function save(asNew) {
@@ -434,7 +501,9 @@ summary{cursor:pointer;font-weight:700}
     for (const [id, ok] of REQ) { const lab = $(id).closest('.f'); const v = !!ok(f); lab.classList.toggle('bad', !v); if (!v) bad++; }
     if (bad) { m.className = 'status err'; m.textContent = 'Preencha os campos marcados (' + bad + ').' + (!f.categoryId && f.categoryPath ? ' Escolha a categoria na lista.' : '') + (!f.brandId && f.brandName ? ' Escolha a marca na lista ou clique em Criar marca.' : ''); return; }
     if (!sel.size) { m.className = 'status err'; m.textContent = 'Selecione pelo menos uma foto.'; return; }
-    $('am-send').disabled = true; m.className = 'status'; m.replaceChildren(el('span', { className: 'spin' }), document.createTextNode('Salvando e enviando ao AnyMarket…'));
+    if ($('t').value.trim().length > 60) { m.className = 'status err'; m.textContent = 'O título passou de 60 caracteres. Ajuste antes de enviar.'; $('t').focus(); return; }
+    if (!$('revok').checked) { m.className = 'status err'; m.textContent = 'Marque "Revisei o título e a descrição" (na coluna do texto) antes de enviar.'; $('revok').closest('.rev').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    $('am-send').disabled = true; m.className = 'status'; m.replaceChildren(el('span', { className: 'spin' }), document.createTextNode('Salvando, preparando as fotos em 1200×1200 e enviando ao AnyMarket…'));
     try {
       const id = await save(false); if (!id) throw new Error('Não consegui salvar antes de enviar.');
       const r = await api('/api/anymarket/send/' + id, { method: 'POST', body: { forcar: sendArmed } });
@@ -469,7 +538,7 @@ summary{cursor:pointer;font-weight:700}
       const { listing } = await api('/api/ml/listings/' + id); const d = listing.data;
       if (listing.company !== co) { co = listing.company; try { localStorage.setItem('estudio_empresa', co); } catch {} renderCos(); amCats = []; await amInit(); }
       cur = { detail: { title: d.origemTitulo || d.titulo, brand: d.brand || '', model: d.model || '', sources: d.sources || [], texts: d.texts || [], notes: d.notes || [], attributes: [], pictures: d.pictures || (d.fotos || []).map((u) => ({ url: u, thumb: u, source: 'Salvo' })) },
-        ai: { titulo: d.titulo, descricao: d.descricao, ficha: d.ficha, destaques: d.destaques || [], alertas: d.alertas || [] } };
+        ai: { titulo: d.titulo, descricao: d.descricao, ficha: d.ficha, destaques: d.destaques || [], alertas: d.alertas || [], titulos: d.titulos || [], palavras: d.palavras || [], revisao: d.revisao || null }, revisado: !!d.revisado };
       render(cur);
       const want = new Set(d.fotos || []); selectBy((p) => want.has(p.url));
       fillAm(d.am); histId = listing.id; $('out').hidden = false; $('savemsg').textContent = 'Aberto: #' + listing.id + ' · ' + ST[listing.status] + (listing.am_product_id ? ' (produto ' + listing.am_product_id + ')' : '');

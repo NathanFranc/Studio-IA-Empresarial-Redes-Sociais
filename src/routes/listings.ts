@@ -4,6 +4,8 @@
  */
 /** Histórico do Studio ML (anúncios montados) e envio ao AnyMarket. */
 import { Router, type Request } from 'express';
+import { config } from '../config.js';
+import { publishSquare } from '../photos.js';
 import { AmError, amBrands, amCategories, amConfigured, amCreateBrand, amSandbox, amSend, buildProduct, missing, type ListingData } from '../anymarket.js';
 import { COMPANIES, pickCompany } from '../companies.js';
 import { db } from '../db.js';
@@ -106,7 +108,14 @@ anymarketRouter.post('/send/:id', async (req, res) => {
   if (falta.length) return void res.status(400).json({ error: 'Falta preencher: ' + falta.join(', ') + '.' });
   const t0 = Date.now();
   try {
-    const out = await amSend(r.company, buildProduct(data, 'studio-' + r.id));
+    if (!config.publicUrl) throw new AmError('Defina DOMAIN ou PUBLIC_URL no .env: o AnyMarket baixa as fotos 1200×1200 por um endereço público do Estúdio.', 400);
+    // Fotos no padrão 1200×1200 (fundo branco), servidas em /am-media para o AnyMarket baixar.
+    const fotos: string[] = [];
+    for (const u of data.fotos.slice(0, 12)) {
+      try { fotos.push(await publishSquare(u)); }
+      catch { throw new AmError('Não consegui preparar a foto ' + (fotos.length + 1) + ' em 1200×1200. Tire ela da seleção ou tente de novo.', 502); }
+    }
+    const out = await amSend(r.company, buildProduct({ ...data, fotos }, 'studio-' + r.id));
     db.prepare("UPDATE ml_listings SET status = 'enviado', am_product_id = ?, am_message = ?, sent_at = datetime('now'), updated_at = datetime('now') WHERE id = ?")
       .run(out.id, amSandbox() ? 'sandbox' : 'produção', r.id);
     logAction(req, 'anymarket_enviar', { detail: { anuncio: r.id, produto: out.id, titulo: r.title, empresa: COMPANIES[r.company]?.name, ambiente: amSandbox() ? 'sandbox' : 'produção', anuncios_auto: !!data.am?.anunciosAuto, ms: Date.now() - t0 } });

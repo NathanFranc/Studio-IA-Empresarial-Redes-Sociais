@@ -107,6 +107,8 @@ export interface ListingData {
   ficha: { nome: string; valor: string }[];
   fotos: string[];
   am: AmForm;
+  /** A equipe marcou que revisou título e descrição (padrão do administrador). */
+  revisado?: boolean;
 }
 
 /** Confere os campos obrigatórios do AnyMarket e devolve a lista do que falta. */
@@ -115,6 +117,8 @@ export function missing(d: ListingData): string[] {
   if (!d.titulo?.trim()) out.push('título');
   if (!d.descricao?.trim()) out.push('descrição');
   if (!d.fotos?.length) out.push('pelo menos 1 foto');
+  if (!d.revisado) out.push('marcar "Revisei título e descrição"');
+  if ((d.titulo ?? '').trim().length > 60) out.push('título com até 60 caracteres');
   if (!f?.categoryId) out.push('categoria do AnyMarket');
   if (!f?.brandId) out.push('marca do AnyMarket');
   if (!f?.sku?.trim()) out.push('SKU');

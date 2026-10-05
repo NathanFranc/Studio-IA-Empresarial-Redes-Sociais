@@ -83,27 +83,12 @@ ${desc.slice(0, 8000)}
 }
 
 // ---------------------------------------------------------------- Studio ML
-export function mlRewritePrompt(co: Company, d: { title: string; brand: string; model: string; attributes: { name: string; value: string }[]; texts: { source: string; title: string; text: string }[] }): string {
+type MlData = { title: string; brand: string; model: string; attributes: { name: string; value: string }[]; texts: { source: string; title: string; text: string }[] };
+
+function mlDados(d: MlData): string {
   const ficha = d.attributes.map((a) => `- ${a.name}: ${a.value}`).join('\n') || '(sem ficha)';
   const textos = d.texts.slice(0, 4).map((t, i) => `[${i + 1}] ${t.source} — "${t.title}"\n${t.text.slice(0, 2500)}`).join('\n\n') || '(sem descrições)';
-  return `Você escreve anúncios do Mercado Livre para a ${co.about}.
-Abaixo estão os dados de um produto coletados no Mercado Livre: título, ficha técnica e descrições de outros anúncios.
-Escreva um anúncio NOVO e PRÓPRIO da ${co.name}. Use os fatos da ficha e das descrições, mas não copie frases dos concorrentes.
-
-REGRAS
-- Português do Brasil. Só fatos que estão nos dados. Nunca invente medidas, potência, voltagem, garantia, brindes ou compatibilidade.
-- Se as fontes discordarem num dado, use o da ficha técnica e cite a dúvida em "alertas".
-- "titulo": até 60 caracteres, no padrão do ML: tipo do produto + marca + modelo + 1 ou 2 atributos mais buscados (ex.: "Cafeteira Elétrica Oster 0,75L Inox 220V"). Sem emojis, sem caixa alta inteira, sem palavras como "promoção" ou "frete grátis".
-- "descricao": texto puro (sem HTML, sem emojis, sem links, sem telefone, e-mail ou redes sociais), entre 900 e 2500 caracteres, com: 1 parágrafo de abertura sobre o uso e o benefício principal; "PRINCIPAIS CARACTERÍSTICAS" com 4 a 8 linhas começando com "- "; "ESPECIFICAÇÕES TÉCNICAS" com as linhas "Nome: valor" mais importantes; "CONTEÚDO DA EMBALAGEM" só se os dados disserem o que vem na caixa; e uma frase final de confiança da loja (sem prometer prazo ou garantia que não esteja nos dados).
-- "ficha": lista {"nome","valor"} limpa e padronizada para o anúncio (nomes curtos com inicial maiúscula, valores com unidade, sem duplicados, sem dados internos do ML), na ordem de importância para o comprador. Até 25 itens.
-- "destaques": 3 a 5 frases curtas (até 60 caracteres) com os principais argumentos de venda.
-- "alertas": lista de avisos curtos para a equipe conferir (ex.: voltagem diferente entre anúncios, ficha incompleta). Lista vazia se não houver.
-
-FORMATO
-{"titulo":"","descricao":"","ficha":[{"nome":"","valor":""}],"destaques":[],"alertas":[]}
-
-DADOS COLETADOS
-Título de referência: ${d.title}
+  return `Título de referência: ${d.title}
 Marca: ${d.brand || '(não informada)'} · Modelo: ${d.model || '(não informado)'}
 
 FICHA TÉCNICA
@@ -111,6 +96,61 @@ ${ficha}
 
 DESCRIÇÕES DE REFERÊNCIA
 ${textos}`;
+}
+
+export function mlRewritePrompt(co: Company, d: MlData, style: string): string {
+  return `Você escreve anúncios do Mercado Livre para a ${co.about}.
+Abaixo estão os dados de um produto coletados no Mercado Livre: título, ficha técnica e descrições de outros anúncios.
+Escreva um anúncio NOVO e PRÓPRIO da ${co.name}, seguindo À RISCA o PADRÃO DA LOJA. Use os fatos da ficha e das descrições, mas não copie frases dos concorrentes.
+
+REGRAS GERAIS
+- Português do Brasil. Só fatos que estão nos dados. Nunca invente medidas, potência, voltagem, garantia, brindes, itens da embalagem ou compatibilidade.
+- Se as fontes discordarem num dado, use o da ficha técnica e cite a dúvida em "alertas".
+
+PADRÃO DA LOJA
+${style}
+
+CAMPOS
+- "titulo": o título SEO do padrão (até 60 caracteres, conte).
+- "titulos_alternativos": 2 outras opções de título no mesmo padrão, com palavras de busca diferentes.
+- "palavras_chave": 5 a 8 termos que o comprador digitaria na busca do ML para achar este produto, do mais para o menos buscado.
+- "descricao": a descrição completa no padrão da loja, entre 1200 e 5000 caracteres.
+- "ficha": lista {"nome","valor"} limpa e padronizada (nomes curtos com inicial maiúscula, valores com unidade, sem duplicados, sem dados internos do ML), na ordem de importância para o comprador. Até 25 itens.
+- "destaques": 3 a 5 frases curtas (até 60 caracteres) com os principais argumentos de venda.
+- "alertas": avisos curtos para a equipe conferir (ex.: voltagem diferente entre anúncios, garantia não informada, embalagem sem confirmação). Lista vazia se não houver.
+
+FORMATO
+{"titulo":"","titulos_alternativos":[],"palavras_chave":[],"descricao":"","ficha":[{"nome":"","valor":""}],"destaques":[],"alertas":[]}
+
+DADOS COLETADOS
+${mlDados(d)}`;
+}
+
+/** Segunda passada: um revisor confere o rascunho contra o padrão da loja e os dados, e corrige. */
+export function mlReviewPrompt(co: Company, d: MlData, style: string, draft: { titulo: string; descricao: string }, titleProblems: string[]): string {
+  return `Você é o revisor de anúncios do Mercado Livre da ${co.name}. Confira o RASCUNHO abaixo e devolva a versão corrigida.
+
+CONFIRA, NESTA ORDEM
+1. Fatos: todo número, medida, voltagem, garantia e item da embalagem do rascunho precisa estar nos DADOS. Remova o que não estiver (e cite em "correcoes").
+2. Padrão da loja: seções, ordem, títulos em caixa alta com dois-pontos, formato dos itens ("- Nome: texto;", "- 01 Item"), linha final de garantia, sem emojis, links, contatos ou frase de loja no fim.
+3. Título SEO: até 60 caracteres, palavras de busca na ordem do padrão, sem palavras proibidas ou repetidas.${titleProblems.length ? ' Problemas já encontrados no título: ' + titleProblems.join('; ') + '.' : ''}
+4. Português: ortografia, acentos, concordância, unidades (ex.: "220V", "1,5 L", "288 g"), nomes de marca e tecnologia escritos como o fabricante.
+5. Clareza: frases sem repetição e sem exagero; cada diferencial com benefício concreto.
+Não reescreva o que já está certo. Não acrescente informação nova.
+
+PADRÃO DA LOJA
+${style}
+
+RASCUNHO
+Título: ${draft.titulo}
+
+${draft.descricao}
+
+DADOS
+${mlDados(d)}
+
+Responda SOMENTE com JSON:
+{"titulo":"","descricao":"","correcoes":["o que foi corrigido, em frases curtas"],"pendencias":["o que a equipe precisa conferir e a IA não consegue resolver"]}`;
 }
 
 export function watermarkPrompt(n: number): string {

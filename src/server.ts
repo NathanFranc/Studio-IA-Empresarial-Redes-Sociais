@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { aiReady } from './ai.js';
 import { loadUser, requireAdmin, requireAjaxHeader, requireUser } from './auth.js';
 import { config, igMediaDir } from './config.js';
+import { amMediaDir, cleanAmMedia } from './photos.js';
 import { purgeExpiredSessions } from './db.js';
 import { adminRouter } from './routes/admin.js';
 import { aiRouter } from './routes/ai.js';
@@ -34,6 +35,8 @@ seedAdmin();
 purgeExpiredSessions();
 setInterval(purgeExpiredSessions, 3600_000).unref();
 cleanMedia();
+cleanAmMedia();
+setInterval(cleanAmMedia, 6 * 3600_000).unref();
 setInterval(cleanMedia, 3600_000).unref();
 void refreshIfNeeded();
 setInterval(() => void refreshIfNeeded(), 6 * 3600_000).unref();
@@ -144,6 +147,7 @@ app.get('/instagram/retorno', requireUser, requireAdmin, async (req, res) => {
     back('ig=erro&msg=' + encodeURIComponent(msg));
   }
 });
+app.use('/am-media', express.static(amMediaDir, { index: false, dotfiles: 'deny', maxAge: '7d' }));
 app.use('/ig-media', express.static(igMediaDir, { index: false, dotfiles: 'deny', maxAge: 0, setHeaders: (r) => r.setHeader('Cache-Control', 'no-store') }));
 // JS e CSS sempre revalidados (ETag), para cada atualização aparecer sem precisar limpar o cache; imagens ficam 1 h.
 app.use('/assets', express.static(path.join(pub, 'assets'), {

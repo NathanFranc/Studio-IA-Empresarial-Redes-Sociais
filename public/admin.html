@@ -189,6 +189,13 @@ td.actcell{min-width:300px}
         </ol>
       </div>
     </div>
+    <div class="panel" style="margin-top:18px">
+      <h2>Padrão de anúncio</h2>
+      <p class="muted" style="font-size:13.5px">Regras do título SEO e da estrutura da descrição que a IA segue e usa na revisão. O padrão inicial veio dos anúncios da loja (Wahl Vapor Switch e Intelbras V3501). Cada empresa pode ter o seu.</p>
+      <div class="cosw" id="st-co" role="group" aria-label="Empresa"></div>
+      <label class="f" for="st-text" style="margin-top:12px">Padrão <span class="muted" id="st-tag"></span><textarea id="st-text" rows="18" style="font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.5"></textarea></label>
+      <div class="row" style="margin-top:10px"><button class="btn sm" type="button" id="st-save">Salvar padrão</button><button class="btn ghost sm" type="button" id="st-reset">Voltar ao padrão inicial</button><span class="msg" id="st-msg" role="status" aria-live="polite"></span></div>
+    </div>
   </section>
 
   <section id="logs" role="tabpanel" aria-labelledby="t-logs" hidden class="page" style="padding:0;width:100%;max-width:none">
@@ -221,7 +228,7 @@ td.actcell{min-width:300px}
     baixar_post: ['Baixou post', 'ok'], baixar_carrossel: ['Baixou carrossel', 'ok'], baixar_slide: ['Baixou slide', 'ok'], copiar_legenda: ['Copiou legenda', ''],
     usuario_criado: ['Criou usuário', 'warn'], usuario_alterado: ['Alterou usuário', 'warn'],
     instagram_conectado: ['Conectou o Instagram', 'ok'], instagram_desconectado: ['Desconectou o Instagram', 'warn'], publicar_instagram: ['Publicou no Instagram', 'ok'], erro_instagram: ['Erro no Instagram', 'err'],
-    ml_conectado: ['Conectou o ML', 'ok'], ml_desconectado: ['Desconectou o ML', 'warn'], ml_buscar: ['Buscou no ML', ''], ml_gerar: ['Gerou anúncio ML', 'ok'], ml_baixar_fotos: ['Baixou fotos ML', 'ok'], erro_ml: ['Erro no ML', 'err'],
+    ml_conectado: ['Conectou o ML', 'ok'], ml_desconectado: ['Desconectou o ML', 'warn'], ml_buscar: ['Buscou no ML', ''], ml_gerar: ['Gerou anúncio ML', 'ok'], ml_baixar_fotos: ['Baixou fotos ML', 'ok'], erro_ml: ['Erro no ML', 'err'], ml_revisar: ['Revisou anúncio ML', 'ok'], ml_padrao: ['Alterou o padrão de anúncio', 'warn'],
   };
   const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
   const pill = (a) => el('span', { className: 'pill ' + ((LABEL[a] || [])[1] || ''), textContent: (LABEL[a] || [a])[0] });
@@ -230,7 +237,7 @@ td.actcell{min-width:300px}
   document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => {
     document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
     ['resumo', 'usuarios', 'instagram', 'mercadolivre', 'logs'].forEach((t) => $(t).hidden = t !== b.dataset.tab);
-    if (b.dataset.tab === 'mercadolivre') loadMl();
+    if (b.dataset.tab === 'mercadolivre') { loadMl(); loadStyle(); }
     if (b.dataset.tab === 'logs') loadLogs(0);
     if (b.dataset.tab === 'instagram') loadIg();
   });
@@ -355,6 +362,18 @@ td.actcell{min-width:300px}
     const g = $('ig-co'); g.replaceChildren();
     for (const c of COS) { const b = el('button', { type: 'button', onclick: () => { IGCO = c.id; loadIg(); } }, el('img', { src: LOGO[c.id] || '', alt: '' }), c.name); b.setAttribute('aria-pressed', String(c.id === IGCO)); g.append(b); }
   }
+  let STCO = 'megadino';
+  async function loadStyle() {
+    if (!COS.length) COS = (await api('/api/companies')).companies;
+    const g = $('st-co'); g.replaceChildren();
+    for (const c of COS) { const b = el('button', { type: 'button', onclick: () => { STCO = c.id; loadStyle(); } }, el('img', { src: LOGO[c.id] || '', alt: '' }), c.name); b.setAttribute('aria-pressed', String(c.id === STCO)); g.append(b); }
+    const r = await api('/api/ml/style?company=' + STCO); $('st-text').value = r.style; $('st-tag').textContent = r.custom ? '(personalizado)' : '(padrão inicial)';
+  }
+  async function saveStyle(reset) {
+    const m = $('st-msg');
+    try { const r = await api('/api/ml/style', { method: 'PUT', body: reset ? { company: STCO, reset: true } : { company: STCO, style: $('st-text').value } }); $('st-text').value = r.style; $('st-tag').textContent = r.custom ? '(personalizado)' : '(padrão inicial)'; m.className = 'msg ok'; m.textContent = reset ? 'Padrão inicial restaurado.' : 'Padrão salvo. Vale para os próximos anúncios.'; }
+    catch (e) { m.className = 'msg err'; m.textContent = e.message; }
+  }
   async function loadIg() {
     await renderIgCo();
     const co = COS.find((c) => c.id === IGCO);
@@ -400,6 +419,7 @@ td.actcell{min-width:300px}
   }
 
   // mercado livre
+  $('st-save').onclick = () => saveStyle(false); $('st-reset').onclick = () => saveStyle(true);
   async function loadMl() {
     const s = await api('/api/ml/status'), pill = $('ml-pill');
     const viaBb = !s.connected && s.scraper;
