@@ -7,6 +7,7 @@ Sistema interno para a equipe da Megadino criar as artes do Instagram. A pessoa 
 - **Histórico reutilizável**: cada arte gerada fica salva com textos, ajustes, legenda e fotos, pronta para abrir e reusar
 - **Painel de administração**: resumo do dia e da semana, gestão da equipe e consulta de logs com filtros e exportação CSV
 - **Várias empresas**: Megadino (1080×1350) e IDM Shop (1080×1080), cada uma com logos, cores, modelos, histórico, legenda e conta do Instagram próprios. A troca fica no topo do Estúdio.
+- **Studio ML**: digita o nome do produto e o sistema busca no Mercado Livre (catálogo e anúncios), monta título, descrição e ficha técnica reescritos pela IA e traz as fotos avisando quais têm marca d'água
 - **Publicar direto no Instagram**: posts e carrosséis saem do Estúdio para o perfil da loja, com confirmação antes
 - **IA pela chave da empresa**: os textos são escritos no servidor, então a chave nunca aparece no navegador
 
@@ -106,6 +107,29 @@ O Estúdio publica posts e carrosséis direto no perfil da loja usando a API ofi
 - Limites do Instagram: até 10 imagens por carrossel, 2.200 caracteres e 30 hashtags na legenda, e até 100 publicações pela API a cada 24 horas.
 - Cada publicação fica nos logs (**Publicou no Instagram**), no histórico (selo **No Instagram**) e na lista da aba Instagram.
 
+## Studio ML (Mercado Livre)
+
+Tela **Studio ML** no topo do sistema. A pessoa digita o produto (ex.: "cafeteira Oster 0,75L"), escolhe o resultado certo e recebe:
+- **título** (até 60 caracteres, padrão do ML) e **descrição** reescritos pela IA no tom da empresa escolhida (Megadino ou IDM Shop), usando a ficha e as descrições encontradas, sem copiar frases;
+- **ficha técnica** editável, juntando catálogo e anúncios;
+- **fotos** do catálogo e dos anúncios de concorrentes, com a origem de cada uma. A IA verifica as 16 primeiras e **avisa quais têm marca d'água** de outra loja (essas já vêm desmarcadas);
+- **alertas** para conferir (ex.: dado diferente entre anúncios);
+- botões de copiar e **ZIP** com as fotos escolhidas + `anuncio.txt`.
+
+### Configurar
+1. Em developers.mercadolivre.com.br › Minhas aplicações, no app de vocês, cadastre a URI de redirect `https://SEU_DOMINIO/ml/retorno` e permissões de leitura.
+2. No `.env`: `ML_CLIENT_ID` e `ML_CLIENT_SECRET`, depois `docker compose up -d`.
+3. Em **Administração › Mercado Livre**, clique em **Conectar Mercado Livre**. O acesso (6 h) é renovado sozinho com o refresh token, guardado criptografado.
+
+### Scraping de reserva (opcional)
+Se a API não trouxer nada, o Studio chama o seu serviço em `SCRAPER_URL` (com `Authorization: Bearer SCRAPER_TOKEN`, se definido):
+- `POST {"acao":"buscar","q":"cafeteira oster"}` → `{"resultados":[{"url","titulo","foto","preco","vendedor"}]}`
+- `POST {"acao":"detalhe","url":"https://..."}` → `{"produto":{"titulo","marca","modelo","descricao","ficha":[{"nome","valor"}],"fotos":["https://http2.mlstatic.com/..."],"vendedor"}}`
+
+Fotos só são carregadas de endereços do próprio Mercado Livre (mlstatic.com).
+
+> Atenção: fotos e textos de anúncios de concorrentes são deles. O Studio reescreve os textos e marca as fotos com marca d'água; usar foto de outro vendedor pode gerar denúncia no Programa de Proteção de Propriedade Intelectual do ML.
+
 ## Problemas com a IA (não gera o post)
 1. Em **Administração › Resumo**, clique em **Testar agora** (Conexão com a IA). A mensagem diz o motivo: chave inválida, conta sem créditos, modelo não encontrado ou falta de rede.
 2. Veja o erro original no servidor: `docker compose logs app --tail 50 | grep "\[ia\]"`.
@@ -168,6 +192,7 @@ src/
   catalog.ts       modelos, ícones e cores da Megadino (manter igual ao public/index.html)
   companies.ts     empresas: nome, @, jeito da legenda, cores e modelos de cada uma
   instagram.ts     conexão (OAuth), token criptografado e publicação no Instagram
+  ml.ts            Studio ML: conexão com o Mercado Livre, busca, detalhe e scraping de reserva
   routes/          auth, ai, posts (histórico), events (downloads), admin, instagram
 public/
   index.html       o Estúdio (modelos, recorte de fundo, carrossel, histórico)

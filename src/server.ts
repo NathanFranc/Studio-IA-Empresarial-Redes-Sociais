@@ -18,6 +18,8 @@ import { authRouter } from './routes/auth.js';
 import { eventsRouter } from './routes/events.js';
 import { postsRouter } from './routes/posts.js';
 import { instagramRouter } from './routes/instagram.js';
+import { mlRouter } from './routes/ml.js';
+import { mlAuthorizeUrl, mlConfigured, mlFinishConnect, MlError, mlKeepAlive } from './ml.js';
 import crypto from 'node:crypto';
 import { authorizeUrl, cleanMedia, finishConnect, igConfigured, IgError, refreshIfNeeded } from './instagram.js';
 import { seedAdmin } from './seed.js';
@@ -34,6 +36,7 @@ cleanMedia();
 setInterval(cleanMedia, 3600_000).unref();
 void refreshIfNeeded();
 setInterval(() => void refreshIfNeeded(), 6 * 3600_000).unref();
+setInterval(() => void mlKeepAlive(), 24 * 3600_000).unref();
 
 const app = express();
 if (config.trustProxy) app.set('trust proxy', 1);
@@ -68,6 +71,7 @@ app.use('/api/posts', requireUser, postsRouter);
 app.use('/api/events', requireUser, eventsRouter);
 app.use('/api/admin', requireUser, requireAdmin, adminRouter);
 app.use('/api/instagram', requireUser, instagramRouter);
+app.use('/api/ml', requireUser, mlRouter);
 app.get('/api/companies', requireUser, (_req, res) => {
   res.json({ companies: Object.values(COMPANIES).map((c) => ({ id: c.id, name: c.name, handle: c.handle })) });
 });
@@ -84,6 +88,32 @@ app.get('/login', (req, res, next) => (req.user ? res.redirect('/') : next()), p
 app.get('/', requireUser, page('index.html'));
 app.get('/admin', requireUser, requireAdmin, page('admin.html'));
 app.get('/conta', requireUser, page('conta.html'));
+app.get('/ml', requireUser, page('ml.html'));
+
+// ----- Mercado Livre: conectar (admin)
+app.get('/ml/conectar', requireUser, requireAdmin, (_req, res) => {
+  if (!mlConfigured()) return void res.redirect('/admin?ml=config#mercadolivre');
+  const state = crypto.randomBytes(18).toString('base64url');
+  res.cookie('ml_state', state, { httpOnly: true, sameSite: 'lax', secure: config.cookieSecure, maxAge: 10 * 60_000, path: '/ml' });
+  res.redirect(mlAuthorizeUrl(state));
+});
+app.get('/ml/retorno', requireUser, requireAdmin, async (req, res) => {
+  const back = (q: string) => res.redirect('/admin?' + q + '#mercadolivre');
+  const expected = req.cookies?.ml_state;
+  res.clearCookie('ml_state', { path: '/ml' });
+  if (req.query.error) return back('ml=cancelado');
+  if (!expected || req.query.state !== expected || typeof req.query.code !== 'string') return back('ml=invalido');
+  try {
+    const acc = await mlFinishConnect(req.query.code, req.user!.id);
+    logAction(req, 'ml_conectado', { detail: { conta: acc.nickname } });
+    back('ml=ok');
+  } catch (e) {
+    const msg = e instanceof MlError ? e.message : 'Não foi possível conectar.';
+    if (!(e instanceof MlError)) console.error(e);
+    logAction(req, 'erro_ml', { detail: { etapa: 'conectar', motivo: msg } });
+    back('ml=erro&msg=' + encodeURIComponent(msg));
+  }
+});
 
 // ----- Instagram: conectar (admin) e imagens temporárias que o Instagram baixa
 app.get('/instagram/conectar', requireUser, requireAdmin, (req, res) => {

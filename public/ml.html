@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<!-- Estúdio Megadino — Copyright (c) 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.
+Uso, cópia, modificação ou distribuição só com autorização por escrito do autor. Ver LICENSE. -->
+<meta name="author" content="Nathan Vinicius Franca de Lima">
+<meta name="copyright" content="© 2026 Nathan Vinicius Franca de Lima. Todos os direitos reservados.">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Studio ML · Estúdio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@300;400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/assets/base.css">
+<style>
+/* Studio ML: busca no Mercado Livre → escolha do produto → anúncio pronto (título, descrição, ficha e fotos). */
+.wrap{max-width:1280px;margin:0 auto;padding-inline:20px;padding-block:28px 56px;display:flex;flex-direction:column;gap:22px}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px 24px;flex-wrap:wrap}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.eyebrow i{width:8px;height:8px;border-radius:50%;background:#FFE600;box-shadow:0 0 0 4px rgba(255,230,0,.15),0 0 14px rgba(255,230,0,.7)}
+.hero h1{font-size:48px;line-height:1}
+.hero p{color:var(--muted);max-width:54ch}
+.cos{display:flex;gap:4px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.cos button{font:inherit;font-weight:700;font-size:14px;color:var(--muted);background:transparent;border:0;border-radius:12px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.cos button[aria-pressed=true]{background:var(--panel-3);color:#fff;box-shadow:inset 0 0 0 1px var(--line-2)}
+.cos img{height:20px;width:auto}
+.search{display:flex;gap:10px;flex-wrap:wrap}
+.search input{flex:1 1 320px;min-width:0;font:inherit;font-size:18px;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(240,69,47,.18)}
+.search .btn{padding:0 28px;min-height:58px}
+.status{font-size:14px;color:var(--muted);min-height:1.3em}
+.status.err{color:#FF8A7A}.status.ok{color:var(--ok)}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:8px}
+@keyframes spin{to{rotate:360deg}}
+.banner{border:1px solid rgba(255,181,71,.35);background:rgba(255,181,71,.08);color:var(--fg);border-radius:14px;padding:12px 16px;font-size:14px}
+.banner a{color:var(--warn);font-weight:700}
+.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.res{font:inherit;color:inherit;text-align:left;background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0;transition:border-color .15s,transform .15s}
+.res:hover{border-color:var(--line-2);transform:translateY(-2px)}
+.res[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.res:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.res .im{aspect-ratio:1;border-radius:10px;background:#fff;display:grid;place-items:center;overflow:hidden}
+.res .im img{width:100%;height:100%;object-fit:contain}
+.res b{font-size:14px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.res small{font-size:12px;color:var(--muted)}
+.tagk{align-self:flex-start;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;border-radius:999px;padding:3px 8px}
+.tagk.catalogo{background:rgba(255,230,0,.14);color:#FFE600}
+.tagk.anuncio{background:rgba(61,139,255,.14);color:#7FB0FF}
+.tagk.scraping{background:rgba(255,255,255,.08);color:var(--muted)}
+.out{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:980px){.out{grid-template-columns:minmax(0,1fr)}}
+.field{display:flex;flex-direction:column;gap:8px}
+.lab{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted)}
+.lab .cnt{letter-spacing:0;font-variant-numeric:tabular-nums}
+.lab .cnt.bad{color:#FF8A7A}
+.field input,.field textarea{width:100%;font:inherit;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.field input{font-size:18px;font-weight:600}
+.field textarea{min-height:360px;resize:vertical;line-height:1.5;font-size:14.5px}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(240,69,47,.18)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{font-size:13px;font-weight:600;padding:6px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line-2)}
+.alerts{border:1px solid rgba(255,181,71,.35);background:rgba(255,181,71,.08);border-radius:12px;padding:10px 14px;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
+.alerts b{color:var(--warn)}
+.ficha{width:100%;border-collapse:collapse}
+.ficha td{padding:4px;border-bottom:1px solid var(--line)}
+.ficha input{width:100%;font:inherit;font-size:14px;color:var(--fg);background:transparent;border:1px solid transparent;border-radius:8px;padding:6px 8px}
+.ficha input:hover{border-color:var(--line)}
+.ficha input:focus{outline:none;border-color:var(--accent);background:var(--panel-2)}
+.ficha td:first-child input{font-weight:600;color:var(--muted)}
+.ficha .x{width:34px}
+.ficha .x button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px 8px;border-radius:6px}
+.ficha .x button:hover{color:#FF8A7A;background:var(--panel-2)}
+.pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.pic{position:relative;margin:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel-2);display:flex;flex-direction:column}
+.pic.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.pic .ph{aspect-ratio:1;background:#fff;display:grid;place-items:center;cursor:pointer}
+.pic .ph img{width:100%;height:100%;object-fit:contain}
+.pic figcaption{padding:6px 8px 8px;font-size:11.5px;color:var(--muted);line-height:1.3;display:flex;flex-direction:column;gap:3px}
+.pic .sel{position:absolute;top:8px;left:8px;width:22px;height:22px;accent-color:var(--accent)}
+.wm{position:absolute;top:8px;right:8px;max-width:calc(100% - 46px);font-size:11px;font-weight:800;color:#1A1200;background:#FFB547;border-radius:999px;padding:3px 8px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.wmnote{color:#FFB547;font-weight:600}
+.okm{color:var(--ok)}
+.srcs{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.srcs a{color:var(--accent-2)}
+details{border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-weight:700}
+.orig{white-space:pre-line;font-size:13px;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px;max-height:260px;overflow:auto;margin-top:8px}
+.row .btn{flex:0 0 auto}
+.note{font-size:13px;color:var(--muted)}
+.empty{color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<header id="topbar"></header>
+<div class="wrap">
+  <header class="hero">
+    <div><span class="eyebrow"><i></i>Mercado Livre</span><h1>Studio <span>ML</span></h1></div>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+      <div class="cos" id="cos" role="group" aria-label="Empresa do anúncio"></div>
+      <p>Digite o produto. O Studio busca no catálogo e nos anúncios do Mercado Livre e monta título, descrição, ficha técnica e fotos para o seu anúncio.</p>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <section class="panel">
+    <form class="search" id="sf">
+      <input id="q" type="search" placeholder="Ex.: cafeteira Oster 0,75L 220V" aria-label="Nome do produto" autocomplete="off" required minlength="3">
+      <button class="btn" type="submit" id="go">Buscar no ML</button>
+    </form>
+    <div class="status" id="st" role="status" aria-live="polite"></div>
+    <div class="results" id="res"></div>
+  </section>
+
+  <section id="out" hidden>
+    <div class="out">
+      <div class="panel">
+        <div class="field">
+          <span class="lab"><span>Título do anúncio</span><span class="cnt" id="tcnt">0/60</span></span>
+          <input id="t" maxlength="60" aria-label="Título do anúncio">
+          <div class="row"><button class="btn sm ghost" type="button" data-copy="t">Copiar título</button><span class="note" id="tmsg"></span></div>
+        </div>
+        <div class="chips" id="dest"></div>
+        <div class="alerts" id="alerts" hidden></div>
+        <div class="field">
+          <span class="lab"><span>Descrição</span><span class="cnt" id="dcnt">0</span></span>
+          <textarea id="d" aria-label="Descrição"></textarea>
+          <div class="row"><button class="btn sm ghost" type="button" data-copy="d">Copiar descrição</button><span class="note" id="dmsg"></span></div>
+        </div>
+        <div class="field">
+          <span class="lab"><span>Ficha técnica</span><span class="cnt" id="fcnt"></span></span>
+          <table class="ficha"><tbody id="f"></tbody></table>
+          <div class="row"><button class="btn sm ghost" type="button" id="fadd">+ Linha</button><button class="btn sm ghost" type="button" id="fcopy">Copiar ficha</button><span class="note" id="fmsg"></span></div>
+        </div>
+        <div class="row"><button class="btn" type="button" id="all">Copiar tudo</button><span class="note" id="amsg"></span></div>
+      </div>
+
+      <div class="panel">
+        <span class="lab"><span>Fotos</span><span class="cnt" id="pcnt"></span></span>
+        <p class="note" id="wmsum"></p>
+        <div class="row"><button class="btn sm ghost" type="button" id="pall">Selecionar todas</button><button class="btn sm ghost" type="button" id="pclean">Só sem marca d'água</button><button class="btn sm ghost" type="button" id="pnone">Limpar</button></div>
+        <div class="pics" id="pics"></div>
+        <div class="row"><button class="btn" type="button" id="zip">Baixar selecionadas (ZIP)</button><span class="note" id="zmsg"></span></div>
+        <details>
+          <summary>De onde vieram os dados</summary>
+          <div class="srcs" id="srcs"></div>
+          <div id="origs"></div>
+        </details>
+      </div>
+    </div>
+  </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="/assets/common.js"></script>
+<script>
+(async () => {
+  const { api, logEvent, downloadBlob } = Estudio;
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
+  const img = (u) => '/api/ml/img?u=' + encodeURIComponent(u);
+  const me = await Estudio.mountTopbar('ml');
+  const COS = [['megadino', 'Megadino', '/assets/megadino-logo-branca.png'], ['idmshop', 'IDM Shop', '/assets/idmshop-logo.png']];
+  let co = 'megadino'; try { co = localStorage.getItem('estudio_empresa') || 'megadino'; } catch {}
+  let cur = null, sel = new Set(), busy = false;
+
+  function renderCos() {
+    const g = $('cos'); g.replaceChildren();
+    for (const [id, name, logo] of COS) {
+      const b = el('button', { type: 'button', onclick: () => { co = id; try { localStorage.setItem('estudio_empresa', id); } catch {} renderCos(); } }, el('img', { src: logo, alt: '' }), name);
+      b.setAttribute('aria-pressed', String(co === id)); g.append(b);
+    }
+  }
+  renderCos();
+
+  // conexão
+  try {
+    const s = await api('/api/ml/status');
+    if (!s.connected) {
+      const b = $('banner'); b.hidden = false;
+      b.replaceChildren(document.createTextNode(s.configured ? 'O Mercado Livre ainda não está conectado. ' : 'O app do Mercado Livre ainda não foi configurado no servidor. '));
+      if (me && me.role === 'admin') b.append(el('a', { href: '/admin#mercadolivre', textContent: 'Conectar em Administração › Mercado Livre' }));
+      else b.append(document.createTextNode('Peça ao administrador para conectar.'));
+    }
+  } catch {}
+
+  const setSt = (t, k, spin) => { const s = $('st'); s.className = 'status' + (k ? ' ' + k : ''); s.replaceChildren(); if (spin) s.append(el('span', { className: 'spin' })); s.append(document.createTextNode(t)); };
+  const money = (v) => typeof v === 'number' ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '';
+  const KIND = { catalogo: 'Catálogo ML', anuncio: 'Anúncio', scraping: 'Scraping' };
+
+  $('sf').addEventListener('submit', async (e) => {
+    e.preventDefault(); if (busy) return;
+    const q = $('q').value.trim(); if (q.length < 3) return;
+    busy = true; $('go').disabled = true; setSt('Buscando no Mercado Livre…', '', true); $('res').replaceChildren();
+    try {
+      const r = await api('/api/ml/search', { method: 'POST', body: { q } });
+      if (!r.results.length) { setSt('Nada encontrado. Tente o nome com a marca e o modelo (ex.: "cafeteira Oster 0,75L").', 'err'); return; }
+      setSt(r.results.length + ' resultado(s). Escolha o produto certo.' + (r.notes.length ? ' ' + r.notes.join(' ') : ''), '');
+      for (const it of r.results) {
+        const b = el('button', { type: 'button', className: 'res' },
+          el('div', { className: 'im' }, it.thumb ? el('img', { src: img(it.thumb), alt: '', loading: 'lazy' }) : ''),
+          el('span', { className: 'tagk ' + it.kind, textContent: KIND[it.kind] }),
+          el('b', { textContent: it.title }),
+          el('small', { textContent: [it.brand, money(it.price), it.seller].filter(Boolean).join(' · ') }));
+        b.setAttribute('aria-pressed', 'false');
+        b.onclick = () => { document.querySelectorAll('.res').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); open(it); };
+        $('res').append(b);
+      }
+    } catch (err) { setSt(err.message, 'err'); }
+    finally { busy = false; $('go').disabled = false; }
+  });
+
+  async function open(it) {
+    if (busy) return; busy = true;
+    setSt('Juntando ficha, descrições e fotos e escrevendo o anúncio com a IA… pode levar até 1 minuto.', '', true);
+    try {
+      const r = await api('/api/ml/detail', { method: 'POST', body: { kind: it.kind, id: it.id, company: co } });
+      cur = r; render(r);
+      setSt(r.aiError ? 'Dados prontos, mas sem reescrita: ' + r.aiError : 'Pronto. Revise, copie e baixe as fotos.', r.aiError ? 'err' : 'ok');
+      $('out').hidden = false; $('out').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    } catch (err) { setSt(err.message, 'err'); }
+    finally { busy = false; }
+  }
+
+  const cnt = () => { const t = $('t').value.length; $('tcnt').textContent = t + '/60'; $('tcnt').classList.toggle('bad', t > 60); $('dcnt').textContent = $('d').value.length.toLocaleString('pt-BR') + ' caracteres'; };
+  $('t').oninput = cnt; $('d').oninput = cnt;
+
+  function fichaRow(n, v) {
+    const tr = el('tr', {}, el('td', {}, el('input', { value: n, ariaLabel: 'Nome' })), el('td', {}, el('input', { value: v, ariaLabel: 'Valor' })),
+      el('td', { className: 'x' }, el('button', { type: 'button', ariaLabel: 'Remover linha', textContent: '×', onclick: () => { tr.remove(); fcount(); } })));
+    return tr;
+  }
+  const fcount = () => { $('fcnt').textContent = $('f').children.length + ' itens'; };
+  const fichaText = () => [...$('f').children].map((tr) => { const [a, b] = tr.querySelectorAll('input'); return a.value.trim() && b.value.trim() ? a.value.trim() + ': ' + b.value.trim() : ''; }).filter(Boolean).join('\n');
+  $('fadd').onclick = () => { $('f').append(fichaRow('', '')); fcount(); };
+
+  function render(r) {
+    const d = r.detail, ai = r.ai || {};
+    $('t').value = ai.titulo || d.title.slice(0, 60);
+    $('d').value = ai.descricao || (d.texts[0]?.text || '');
+    const dest = $('dest'); dest.replaceChildren(...(ai.destaques || []).map((x) => el('span', { textContent: x })));
+    const al = $('alerts'); al.replaceChildren(); const alerts = [...(ai.alertas || []), ...(d.notes || [])];
+    al.hidden = !alerts.length; if (alerts.length) { al.append(el('b', { textContent: 'Confira antes de anunciar' })); alerts.forEach((a) => al.append(el('span', { textContent: '• ' + a }))); }
+    const f = $('f'); f.replaceChildren(...((ai.ficha && ai.ficha.length) ? ai.ficha.map((x) => fichaRow(x.nome, x.valor)) : d.attributes.map((x) => fichaRow(x.name, x.value)))); fcount();
+    cnt();
+    // fotos
+    sel = new Set(d.pictures.map((p, i) => i).filter((i) => !d.pictures[i].watermark));
+    const pics = $('pics'); pics.replaceChildren();
+    d.pictures.forEach((p, i) => {
+      const cb = el('input', { type: 'checkbox', className: 'sel', checked: sel.has(i), ariaLabel: 'Selecionar foto ' + (i + 1) });
+      const fig = el('figure', { className: 'pic' + (sel.has(i) ? ' on' : '') });
+      const toggle = (v) => { if (v) sel.add(i); else sel.delete(i); cb.checked = v; fig.classList.toggle('on', v); };
+      cb.onchange = () => toggle(cb.checked);
+      const ph = el('div', { className: 'ph', onclick: () => toggle(!sel.has(i)) }, el('img', { src: img(p.thumb || p.url), alt: 'Foto ' + (i + 1), loading: 'lazy' }));
+      const cap = el('figcaption', {}, el('span', { textContent: p.source }), p.w ? el('span', { textContent: p.w + '×' + p.h + ' px' }) : '');
+      if (p.watermark) cap.append(el('span', { className: 'wmnote', textContent: "⚠ Marca d'água: " + p.watermark }));
+      else if (p.checked) cap.append(el('span', { className: 'okm', textContent: "Sem marca d'água" }));
+      fig.append(ph, cb, cap); if (p.watermark) fig.append(el('span', { className: 'wm', textContent: "Marca d'água" }));
+      pics.append(fig);
+    });
+    const nWm = d.pictures.filter((p) => p.watermark).length, nChk = d.pictures.filter((p) => p.checked).length;
+    $('pcnt').textContent = d.pictures.length + ' fotos';
+    $('wmsum').textContent = !d.pictures.length ? 'Nenhuma foto encontrada.' : nChk ? (nWm ? nWm + " foto(s) com marca d'água de outra loja (já desmarcadas). Elas continuam disponíveis se precisar." : "Nenhuma marca d'água encontrada nas fotos verificadas.") + (nChk < d.pictures.length ? ' As ' + (d.pictures.length - nChk) + ' últimas não foram verificadas.' : '') : "A verificação de marca d'água não rodou; confira as fotos.";
+    // fontes
+    const srcs = $('srcs'); srcs.replaceChildren(...d.sources.map((s) => el('span', {}, el('b', { textContent: KIND[s.kind] + ': ' }), s.permalink ? el('a', { href: s.permalink, target: '_blank', rel: 'noopener', textContent: s.title || s.id }) : document.createTextNode(s.title || s.id))));
+    $('origs').replaceChildren(...d.texts.map((t) => el('div', {}, el('p', { className: 'note', style: 'margin-top:12px', textContent: 'Texto original · ' + t.source }), el('div', { className: 'orig', textContent: t.text }))));
+  }
+  const selectBy = (fn) => { if (!cur) return; cur.detail.pictures.forEach((p, i) => { const fig = $('pics').children[i], v = fn(p); if (v) sel.add(i); else sel.delete(i); fig.querySelector('.sel').checked = v; fig.classList.toggle('on', v); }); };
+  $('pall').onclick = () => selectBy(() => true);
+  $('pclean').onclick = () => selectBy((p) => !p.watermark);
+  $('pnone').onclick = () => selectBy(() => false);
+
+  async function copy(text, msgEl) {
+    try { await navigator.clipboard.writeText(text); $(msgEl).textContent = 'Copiado.'; }
+    catch { $(msgEl).textContent = 'Não consegui copiar automaticamente. Selecione e use Ctrl+C.'; }
+    setTimeout(() => { $(msgEl).textContent = ''; }, 2500);
+  }
+  document.querySelectorAll('[data-copy]').forEach((b) => b.onclick = () => copy($(b.dataset.copy).value, b.dataset.copy + 'msg'));
+  $('fcopy').onclick = () => copy(fichaText(), 'fmsg');
+  $('all').onclick = () => copy($('t').value + '\n\n' + $('d').value + '\n\nFICHA TÉCNICA\n' + fichaText(), 'amsg');
+
+  const slug = (t) => (t || 'produto').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'produto';
+  $('zip').onclick = async () => {
+    const m = $('zmsg'); if (!cur || !sel.size) { m.textContent = 'Selecione pelo menos uma foto.'; return; }
+    if (!window.JSZip) { m.textContent = 'Não consegui montar o ZIP aqui. Tente recarregar a página.'; return; }
+    const list = [...sel].sort((a, b) => a - b), zip = new JSZip(); let n = 0, wm = 0; $('zip').disabled = true;
+    try {
+      for (const i of list) {
+        m.textContent = 'Baixando foto ' + (n + 1) + ' de ' + list.length + '…';
+        const p = cur.detail.pictures[i], r = await fetch(img(p.url)); if (!r.ok) continue;
+        const b = await r.blob(), ext = (b.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+        zip.file(String(++n).padStart(2, '0') + (p.watermark ? '-marca-dagua' : '') + '.' + ext, b); if (p.watermark) wm++;
+      }
+      if (!n) { m.textContent = 'Não consegui baixar as fotos agora.'; return; }
+      zip.file('anuncio.txt', $('t').value + '\n\n' + $('d').value + '\n\nFICHA TÉCNICA\n' + fichaText() + '\n');
+      downloadBlob(slug($('t').value) + '.zip', await zip.generateAsync({ type: 'blob' }));
+      m.textContent = n + ' foto(s) baixada(s)' + (wm ? ', ' + wm + " com marca d'água (nome do arquivo indica)" : '') + '.';
+      logEvent('ml_baixar_fotos', { produto: $('t').value, fotos: n, com_marca: wm });
+    } catch { m.textContent = 'Falhou ao montar o ZIP. Tente de novo.'; }
+    finally { $('zip').disabled = false; }
+  };
+})();
+</script>
+</body>
+</html>

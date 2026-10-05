@@ -33,6 +33,14 @@ export const config = {
   igGraphUrl: env('IG_GRAPH_URL', 'https://graph.instagram.com'),
   igAuthUrl: env('IG_AUTH_URL', 'https://www.instagram.com/oauth/authorize'),
   igTokenUrl: env('IG_TOKEN_URL', 'https://api.instagram.com/oauth/access_token'),
+  /** App do Mercado Livre (developers.mercadolivre.com.br) para o Studio ML. */
+  mlClientId: env('ML_CLIENT_ID'),
+  mlClientSecret: env('ML_CLIENT_SECRET'),
+  mlApiUrl: env('ML_API_URL', 'https://api.mercadolibre.com'),
+  mlAuthUrl: env('ML_AUTH_URL', 'https://auth.mercadolivre.com.br/authorization'),
+  /** Scraping de reserva (sistema próprio). POST {q} → {resultados} e POST {url} → {produto}. */
+  scraperUrl: env('SCRAPER_URL').replace(/\/+$/, ''),
+  scraperToken: env('SCRAPER_TOKEN'),
 };
 
 export const uploadsDir = path.join(config.dataDir, 'uploads');

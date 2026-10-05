@@ -17,8 +17,9 @@ export class AiError extends Error {
 type ImgType = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
 
 /** Converte data URLs (`data:image/jpeg;base64,...`) em blocos de imagem da API. */
-function imageBlocks(images: string[]) {
-  return images.slice(0, 5).flatMap((u) => {
+function imageBlocks(images: string[]): Anthropic.ImageBlockParam[] {
+  return images.slice(0, 16).flatMap((u): Anthropic.ImageBlockParam[] => {
+    if (/^https:\/\//.test(u)) return [{ type: 'image' as const, source: { type: 'url' as const, url: u } }];
     const m = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/.exec(u);
     if (!m) return [];
     return [{ type: 'image' as const, source: { type: 'base64' as const, media_type: m[1] as ImgType, data: m[2] } }];
@@ -77,13 +78,13 @@ export async function testAi(): Promise<{ ok: boolean; model: string; message: s
   }
 }
 
-export async function askJson(prompt: string, images: string[]): Promise<unknown> {
+export async function askJson(prompt: string, images: string[], maxTokens = 4000): Promise<unknown> {
   if (!client) throw new AiError('A chave da IA (ANTHROPIC_API_KEY) não está configurada no servidor.', 503);
   let msg;
   try {
     msg = await client.messages.create({
       model: config.anthropicModel,
-      max_tokens: 4000,
+      max_tokens: maxTokens,
       system: 'Você responde somente com um objeto JSON válido, sem texto antes ou depois.',
       messages: [{ role: 'user', content: [...imageBlocks(images), { type: 'text', text: prompt }] }],
     });

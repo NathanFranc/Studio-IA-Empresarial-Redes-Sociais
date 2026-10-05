@@ -8,7 +8,7 @@ import { logAction, type Action } from '../logs.js';
 
 export const eventsRouter = Router();
 
-const CLIENT_ACTIONS: Action[] = ['baixar_post', 'baixar_carrossel', 'baixar_slide', 'copiar_legenda'];
+const CLIENT_ACTIONS: Action[] = ['baixar_post', 'baixar_carrossel', 'baixar_slide', 'copiar_legenda', 'ml_baixar_fotos'];
 
 eventsRouter.post('/', (req, res) => {
   const action = req.body?.action as Action;

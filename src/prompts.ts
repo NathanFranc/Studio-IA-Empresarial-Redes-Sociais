@@ -81,3 +81,41 @@ DESCRIÇÃO DO PRODUTO
 ${desc.slice(0, 8000)}
 """`;
 }
+
+// ---------------------------------------------------------------- Studio ML
+export function mlRewritePrompt(co: Company, d: { title: string; brand: string; model: string; attributes: { name: string; value: string }[]; texts: { source: string; title: string; text: string }[] }): string {
+  const ficha = d.attributes.map((a) => `- ${a.name}: ${a.value}`).join('\n') || '(sem ficha)';
+  const textos = d.texts.slice(0, 4).map((t, i) => `[${i + 1}] ${t.source} — "${t.title}"\n${t.text.slice(0, 2500)}`).join('\n\n') || '(sem descrições)';
+  return `Você escreve anúncios do Mercado Livre para a ${co.about}.
+Abaixo estão os dados de um produto coletados no Mercado Livre: título, ficha técnica e descrições de outros anúncios.
+Escreva um anúncio NOVO e PRÓPRIO da ${co.name}. Use os fatos da ficha e das descrições, mas não copie frases dos concorrentes.
+
+REGRAS
+- Português do Brasil. Só fatos que estão nos dados. Nunca invente medidas, potência, voltagem, garantia, brindes ou compatibilidade.
+- Se as fontes discordarem num dado, use o da ficha técnica e cite a dúvida em "alertas".
+- "titulo": até 60 caracteres, no padrão do ML: tipo do produto + marca + modelo + 1 ou 2 atributos mais buscados (ex.: "Cafeteira Elétrica Oster 0,75L Inox 220V"). Sem emojis, sem caixa alta inteira, sem palavras como "promoção" ou "frete grátis".
+- "descricao": texto puro (sem HTML, sem emojis, sem links, sem telefone, e-mail ou redes sociais), entre 900 e 2500 caracteres, com: 1 parágrafo de abertura sobre o uso e o benefício principal; "PRINCIPAIS CARACTERÍSTICAS" com 4 a 8 linhas começando com "- "; "ESPECIFICAÇÕES TÉCNICAS" com as linhas "Nome: valor" mais importantes; "CONTEÚDO DA EMBALAGEM" só se os dados disserem o que vem na caixa; e uma frase final de confiança da loja (sem prometer prazo ou garantia que não esteja nos dados).
+- "ficha": lista {"nome","valor"} limpa e padronizada para o anúncio (nomes curtos com inicial maiúscula, valores com unidade, sem duplicados, sem dados internos do ML), na ordem de importância para o comprador. Até 25 itens.
+- "destaques": 3 a 5 frases curtas (até 60 caracteres) com os principais argumentos de venda.
+- "alertas": lista de avisos curtos para a equipe conferir (ex.: voltagem diferente entre anúncios, ficha incompleta). Lista vazia se não houver.
+
+FORMATO
+{"titulo":"","descricao":"","ficha":[{"nome":"","valor":""}],"destaques":[],"alertas":[]}
+
+DADOS COLETADOS
+Título de referência: ${d.title}
+Marca: ${d.brand || '(não informada)'} · Modelo: ${d.model || '(não informado)'}
+
+FICHA TÉCNICA
+${ficha}
+
+DESCRIÇÕES DE REFERÊNCIA
+${textos}`;
+}
+
+export function watermarkPrompt(n: number): string {
+  return `As ${n} imagens anexadas são fotos de produto de anúncios do Mercado Livre, na ordem 1 a ${n}.
+Para cada imagem, diga se ela tem MARCA D'ÁGUA ou identificação de outra loja: logo ou nome de loja/vendedor, @ de rede social, site, telefone, carimbo semitransparente sobre a foto, ou faixa/selo promocional com nome de loja.
+Logos e nomes que fazem parte do próprio produto ou da embalagem original do fabricante NÃO são marca d'água.
+Responda SOMENTE com JSON: {"imagens":[{"n":1,"marca_dagua":true,"onde":"logo 'LOJA X' no canto inferior direito"}]} — "onde" curto, vazio quando não houver.`;
+}

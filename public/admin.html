@@ -75,6 +75,7 @@ td.actcell{min-width:300px}
     <button role="tab" aria-selected="true" data-tab="resumo" id="t-resumo">Resumo</button>
     <button role="tab" aria-selected="false" data-tab="usuarios" id="t-usuarios">Usuários e acessos</button>
     <button role="tab" aria-selected="false" data-tab="instagram" id="t-instagram">Instagram</button>
+    <button role="tab" aria-selected="false" data-tab="mercadolivre" id="t-mercadolivre">Mercado Livre</button>
     <button role="tab" aria-selected="false" data-tab="logs" id="t-logs">Logs</button>
   </div>
 
@@ -151,6 +152,36 @@ td.actcell{min-width:300px}
     </div>
   </section>
 
+  <section id="mercadolivre" role="tabpanel" aria-labelledby="t-mercadolivre" hidden class="page" style="padding:0;width:100%;max-width:none">
+    <div class="panel">
+      <div class="igc">
+        <span class="igmark" style="background:#FFE600"><svg viewBox="0 0 24 24" fill="none" stroke="#2D3277" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2-3 5-4.5 9-4.5S19 9 21 12"/><path d="M7 13.5l2.5 2.2a1.6 1.6 0 0 0 2.2 0l3.8-3.4"/><path d="M3 12c0 4 4 7 9 7s9-3 9-7"/></svg></span>
+        <div class="igc-t"><h2>Mercado Livre</h2><p class="muted" id="ml-sub">Conecte a conta para o Studio ML buscar catálogo e anúncios.</p></div>
+        <span class="pill" id="ml-pill">…</span>
+      </div>
+      <div class="msg" id="ml-msg" role="status" aria-live="polite"></div>
+      <div id="ml-connected" hidden class="igc-body">
+        <dl class="igdl"><dt>Conta</dt><dd id="ml-user"></dd><dt>Conectada em</dt><dd id="ml-since"></dd><dt>Scraping de reserva</dt><dd id="ml-scr"></dd></dl>
+        <div class="row"><a class="btn ghost sm" href="/ml/conectar">Reconectar</a><button class="btn ghost sm" type="button" id="ml-off">Desconectar</button></div>
+        <p class="muted" style="font-size:13px">O acesso do ML dura 6 horas e é renovado sozinho. Se ficar meses sem uso, conecte de novo.</p>
+      </div>
+      <div id="ml-disconnected" hidden class="igc-body">
+        <a class="btn" href="/ml/conectar">Conectar Mercado Livre</a>
+        <p class="muted" style="font-size:13px">Você vai para o Mercado Livre, entra com a conta da loja e autoriza o app.</p>
+      </div>
+      <div id="ml-setup" hidden class="igc-body">
+        <p>Falta configurar o app do Mercado Livre no servidor. Uma vez só:</p>
+        <ol class="steps">
+          <li>Em <b>developers.mercadolivre.com.br</b> › <b>Minhas aplicações</b>, abra o app de vocês (ou crie um).</li>
+          <li>Em <b>URI de redirect</b>, cadastre:<code id="ml-redirect"></code></li>
+          <li>Marque as permissões de <b>leitura</b> (usuários e itens/publicações).</li>
+          <li>No <code>.env</code> do servidor, preencha <code>ML_CLIENT_ID</code> e <code>ML_CLIENT_SECRET</code> e rode <code>docker compose up -d</code>.</li>
+          <li>Opcional: para o scraping de reserva, preencha <code>SCRAPER_URL</code> (e <code>SCRAPER_TOKEN</code>, se o seu serviço pedir).</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
   <section id="logs" role="tabpanel" aria-labelledby="t-logs" hidden class="page" style="padding:0;width:100%;max-width:none">
     <div class="panel">
       <div class="grid2">
@@ -181,6 +212,7 @@ td.actcell{min-width:300px}
     baixar_post: ['Baixou post', 'ok'], baixar_carrossel: ['Baixou carrossel', 'ok'], baixar_slide: ['Baixou slide', 'ok'], copiar_legenda: ['Copiou legenda', ''],
     usuario_criado: ['Criou usuário', 'warn'], usuario_alterado: ['Alterou usuário', 'warn'],
     instagram_conectado: ['Conectou o Instagram', 'ok'], instagram_desconectado: ['Desconectou o Instagram', 'warn'], publicar_instagram: ['Publicou no Instagram', 'ok'], erro_instagram: ['Erro no Instagram', 'err'],
+    ml_conectado: ['Conectou o ML', 'ok'], ml_desconectado: ['Desconectou o ML', 'warn'], ml_buscar: ['Buscou no ML', ''], ml_gerar: ['Gerou anúncio ML', 'ok'], ml_baixar_fotos: ['Baixou fotos ML', 'ok'], erro_ml: ['Erro no ML', 'err'],
   };
   const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
   const pill = (a) => el('span', { className: 'pill ' + ((LABEL[a] || [])[1] || ''), textContent: (LABEL[a] || [a])[0] });
@@ -188,7 +220,8 @@ td.actcell{min-width:300px}
   // abas
   document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => {
     document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
-    ['resumo', 'usuarios', 'instagram', 'logs'].forEach((t) => $(t).hidden = t !== b.dataset.tab);
+    ['resumo', 'usuarios', 'instagram', 'mercadolivre', 'logs'].forEach((t) => $(t).hidden = t !== b.dataset.tab);
+    if (b.dataset.tab === 'mercadolivre') loadMl();
     if (b.dataset.tab === 'logs') loadLogs(0);
     if (b.dataset.tab === 'instagram') loadIg();
   });
@@ -357,6 +390,27 @@ td.actcell{min-width:300px}
     if (q && T[q]) { m.className = 'msg ' + T[q][0]; m.textContent = T[q][1]; history.replaceState(null, '', '/admin#instagram'); }
   }
 
+  // mercado livre
+  async function loadMl() {
+    const s = await api('/api/ml/status'), pill = $('ml-pill');
+    $('ml-setup').hidden = s.configured; $('ml-connected').hidden = !(s.configured && s.connected); $('ml-disconnected').hidden = !(s.configured && !s.connected);
+    $('ml-redirect').textContent = s.redirectUri || 'defina DOMAIN ou PUBLIC_URL no .env para ver o endereço';
+    pill.className = 'pill ' + (s.connected ? 'ok' : s.configured ? 'warn' : 'off'); pill.textContent = s.connected ? 'Conectado' : s.configured ? 'Desconectado' : 'Não configurado';
+    $('ml-user').textContent = s.nickname || '—'; $('ml-since').textContent = fmtDate(s.connectedAt); $('ml-scr').textContent = s.scraper ? 'Configurado' : 'Não configurado (opcional)';
+  }
+  let mlArmed = false;
+  $('ml-off').onclick = async () => {
+    const b = $('ml-off');
+    if (!mlArmed) { mlArmed = true; b.textContent = 'Confirmar desconexão'; setTimeout(() => { mlArmed = false; b.textContent = 'Desconectar'; }, 3500); return; }
+    try { await api('/api/ml/disconnect', { method: 'POST' }); $('ml-msg').className = 'msg ok'; $('ml-msg').textContent = 'Mercado Livre desconectado.'; loadMl(); }
+    catch (err) { $('ml-msg').className = 'msg err'; $('ml-msg').textContent = err.message; }
+  };
+  {
+    const q = new URLSearchParams(location.search).get('ml'), m = $('ml-msg');
+    const T = { ok: ['ok', 'Mercado Livre conectado.'], cancelado: ['err', 'A conexão foi cancelada no Mercado Livre.'], invalido: ['err', 'A volta do Mercado Livre não foi reconhecida. Tente de novo.'], config: ['err', 'Configure ML_CLIENT_ID e ML_CLIENT_SECRET no servidor antes de conectar.'], erro: ['err', new URLSearchParams(location.search).get('msg') || 'Não foi possível conectar.'] };
+    if (q && T[q]) { m.className = 'msg ' + T[q][0]; m.textContent = T[q][1]; history.replaceState(null, '', '/admin#mercadolivre'); }
+  }
+
   // logs
   let offset = 0; const PAGE = 50;
   function describe(l) {
@@ -394,6 +448,7 @@ td.actcell{min-width:300px}
   loadSummary().catch(() => {}); loadUsers().catch(() => {});
   if (location.hash === '#usuarios') $('t-usuarios').click();
   if (location.hash === '#instagram') $('t-instagram').click();
+  if (location.hash === '#mercadolivre') $('t-mercadolivre').click();
 })();
 </script>
 </body>

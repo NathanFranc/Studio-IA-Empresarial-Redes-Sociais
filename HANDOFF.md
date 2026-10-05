@@ -133,6 +133,12 @@ Abas **Resumo / Usuários / Logs**: resumo do dia e semana, cadastro e desativa�
 - 6 modelos criados a partir das 13 primeiras postagens: Lançamento premium (Loud STA), Ficha laranja (Pure Acoustics Supernova), Destaque amarelo (Yamaha HS5), Data comemorativa (Dia dos Pais), Ambiente elegante (JBL Control paisagismo), Conteúdo da marca (curiosidades JBL). Carrossel próprio no estilo das curiosidades JBL. Os 2 reels (vídeos com apresentadora) não viraram modelo.
 - Campos novos da IA: `frase` {topo, destaque, base} e `resumo`. Para adicionar outra empresa: `src/companies.ts` + objeto em `COMPANIES_FE` no `public/index.html` (+ logos em `public/assets`).
 
+## 4.3 Studio ML (05/10/2026)
+- Página `/ml` (`public/ml.html`), rotas `src/routes/ml.ts`, lógica `src/ml.ts`, prompts `mlRewritePrompt`/`watermarkPrompt` em `src/prompts.ts`.
+- Fluxo: busca no catálogo (`/products/search`) e anúncios (`/sites/MLB/search`, pode vir 403 conforme o app) → detalhe junta catálogo + até 4 anúncios de concorrentes (`/products/{id}/items`, `/items?ids=`, `/items/{id}/description`) → IA reescreve título/descrição/ficha no tom da empresa e verifica marca d'água nas fotos (imagens por URL).
+- Decisão do Nathan: trazer fotos de concorrentes mesmo com marca d'água, só avisando. Remover marca d'água NÃO foi feito (não implementar).
+- Scraping de reserva é o sistema próprio do Nathan via `SCRAPER_URL` (contrato no README). Conexão ML pelo admin (OAuth, refresh token criptografado).
+
 ## 5. Variáveis de ambiente (`.env`)
 
 ```
@@ -149,6 +155,10 @@ DAILY_AI_LIMIT=0
 PUBLIC_URL=                          # opcional; padrão https://DOMAIN
 IG_APP_ID=                           # app da Meta (Instagram API com login do Instagram)
 IG_APP_SECRET=
+ML_CLIENT_ID=                        # Studio ML (app do Mercado Livre)
+ML_CLIENT_SECRET=
+SCRAPER_URL=                         # opcional: scraping próprio de reserva
+SCRAPER_TOKEN=
 ```
 Existe também `TRUST_PROXY` em `src/config.ts`. **Nunca commitar `.env` nem `data/`.**
 
