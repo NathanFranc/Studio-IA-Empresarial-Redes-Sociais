@@ -142,7 +142,11 @@ app.get('/instagram/retorno', requireUser, requireAdmin, async (req, res) => {
   }
 });
 app.use('/ig-media', express.static(igMediaDir, { index: false, dotfiles: 'deny', maxAge: 0, setHeaders: (r) => r.setHeader('Cache-Control', 'no-store') }));
-app.use('/assets', express.static(path.join(pub, 'assets'), { maxAge: '1h' }));
+// JS e CSS sempre revalidados (ETag), para cada atualização aparecer sem precisar limpar o cache; imagens ficam 1 h.
+app.use('/assets', express.static(path.join(pub, 'assets'), {
+  maxAge: '1h',
+  setHeaders: (res, file) => { if (/\.(js|css)$/.test(file)) res.setHeader('Cache-Control', 'no-cache'); },
+}));
 app.use((_req, res) => {
   res.status(404).redirect('/');
 });
