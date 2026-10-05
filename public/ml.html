@@ -524,10 +524,10 @@ summary{cursor:pointer;font-weight:700}
   $('save').onclick = () => save(false); $('saveNew').onclick = () => save(true);
 
   async function amInit() {
-    try { amStat = await api('/api/anymarket/status'); } catch { amStat = null; }
+    try { amStat = await api('/api/anymarket/status?testar=1'); } catch { amStat = null; }
     const c = amStat && amStat.companies.find((x) => x.id === co);
-    $('amenv').replaceChildren(); if (amStat) $('amenv').append(el('span', { className: 'envpill ' + (amStat.sandbox ? 'test' : 'prod'), textContent: amStat.sandbox ? 'TESTE (SANDBOX)' : 'PRODUÇÃO' }), document.createTextNode(' ' + (c && c.configured ? 'Conectado' : 'Token do AnyMarket desta empresa não configurado')));
-    $('am-send').disabled = !(c && c.configured);
+    $('amenv').replaceChildren(); if (amStat) $('amenv').append(el('span', { className: 'envpill ' + (amStat.sandbox ? 'test' : 'prod'), textContent: amStat.sandbox ? 'TESTE (SANDBOX)' : 'PRODUÇÃO' }), document.createTextNode(' ' + (!c || !c.configured ? 'Token do AnyMarket desta empresa não configurado (Administração › Mercado Livre)' : c.check && c.check.ok ? '✓ Conectado ao AnyMarket' : '✗ Sem conexão: ' + ((c.check && c.check.message) || 'não testado'))));
+    $('am-send').disabled = !(c && c.configured && c.check && c.check.ok);
     if (c && c.configured && !amCats.length) {
       try { amCats = (await api('/api/anymarket/categories?company=' + co)).categories.filter((x) => x.leaf !== false); $('am-cats').replaceChildren(...amCats.map((x) => el('option', { value: x.path }))); }
       catch (e) { $('am-msg').className = 'status err'; $('am-msg').textContent = e.message; }

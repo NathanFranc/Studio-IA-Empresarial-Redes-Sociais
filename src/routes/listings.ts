@@ -6,7 +6,7 @@
 import { Router, type Request } from 'express';
 import { config } from '../config.js';
 import { publishSquare } from '../photos.js';
-import { AmError, amBrands, amCategories, amConfigured, amCreateBrand, amFindBySku, amSandbox, amSend, amUpdate, buildProduct, missing, type ListingData } from '../anymarket.js';
+import { AmError, amBrands, amCategories, amCheck, amConfigured, amCreateBrand, amFindBySku, amSandbox, amSend, amUpdate, buildProduct, missing, type ListingData } from '../anymarket.js';
 import { COMPANIES, pickCompany } from '../companies.js';
 import { db } from '../db.js';
 import { logAction } from '../logs.js';
@@ -82,8 +82,15 @@ const amFail = (res: import('express').Response, e: unknown) => {
   res.status(err.status).json({ error: err.message });
 };
 
-anymarketRouter.get('/status', (_req, res) => {
-  res.json({ sandbox: amSandbox(), companies: Object.values(COMPANIES).map((c) => ({ id: c.id, name: c.name, configured: amConfigured(c.id) })) });
+/** Situação por empresa. Com ?testar=1 faz uma chamada real ao AnyMarket (guardada por 5 min; ?forcar=1 refaz). */
+anymarketRouter.get('/status', async (req, res) => {
+  const testar = req.query.testar === '1', forcar = req.query.forcar === '1' && req.user!.role === 'admin';
+  const companies = await Promise.all(Object.values(COMPANIES).map(async (c) => ({
+    id: c.id, name: c.name, configured: amConfigured(c.id),
+    ...(testar ? { check: await amCheck(c.id, forcar) } : {}),
+  })));
+  if (forcar) logAction(req, 'anymarket_testar', { detail: { ambiente: amSandbox() ? 'sandbox' : 'produção', resultado: companies.map((c) => c.name + ': ' + (c.check?.message ?? '')).join(' · ') } });
+  res.json({ sandbox: amSandbox(), url: config.anymarketUrl.replace(/^https?:\/\//, ''), companies });
 });
 anymarketRouter.get('/categories', async (req, res) => {
   try { res.json({ categories: await amCategories(pickCompany(req.query.company).id) }); } catch (e) { amFail(res, e); }

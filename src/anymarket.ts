@@ -55,6 +55,25 @@ function amMessage(body: unknown): string {
   return parts.join(' · ').slice(0, 500) || 'erro sem detalhe';
 }
 
+// ---------------------------------------------------------------- teste de conexão
+export interface AmCheck { ok: boolean; message: string; at: string }
+const checks = new Map<string, AmCheck>();
+/** Faz uma chamada leve (1 marca) para saber se o token desta empresa funciona neste ambiente. */
+export async function amCheck(co: string, force = false): Promise<AmCheck> {
+  const c = checks.get(co);
+  if (!force && c && Date.now() - Date.parse(c.at) < 5 * 60_000) return c;
+  let out: AmCheck;
+  if (!amConfigured(co)) out = { ok: false, message: 'Sem token no servidor', at: new Date().toISOString() };
+  else {
+    try {
+      const r = await am(co, '/brands?limit=1');
+      out = r.status === 200 ? { ok: true, message: 'Conectado', at: new Date().toISOString() } : { ok: false, message: 'O AnyMarket respondeu ' + r.status + ': ' + amMessage(r.body), at: new Date().toISOString() };
+    } catch (e) { out = { ok: false, message: (e as Error).message, at: new Date().toISOString() }; }
+  }
+  checks.set(co, out);
+  return out;
+}
+
 // ---------------------------------------------------------------- categorias e marcas (cache de 10 min)
 const cache = new Map<string, { at: number; data: unknown }>();
 async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {

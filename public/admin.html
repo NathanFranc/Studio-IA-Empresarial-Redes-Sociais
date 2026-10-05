@@ -169,11 +169,6 @@ td.actcell{min-width:300px}
         <a class="btn" href="/ml/conectar">Conectar Mercado Livre</a>
         <p class="muted" style="font-size:13px">Você vai para o Mercado Livre, entra com a conta da loja e autoriza o app.</p>
       </div>
-      <div class="igc-body" id="am-box" style="border-top:1px solid var(--line);padding-top:14px">
-        <b>AnyMarket</b>
-        <dl class="igdl" id="am-dl"></dl>
-        <p class="muted" style="font-size:13px">Tokens por empresa no <code>.env</code>: <code>ANYMARKET_TOKEN_MEGADINO</code>, <code>ANYMARKET_TOKEN_IDMSHOP</code>. Ambiente em <code>ANYMARKET_API_URL</code> (teste: sandbox-api.anymarket.com.br/v2 · produção: api.anymarket.com.br/v2).</p>
-      </div>
       <div id="ml-bitbrain" hidden class="igc-body">
         <p>O Studio ML está buscando pelo <b>sistema próprio</b> (bitbrain), que já tem a conexão com o Mercado Livre. Não é preciso conectar conta aqui.</p>
         <p class="muted" style="font-size:13px">Se um dia quiser que o Studio use a API direto, configure ML_CLIENT_ID e ML_CLIENT_SECRET; o bitbrain passa a ser a reserva.</p>
@@ -188,6 +183,24 @@ td.actcell{min-width:300px}
           <li>Opcional: para o scraping de reserva, preencha <code>SCRAPER_URL</code> (e <code>SCRAPER_TOKEN</code>, se o seu serviço pedir).</li>
         </ol>
       </div>
+    </div>
+    <div class="panel" style="margin-top:18px">
+      <div class="igc">
+        <span class="igmark" style="background:#1B1F3B"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></span>
+        <div class="igc-t"><h2>AnyMarket</h2><p class="muted">Para onde o Studio ML manda os produtos prontos. Endereço: <code id="am-url"></code></p></div>
+        <span class="pill" id="am-env">…</span>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Empresa</th><th>Token no servidor</th><th>Conexão</th><th>Testado em</th></tr></thead><tbody id="am-rows"></tbody></table></div>
+      <div class="row" style="margin-top:12px"><button class="btn sm" type="button" id="am-test">Testar conexão agora</button><span class="msg" id="am-tmsg" role="status" aria-live="polite"></span></div>
+      <details style="margin-top:12px"><summary>Como conectar</summary>
+        <ol class="steps">
+          <li>Peça ao gerente do projeto no AnyMarket um token de <b>teste (sandbox)</b> e um de <b>produção</b> para cada empresa. Eles não servem um no ambiente do outro.</li>
+          <li>No <code>.env</code> do servidor, coloque <code>ANYMARKET_API_URL=https://sandbox-api.anymarket.com.br/v2</code> e os tokens de teste em <code>ANYMARKET_TOKEN_MEGADINO</code> e <code>ANYMARKET_TOKEN_IDMSHOP</code>.</li>
+          <li>Rode <code>docker compose up -d</code> e clique em <b>Testar conexão agora</b>. Tem que aparecer <b>Conectado</b>.</li>
+          <li>Depois de testar o envio no sandbox, troque o endereço para <code>https://api.anymarket.com.br/v2</code> e os tokens pelos de produção, e teste de novo.</li>
+        </ol>
+        <p class="muted" style="font-size:13px">Se o AnyMarket entregar <code>client_id</code> e <code>client_secret</code> em vez de token, avise: é outra forma de conexão (v3).</p>
+      </details>
     </div>
     <div class="panel" style="margin-top:18px">
       <h2>Padrão de anúncio</h2>
@@ -420,13 +433,26 @@ td.actcell{min-width:300px}
 
   // mercado livre
   $('st-save').onclick = () => saveStyle(false); $('st-reset').onclick = () => saveStyle(true);
+  async function loadAm(force) {
+    const m = $('am-tmsg'); if (force) { m.className = 'msg'; m.textContent = 'Testando…'; $('am-test').disabled = true; }
+    try {
+      const a = await api('/api/anymarket/status?testar=1' + (force ? '&forcar=1' : ''));
+      $('am-url').textContent = a.url; const env = $('am-env'); env.textContent = a.sandbox ? 'TESTE (sandbox)' : 'PRODUÇÃO'; env.className = 'pill ' + (a.sandbox ? 'warn' : 'err');
+      $('am-rows').replaceChildren(...a.companies.map((c) => el('tr', {}, el('td', { textContent: c.name }), el('td', { textContent: c.configured ? 'Configurado' : 'Falta' }),
+        el('td', {}, el('span', { className: 'pill ' + (c.check && c.check.ok ? 'ok' : c.configured ? 'err' : ''), textContent: c.check ? (c.check.ok ? '✓ Conectado' : '✗ ' + c.check.message) : '—' })),
+        el('td', { textContent: c.check ? fmtDate(c.check.at) : '—' }))));
+      if (force) { const n = a.companies.filter((c) => c.check && c.check.ok).length; m.className = 'msg ' + (n ? 'ok' : 'err'); m.textContent = n ? n + ' de ' + a.companies.length + ' empresa(s) conectada(s).' : 'Nenhuma empresa conectada. Veja "Como conectar".'; }
+    } catch (e) { m.className = 'msg err'; m.textContent = e.message; }
+    finally { $('am-test').disabled = false; }
+  }
+  $('am-test').onclick = () => loadAm(true);
   async function loadMl() {
     const s = await api('/api/ml/status'), pill = $('ml-pill');
     const viaBb = !s.connected && s.scraper;
     $('ml-bitbrain').hidden = !viaBb; $('ml-setup').hidden = s.configured || viaBb; $('ml-connected').hidden = !(s.configured && s.connected); $('ml-disconnected').hidden = !(s.configured && !s.connected) || viaBb;
     $('ml-redirect').textContent = s.redirectUri || 'defina DOMAIN ou PUBLIC_URL no .env para ver o endereço';
     pill.className = 'pill ' + (s.connected || viaBb ? 'ok' : s.configured ? 'warn' : 'off'); pill.textContent = s.connected ? 'Conectado' : viaBb ? 'Via bitbrain' : s.configured ? 'Desconectado' : 'Não configurado';
-    try { const a = await api('/api/anymarket/status'); const dl = $('am-dl'); dl.replaceChildren(el('dt', { textContent: 'Ambiente' }), el('dd', { textContent: a.sandbox ? 'Teste (sandbox)' : 'Produção' }), ...a.companies.flatMap((c) => [el('dt', { textContent: c.name }), el('dd', { textContent: c.configured ? 'Token configurado' : 'Sem token' })])); } catch {}
+    loadAm(false);
     $('ml-user').textContent = s.nickname || '—'; $('ml-since').textContent = fmtDate(s.connectedAt); $('ml-scr').textContent = s.scraper ? 'Configurado' : 'Não configurado (opcional)';
   }
   let mlArmed = false;
