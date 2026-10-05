@@ -183,7 +183,7 @@ summary{cursor:pointer;font-weight:700}
 
   const setSt = (t, k, spin) => { const s = $('st'); s.className = 'status' + (k ? ' ' + k : ''); s.replaceChildren(); if (spin) s.append(el('span', { className: 'spin' })); s.append(document.createTextNode(t)); };
   const money = (v) => typeof v === 'number' ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '';
-  const KIND = { catalogo: 'Catálogo ML', anuncio: 'Anúncio', scraping: 'Scraping' };
+  const KIND = { catalogo: 'Catálogo ML', anuncio: 'Anúncio', scraping: 'Sistema próprio' };
 
   $('sf').addEventListener('submit', async (e) => {
     e.preventDefault(); if (busy) return;
@@ -196,7 +196,7 @@ summary{cursor:pointer;font-weight:700}
       for (const it of r.results) {
         const b = el('button', { type: 'button', className: 'res' },
           el('div', { className: 'im' }, it.thumb ? el('img', { src: img(it.thumb), alt: '', loading: 'lazy' }) : ''),
-          el('span', { className: 'tagk ' + it.kind, textContent: KIND[it.kind] }),
+          el('span', { className: 'tagk ' + (it.origin === 'Catálogo ML' ? 'catalogo' : it.origin === 'Anúncio' ? 'anuncio' : it.kind), textContent: it.origin || KIND[it.kind] }),
           el('b', { textContent: it.title }),
           el('small', { textContent: [it.brand, money(it.price), it.seller].filter(Boolean).join(' · ') }));
         b.setAttribute('aria-pressed', 'false');

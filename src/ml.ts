@@ -148,6 +148,7 @@ export interface Candidate {
   price?: number | null;
   seller?: string;
   permalink?: string;
+  origin?: string;
 }
 export interface Picture { url: string; thumb: string; source: string; sourceUrl?: string; w?: number; h?: number }
 export interface Detail {
@@ -162,7 +163,7 @@ export interface Detail {
 }
 
 const up = (u: string) => (/mlstatic\.com/.test(u) ? u.replace(/^http:\/\//, 'https://') : u);
-const big = (u: string) => up(u).replace(/-[A-Z](\.(?:jpg|jpeg|webp|png))$/i, '-O$1');
+const big = (u: string) => up(u).replace(/-[A-Z](\.(?:jpg|jpeg|webp|png))$/i, '-F$1'); // -F = maior versão (ex.: 1051×1200)
 const small = (u: string) => up(u).replace(/-[A-Z](\.(?:jpg|jpeg|webp|png))$/i, '-I$1');
 const attrVal = (a: Record<string, unknown>) => String(a.value_name ?? (Array.isArray(a.values) ? (a.values as { name?: string }[]).map((v) => v.name).filter(Boolean).join(', ') : '') ?? '').trim();
 const pickAttr = (list: Record<string, unknown>[], id: string) => attrVal(list.find((a) => a.id === id) ?? {});
@@ -190,8 +191,10 @@ export async function mlSearch(q: string): Promise<{ results: Candidate[]; notes
   if (!getAcc() && scraperOn()) {
     const s = await scraper({ acao: 'buscar', q });
     if (!s) throw new MlError('O sistema de scraping não respondeu. Confira SCRAPER_URL e se o serviço está no ar.', 502);
+    if (s.erro) throw new MlError(String(s.erro).slice(0, 200), 502);
+    for (const n of ((s.avisos as string[]) ?? []).slice(0, 3)) notes.push(String(n).slice(0, 200));
     for (const it of ((s.resultados as Record<string, unknown>[]) ?? []).slice(0, 24)) {
-      out.push({ kind: 'scraping', id: String(it.url ?? it.id ?? ''), title: String(it.titulo ?? ''), thumb: it.foto ? String(it.foto) : null, price: typeof it.preco === 'number' ? it.preco : null, seller: String(it.vendedor ?? ''), permalink: String(it.url ?? '') });
+      out.push({ kind: 'scraping', id: String(it.url ?? it.id ?? ''), title: String(it.titulo ?? ''), thumb: it.foto ? String(it.foto) : null, price: typeof it.preco === 'number' ? it.preco : null, seller: String(it.vendedor ?? ''), permalink: String(it.url ?? ''), origin: it.tipo === 'catalogo' ? 'Catálogo ML' : it.tipo === 'anuncio' ? 'Anúncio' : 'Sistema próprio' });
     }
     return { results: out, notes };
   }
@@ -215,7 +218,7 @@ export async function mlSearch(q: string): Promise<{ results: Candidate[]; notes
   if (!out.length) {
     const s = await scraper({ acao: 'buscar', q });
     for (const it of ((s?.resultados as Record<string, unknown>[]) ?? []).slice(0, 24)) {
-      out.push({ kind: 'scraping', id: String(it.url ?? it.id ?? ''), title: String(it.titulo ?? ''), thumb: it.foto ? String(it.foto) : null, price: typeof it.preco === 'number' ? it.preco : null, seller: String(it.vendedor ?? ''), permalink: String(it.url ?? '') });
+      out.push({ kind: 'scraping', id: String(it.url ?? it.id ?? ''), title: String(it.titulo ?? ''), thumb: it.foto ? String(it.foto) : null, price: typeof it.preco === 'number' ? it.preco : null, seller: String(it.vendedor ?? ''), permalink: String(it.url ?? ''), origin: it.tipo === 'catalogo' ? 'Catálogo ML' : it.tipo === 'anuncio' ? 'Anúncio' : 'Sistema próprio' });
     }
     if (s) notes.push('Resultados do scraping próprio (o ML não trouxe nada pela API).');
   }
@@ -277,8 +280,20 @@ export async function mlDetail(kind: string, id: string): Promise<Detail> {
     const feats = ((p.main_features as { text?: string }[]) ?? []).map((f) => f.text).filter(Boolean).join('\n');
     if (sd || feats) d.texts.push({ source: 'Catálogo do ML', title: d.title, text: [sd, feats].filter(Boolean).join('\n\n').slice(0, 6000) });
     const li = await ml(`/products/${encodeURIComponent(id)}/items?limit=6`).catch(() => null);
-    const ids = ((li?.body?.results as { item_id?: string }[]) ?? []).map((x) => String(x.item_id)).filter(Boolean);
-    await addItems(await itemsFull(ids), 4);
+    const sellers = ((li?.body?.results as { item_id?: string; seller_id?: number; price?: number }[]) ?? []).filter((x) => x.item_id);
+    const ids = sellers.map((x) => String(x.item_id));
+    const full = await itemsFull(ids);
+    if (full.length) await addItems(full, 4);
+    else {
+      // O ML bloqueia (403) o anúncio de outro vendedor, mas libera a descrição dele.
+      for (const x of sellers.slice(0, 3)) {
+        const text = await itemDescription(String(x.item_id));
+        const who = 'Anúncio ' + x.item_id + (typeof x.price === 'number' ? ' (' + x.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) + ')' : '');
+        d.sources.push({ kind: 'anuncio', id: String(x.item_id), title: who, permalink: `https://produto.mercadolivre.com.br/${String(x.item_id).replace(/^MLB/, 'MLB-')}` });
+        if (text) d.texts.push({ source: who, title: d.title, text: text.slice(0, 6000) });
+      }
+      if (sellers.length) d.notes.push('A API do ML não libera fotos e ficha de anúncios de outros vendedores; vieram as fotos e a ficha do catálogo e as descrições dos concorrentes.');
+    }
     if (!ids.length) d.notes.push('Esse produto do catálogo não tem anúncios ativos de concorrentes agora.');
   } else if (kind === 'anuncio') {
     const items = await itemsFull([id]);
@@ -298,12 +313,20 @@ export async function mlDetail(kind: string, id: string): Promise<Detail> {
   } else {
     const s = await scraper({ acao: 'detalhe', url: id });
     if (!s) throw new MlError('O scraping próprio não respondeu.', 502);
+    if (s.erro) throw new MlError(String(s.erro).slice(0, 200), 502);
     const p = (s.produto ?? s) as Record<string, unknown>;
     d.title = String(p.titulo ?? ''); d.brand = String(p.marca ?? ''); d.model = String(p.modelo ?? '');
-    d.sources.push({ kind: 'scraping', id, title: d.title, permalink: id });
+    const origem = String(p.fonte ?? 'Sistema próprio');
+    d.sources.push({ kind: 'scraping', id, title: d.title, permalink: String(p.url ?? id) });
     for (const a of ((p.ficha as { nome?: string; valor?: string }[]) ?? [])) if (a.nome && a.valor) d.attributes.push({ name: String(a.nome), value: String(a.valor) });
-    if (p.descricao) d.texts.push({ source: 'Scraping', title: d.title, text: String(p.descricao).slice(0, 6000) });
-    for (const u of ((p.fotos as string[]) ?? [])) addPic(String(u), 'Scraping · ' + (String(p.vendedor ?? '') || 'anúncio'), id);
+    if (p.descricao) d.texts.push({ source: origem, title: d.title, text: String(p.descricao).slice(0, 6000) });
+    // Opcional: várias descrições (ex.: dos concorrentes do catálogo) e fotos com origem.
+    for (const t of ((p.descricoes as { fonte?: string; texto?: string }[]) ?? []).slice(0, 4)) if (t?.texto) d.texts.push({ source: String(t.fonte ?? 'Anúncio'), title: d.title, text: String(t.texto).slice(0, 6000) });
+    for (const f of ((p.fotos as (string | { url?: string; fonte?: string; largura?: number; altura?: number })[]) ?? [])) {
+      if (typeof f === 'string') addPic(f, origem + (p.vendedor ? ' · ' + String(p.vendedor) : ''), String(p.url ?? id));
+      else if (f?.url) addPic(String(f.url), String(f.fonte ?? origem), String(p.url ?? id), f.largura, f.altura);
+    }
+    for (const n of ((p.avisos as string[]) ?? []).slice(0, 4)) d.notes.push(String(n).slice(0, 200));
   }
   d.attributes = d.attributes.slice(0, 40);
   return d;

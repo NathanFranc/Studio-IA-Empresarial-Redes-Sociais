@@ -121,10 +121,16 @@ Tela **Studio ML** no topo do sistema. A pessoa digita o produto (ex.: "cafeteir
 2. No `.env`: `ML_CLIENT_ID` e `ML_CLIENT_SECRET`, depois `docker compose up -d`.
 3. Em **Administração › Mercado Livre**, clique em **Conectar Mercado Livre**. O acesso (6 h) é renovado sozinho com o refresh token, guardado criptografado.
 
-### Scraping de reserva (opcional)
-Se a API não trouxer nada, o Studio chama o seu serviço em `SCRAPER_URL` (com `Authorization: Bearer SCRAPER_TOKEN`, se definido):
-- `POST {"acao":"buscar","q":"cafeteira oster"}` → `{"resultados":[{"url","titulo","foto","preco","vendedor"}]}`
-- `POST {"acao":"detalhe","url":"https://..."}` → `{"produto":{"titulo","marca","modelo","descricao","ficha":[{"nome","valor"}],"fotos":["https://http2.mlstatic.com/..."],"vendedor"}}`
+### Sistema próprio (bitbrain) como fonte
+Com `SCRAPER_URL` definido e sem conta do ML conectada no Studio, o Studio usa só o sistema próprio. Com a conta conectada, ele vira reserva. Chamada: `POST SCRAPER_URL` com `Authorization: Bearer SCRAPER_TOKEN`.
+
+- `{"acao":"buscar","q":"cafeteira oster"}` →
+  `{"resultados":[{"url","titulo","foto","preco","vendedor","tipo":"catalogo|anuncio"}],"avisos":[]}`
+- `{"acao":"detalhe","url":"https://www.mercadolivre.com.br/.../p/MLB..."}` →
+  `{"produto":{"url","fonte","titulo","marca","modelo","descricao","descricoes":[{"fonte","texto"}],"ficha":[{"nome","valor"}],"fotos":["https://http2.mlstatic.com/..." ou {"url","fonte","largura","altura"}],"vendedor","avisos":[]}}`
+- Em caso de problema (ex.: robô deslogado): `{"erro":"mensagem para a equipe"}`.
+
+Campos `tipo`, `descricoes`, `fonte`, `avisos` e fotos como objeto são opcionais.
 
 Fotos só são carregadas de endereços do próprio Mercado Livre (mlstatic.com).
 
