@@ -177,7 +177,7 @@ summary{cursor:pointer;font-weight:700}
       <div class="panel">
         <span class="lab"><span>Fotos</span><span class="cnt" id="pcnt"></span></span>
         <p class="note" id="wmsum"></p>
-        <p class="note">As fotos saem no padrão da loja: <b>1200×1200 px</b>, fundo branco e produto centralizado (no ZIP e no envio ao AnyMarket).</p>
+        <p class="note">As prévias já mostram a foto como ela vai sair: <b>1200×1200 px</b>, fundo branco e produto centralizado (no ZIP e no envio ao AnyMarket).</p>
         <div class="row"><button class="btn sm ghost" type="button" id="pall">Selecionar todas</button><button class="btn sm ghost" type="button" id="pclean">Só sem marca d'água</button><button class="btn sm ghost" type="button" id="pnone">Limpar</button></div>
         <div class="pics" id="pics"></div>
         <div class="row"><button class="btn" type="button" id="zip">Baixar selecionadas (ZIP)</button><span class="note" id="zmsg"></span></div>
@@ -351,8 +351,8 @@ summary{cursor:pointer;font-weight:700}
       const fig = el('figure', { className: 'pic' + (sel.has(i) ? ' on' : '') });
       const toggle = (v) => { if (v) sel.add(i); else sel.delete(i); cb.checked = v; fig.classList.toggle('on', v); };
       cb.onchange = () => toggle(cb.checked);
-      const ph = el('div', { className: 'ph', onclick: () => toggle(!sel.has(i)) }, el('img', { src: img(p.thumb || p.url), alt: 'Foto ' + (i + 1), loading: 'lazy' }));
-      const cap = el('figcaption', {}, el('span', { textContent: p.source }), p.w ? el('span', { textContent: p.w + '×' + p.h + ' px' }) : '');
+      const ph = el('div', { className: 'ph', onclick: () => toggle(!sel.has(i)) }, el('img', { src: img(p.url) + '&q=sq', alt: 'Foto ' + (i + 1) + ' em 1200×1200', loading: 'lazy', onerror: function () { this.onerror = null; this.src = img(p.thumb || p.url); } }));
+      const cap = el('figcaption', {}, el('span', { textContent: p.source }), el('span', { textContent: 'Sai em 1200×1200' + (p.w ? ' (original ' + p.w + '×' + p.h + ')' : '') }));
       if (p.watermark) cap.append(el('span', { className: 'wmnote', textContent: "⚠ Marca d'água: " + p.watermark }));
       else if (p.checked) cap.append(el('span', { className: 'okm', textContent: "Sem marca d'água" }));
       fig.append(ph, cb, cap); if (p.watermark) fig.append(el('span', { className: 'wm', textContent: "Marca d'água" }));

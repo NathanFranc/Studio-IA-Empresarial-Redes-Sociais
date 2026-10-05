@@ -8,6 +8,7 @@ import { AiError, aiReady, askJson } from '../ai.js';
 import { requireAdmin } from '../auth.js';
 import { pickCompany } from '../companies.js';
 import { logAction } from '../logs.js';
+import sharp from 'sharp';
 import { fetchImage, PHOTO_SIZE, toSquare } from '../photos.js';
 import { allowedImage, MlError, mlDetail, mlDisconnect, mlLookup, mlSearch, mlStatus } from '../ml.js';
 import { mlReviewPrompt, mlRewritePrompt, watermarkPrompt } from '../prompts.js';
@@ -160,6 +161,13 @@ mlRouter.get('/img', async (req, res) => {
   const u = String(req.query.u ?? '');
   if (!allowedImage(u)) return void res.status(400).end();
   try {
+    if (req.query.q === 'sq') {
+      // Prévia pequena da foto já no padrão (mesmo enquadramento do 1200×1200), para a tela.
+      const { jpg } = await toSquare(await fetchImage(u));
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Cache-Control', 'private, max-age=86400');
+      return void res.send(await sharp(jpg).resize(360, 360).jpeg({ quality: 82 }).toBuffer());
+    }
     if (req.query.q === String(PHOTO_SIZE)) {
       // Versão padronizada 1200×1200 (fundo branco, produto centralizado) para o ZIP.
       const { jpg, srcW, srcH } = await toSquare(await fetchImage(u));
