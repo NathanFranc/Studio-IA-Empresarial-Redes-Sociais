@@ -24,7 +24,7 @@ async function am(co: string, path: string, init?: RequestInit): Promise<{ statu
   try {
     res = await fetch(config.anymarketUrl + path, {
       ...init,
-      headers: { gumgaToken: tok, accept: 'application/json', 'content-type': 'application/json', ...(init?.headers ?? {}) },
+      headers: { gumgaToken: tok, platform: 'ESTUDIO', accept: 'application/json', 'content-type': 'application/json', ...(init?.headers ?? {}) },
       signal: AbortSignal.timeout(40_000),
     });
   } catch {
@@ -34,7 +34,10 @@ async function am(co: string, path: string, init?: RequestInit): Promise<{ statu
   let body: unknown = text;
   try { body = text ? JSON.parse(text) : {}; } catch { /* resposta em texto */ }
   if (res.status === 401 || res.status === 403) throw new AmError('O AnyMarket recusou o token desta empresa. Confira o ANYMARKET_TOKEN e se ele é do ambiente certo (sandbox ou produção).', 400);
-  if (res.status === 429) throw new AmError('O AnyMarket limitou as chamadas agora. Espere um minuto e tente de novo.', 429);
+  if (res.status === 429) {
+    const wait = Number(res.headers.get('ratelimit-reset') ?? '') || 60;
+    throw new AmError(`O AnyMarket limitou as chamadas agora. Espere ${wait} segundo(s) e tente de novo.`, 429);
+  }
   return { status: res.status, body };
 }
 
@@ -62,7 +65,7 @@ async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
   return data;
 }
 
-export interface AmCategory { id: number; name: string; path: string }
+export interface AmCategory { id: number; name: string; path: string; leaf: boolean }
 export async function amCategories(co: string): Promise<AmCategory[]> {
   return cached('cat:' + co, async () => {
     const r = await am(co, '/categories/fullPath');
@@ -73,7 +76,7 @@ export async function amCategories(co: string): Promise<AmCategory[]> {
         const name = String(c.name ?? '');
         const kids = (c.children as Record<string, unknown>[]) ?? [];
         const path = String(c.path ?? '') || [...trail, name].join(' > ');
-        out.push({ id: Number(c.id), name, path });
+        out.push({ id: Number(c.id), name, path, leaf: !kids.length });
         if (kids.length) walk(kids, [...trail, name]);
       }
     };
@@ -126,7 +129,9 @@ export function missing(d: ListingData): string[] {
   if (!(f?.estoque >= 0) || f?.estoque === null) out.push('estoque');
   if (!(f?.garantia >= 0) || f?.garantia === null) out.push('garantia (meses)');
   for (const [k, n] of [['altura', 'altura'], ['largura', 'largura'], ['comprimento', 'profundidade'], ['peso', 'peso']] as const) if (!(Number(f?.[k]) > 0)) out.push(n + ' da embalagem');
-  if (f?.ean && !/^\d{8,14}$/.test(f.ean)) out.push('EAN válido (8 a 14 números)');
+  if (f?.ean && !/^\d{8,13}$/.test(f.ean)) out.push('EAN válido (8 a 13 números; EAN-14 não cabe no AnyMarket)');
+  if (f?.sku && !/^[A-Za-z0-9._-]+$/.test(f.sku.trim())) out.push('SKU só com letras, números, - _ e .');
+  if (f && (f.origem < 0 || f.origem > 7)) out.push('origem fiscal de 0 a 7');
   if (f?.ncm && !/^\d{8}$/.test(f.ncm.replace(/\D/g, ''))) out.push('NCM com 8 números');
   return out;
 }
@@ -178,8 +183,33 @@ export function buildProduct(d: ListingData, externalId: string) {
   };
 }
 
-export async function amSend(co: string, product: ReturnType<typeof buildProduct>): Promise<{ id: string }> {
+/** Produto que já existe no AnyMarket com este SKU (o filtro da API é "contém"; aqui conferimos igual). */
+export async function amFindBySku(co: string, sku: string): Promise<{ id: string; title: string; skuId: string } | null> {
+  const r = await am(co, '/products?limit=20&sku=' + encodeURIComponent(sku));
+  if (r.status !== 200) throw new AmError('Não consegui procurar o SKU no AnyMarket: ' + amMessage(r.body));
+  for (const p of ((r.body as { content?: Record<string, unknown>[] }).content ?? [])) {
+    const s = ((p.skus as Record<string, unknown>[]) ?? []).find((x) => String(x.partnerId ?? '') === sku);
+    if (s) return { id: String(p.id ?? ''), title: String(p.title ?? ''), skuId: String(s.id ?? '') };
+  }
+  return null;
+}
+
+/** Atualiza um produto existente: textos, ficha e medidas (PUT, sem mexer nas fotos) e o preço do SKU (PATCH). */
+export async function amUpdate(co: string, productId: string, skuId: string, product: ReturnType<typeof buildProduct>): Promise<void> {
+  const { images: _i, skus, ...rest } = product;
+  const r = await am(co, '/products/' + encodeURIComponent(productId), { method: 'PUT', body: JSON.stringify({ ...rest, id: Number(productId) || productId }) });
+  if (r.status !== 200 && r.status !== 204) throw new AmError('O AnyMarket não atualizou o produto: ' + amMessage(r.body), r.status === 422 || r.status === 400 ? 400 : 502);
+  if (skuId) {
+    const p = await am(co, '/products/' + encodeURIComponent(productId) + '/skus/' + encodeURIComponent(skuId), { method: 'PATCH', headers: { 'content-type': 'application/merge-patch+json' }, body: JSON.stringify({ price: skus[0].price, sellPrice: skus[0].sellPrice }) });
+    if (p.status !== 200 && p.status !== 204) throw new AmError('Textos atualizados, mas o AnyMarket não aceitou o preço: ' + amMessage(p.body), 502);
+  }
+}
+
+export async function amSend(co: string, product: ReturnType<typeof buildProduct>): Promise<{ id: string; skuId: string }> {
   const r = await am(co, '/products', { method: 'POST', body: JSON.stringify(product) });
-  if (r.status === 200 || r.status === 201) return { id: String((r.body as { id?: unknown }).id ?? '') };
+  if (r.status === 200 || r.status === 201) {
+    const b = r.body as { id?: unknown; skus?: { id?: unknown }[] };
+    return { id: String(b.id ?? ''), skuId: String(b.skus?.[0]?.id ?? '') };
+  }
   throw new AmError('O AnyMarket recusou o produto: ' + amMessage(r.body), r.status === 422 || r.status === 400 ? 400 : 502);
 }

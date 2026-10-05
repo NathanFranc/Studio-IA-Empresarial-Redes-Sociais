@@ -141,9 +141,15 @@ Abas **Resumo / Usuários / Logs**: resumo do dia e semana, cadastro e desativa�
 
 ## 4.4 Histórico do Studio ML e AnyMarket (05/10/2026)
 - Tabela `ml_listings` (rascunho/enviado/erro), rotas `/api/ml/listings` e `/api/anymarket/*` (`src/routes/listings.ts`, `src/anymarket.ts`).
-- Envio: `POST /products` (v2, `gumgaToken`), produto SIMPLE com 1 SKU, `definitionPriceScope: SKU`, `allowAutomaticSkuMarketplaceCreation` conforme a caixa (padrão ligado, decisão do Nathan).
+- Envio: `POST /products` (v2, `gumgaToken`), produto SIMPLE com 1 SKU, `definitionPriceScope: SKU`, `allowAutomaticSkuMarketplaceCreation` conforme a caixa (padrão desligado desde 4.5).
 - Dados da loja: a equipe preenche e/ou "Buscar no sistema" (ação `produto_loja` no bitbrain — ainda precisa ser criada lá).
 - Falta: tokens do AnyMarket (pedidos ao AnyMarket), testar no sandbox.
+
+## 4.5 Padrão do administrador e guia do AnyMarket (05/10/2026)
+- Fotos: `src/photos.ts` (sharp) recorta borda branca e centraliza em 1200×1200 branco. ZIP usa `/api/ml/img?q=1200`, prévias `q=sq`, envio ao AnyMarket publica em `/am-media` (90 dias). Visualizador "Ver em 1200×1200" mostra a medida lida do arquivo.
+- Texto: padrão de anúncio em `src/listingStyle.ts` (tirado dos anúncios Wahl Vapor Switch e Intelbras V3501), editável por empresa em Admin › Mercado Livre (`ml_style:<co>`). IA escreve (`mlRewritePrompt`) e revisa numa 2ª passada (`mlReviewPrompt`); título SEO conferido por `titleIssues`. Envio exige "Revisei".
+- AnyMarket (guia do bitbrain): cabeçalho `platform: ESTUDIO`; procura o SKU (`GET /products?sku=`, confere igual) antes de criar — se existe, oferece atualizar (`PUT /products/{id}` sem fotos + `PATCH .../skus/{id}` merge-patch); só subcategoria folha; EAN até 13; SKU `[A-Za-z0-9._-]`; origem 0–7; 429 respeita `ratelimit-reset`; guarda `am_sku_id`; resumo com ambiente (TESTE/PRODUÇÃO) antes de confirmar. Anúncios automáticos agora vêm DESMARCADOS (sugestão do guia).
+- Não confirmado (testar no sandbox): v2 `gumgaToken` x v3 OAuth2, se o filtro `sku=` é exato, formatos de imagem, NBM, campos obrigatórios reais, efeito de `allowAutomaticSkuMarketplaceCreation`.
 
 ## 5. Variáveis de ambiente (`.env`)
 

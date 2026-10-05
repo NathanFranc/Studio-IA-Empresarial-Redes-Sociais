@@ -106,6 +106,7 @@ function addColumn(table: string, col: string, ddl: string): void {
 }
 addColumn('posts', 'company', "company TEXT NOT NULL DEFAULT 'megadino'");
 addColumn('ig_posts', 'company', "company TEXT NOT NULL DEFAULT 'megadino'");
+addColumn('ml_listings', 'am_sku_id', 'am_sku_id TEXT');
 db.exec('CREATE INDEX IF NOT EXISTS posts_company ON posts(company, updated_at)');
 {
   // A conta do Instagram conectada antes de existirem várias empresas era da Megadino.

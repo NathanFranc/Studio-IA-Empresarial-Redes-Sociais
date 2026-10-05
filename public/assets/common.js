@@ -23,7 +23,7 @@
       throw new Error('Sua sessão expirou.');
     }
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || 'Algo deu errado. Tente de novo.');
+    if (!res.ok) { const err = new Error(data.error || 'Algo deu errado. Tente de novo.'); err.status = res.status; err.data = data; throw err; }
     return data;
   }
 

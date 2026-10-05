@@ -66,6 +66,16 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 .revh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .rev ul{list-style:none;display:flex;flex-direction:column;gap:3px;font-size:13px}
 #stylebox{white-space:pre-wrap;max-height:320px;overflow:auto}
+.envpill{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:800;font-size:12px;letter-spacing:.6px}
+.envpill.test{background:rgba(255,181,71,.16);color:#FFB547;border:1px solid rgba(255,181,71,.4)}
+.envpill.prod{background:rgba(240,69,47,.18);color:#FF7A5C;border:1px solid rgba(240,69,47,.5)}
+.amconf{margin-top:14px;border:1px solid var(--line-2);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.cf-body{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:16px}
+.cf-pics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-content:start}
+.cf-pics img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:8px}
+.cf-dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 14px;font-size:14px;margin:0}
+.cf-dl dt{color:var(--muted)}.cf-dl dd{margin:0;overflow-wrap:anywhere}
+@media (max-width:700px){.cf-body{grid-template-columns:minmax(0,1fr)}}
 .alerts{border:1px solid rgba(255,181,71,.35);background:rgba(255,181,71,.08);border-radius:12px;padding:10px 14px;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
 .alerts b{color:var(--warn)}
 .ficha{width:100%;border-collapse:collapse}
@@ -226,7 +236,7 @@ summary{cursor:pointer;font-weight:700}
         <label class="f wide" for="am-cat">Categoria do AnyMarket *<input id="am-cat" list="am-cats" placeholder="Digite para procurar…" autocomplete="off"><datalist id="am-cats"></datalist></label>
         <label class="f" for="am-brand">Marca do AnyMarket *<span class="row"><input id="am-brand" list="am-brands" placeholder="Ex.: Oster" autocomplete="off"><button class="btn sm ghost" type="button" id="am-newbrand" hidden>Criar marca</button></span><datalist id="am-brands"></datalist></label>
         <label class="f" for="am-model">Modelo<input id="am-model"></label>
-        <label class="f" for="am-sku">SKU da loja *<input id="am-sku"></label>
+        <label class="f" for="am-sku">SKU da loja *<input id="am-sku" autocomplete="off"><span class="note" id="skumsg" role="status" aria-live="polite"></span></label>
         <label class="f" for="am-ean">EAN (código de barras)<input id="am-ean" inputmode="numeric"></label>
         <label class="f" for="am-preco">Preço de venda (R$) *<input id="am-preco" type="number" min="0" step="0.01"></label>
         <label class="f" for="am-precode">Preço "de" (riscado, opcional)<input id="am-precode" type="number" min="0" step="0.01"></label>
@@ -239,11 +249,16 @@ summary{cursor:pointer;font-weight:700}
         <label class="f" for="am-comp">Profundidade (cm) *<input id="am-comp" type="number" min="0" step="0.1"></label>
         <label class="f" for="am-peso">Peso com embalagem (kg) *<input id="am-peso" type="number" min="0" step="0.001"></label>
         <label class="f" for="am-ncm">NCM<input id="am-ncm" inputmode="numeric" placeholder="8 números"></label>
-        <label class="f" for="am-origem">Origem fiscal<select id="am-origem"><option value="0">0 · Nacional</option><option value="1">1 · Estrangeira (importação direta)</option><option value="2">2 · Estrangeira (mercado interno)</option><option value="3">3 · Nacional, mais de 40% importado</option><option value="4">4 · Nacional (processos básicos)</option><option value="5">5 · Nacional, até 40% importado</option><option value="6">6 · Estrangeira (importação direta, sem similar)</option><option value="7">7 · Estrangeira (mercado interno, sem similar)</option><option value="8">8 · Nacional, mais de 70% importado</option></select></label>
+        <label class="f" for="am-origem">Origem fiscal<select id="am-origem"><option value="0">0 · Nacional</option><option value="1">1 · Estrangeira (importação direta)</option><option value="2">2 · Estrangeira (mercado interno)</option><option value="3">3 · Nacional, mais de 40% importado</option><option value="4">4 · Nacional (processos básicos)</option><option value="5">5 · Nacional, até 40% importado</option><option value="6">6 · Estrangeira (importação direta, sem similar)</option><option value="7">7 · Estrangeira (mercado interno, sem similar)</option></select></label>
       </div>
-      <label class="tgl"><input type="checkbox" id="am-auto" checked> Criar os anúncios nos marketplaces automaticamente (pela configuração da categoria no AnyMarket)</label>
+      <label class="tgl"><input type="checkbox" id="am-auto"> Criar os anúncios nos marketplaces automaticamente (desmarcado: o produto fica só no AnyMarket até alguém publicar)</label>
       <p class="note">Vão para o AnyMarket o título, a descrição, a ficha técnica (como características) e as fotos <b>selecionadas</b>, na ordem em que aparecem. A primeira é a principal.</p>
-      <div class="row"><button class="btn" type="button" id="am-send">Enviar ao AnyMarket</button><span class="status" id="am-msg" role="status" aria-live="polite"></span></div>
+      <div class="row"><button class="btn" type="button" id="am-send">Revisar e enviar ao AnyMarket</button><span class="status" id="am-msg" role="status" aria-live="polite"></span></div>
+      <div class="amconf" id="amconf" hidden>
+        <div class="revh"><b>Confira antes de enviar</b><span class="envpill" id="cf-env"></span></div>
+        <div class="cf-body"><div class="cf-pics" id="cf-pics"></div><dl class="cf-dl" id="cf-dl"></dl></div>
+        <div class="row"><button class="btn" type="button" id="cf-go">Confirmar e enviar</button><button class="btn ghost" type="button" id="cf-upd" hidden>Atualizar o produto existente</button><button class="btn ghost" type="button" id="cf-back">Voltar e editar</button></div>
+      </div>
     </div>
   </section>
 
@@ -486,7 +501,7 @@ summary{cursor:pointer;font-weight:700}
   function fillAm(f) {
     f = f || {}; for (const [k, id] of Object.entries(AMF)) $(id).value = f[k] ?? (k === 'prazo' ? 0 : '');
     $('am-cat').value = f.categoryPath || ''; $('am-brand').value = f.brandName || ''; amBrandId = f.brandId || null; amBrandName = f.brandName || '';
-    $('am-origem').value = String(f.origem ?? 0); $('am-auto').checked = f.anunciosAuto !== false;
+    $('am-origem').value = String(f.origem ?? 0); $('am-auto').checked = !!f.anunciosAuto;
   }
   function listingData() {
     const d = cur.detail;
@@ -511,10 +526,10 @@ summary{cursor:pointer;font-weight:700}
   async function amInit() {
     try { amStat = await api('/api/anymarket/status'); } catch { amStat = null; }
     const c = amStat && amStat.companies.find((x) => x.id === co);
-    $('amenv').textContent = !amStat ? '' : (c && c.configured ? 'Conectado · ' : 'Token do AnyMarket desta empresa não configurado · ') + (amStat.sandbox ? 'ambiente de TESTE (sandbox)' : 'ambiente de PRODUÇÃO');
+    $('amenv').replaceChildren(); if (amStat) $('amenv').append(el('span', { className: 'envpill ' + (amStat.sandbox ? 'test' : 'prod'), textContent: amStat.sandbox ? 'TESTE (SANDBOX)' : 'PRODUÇÃO' }), document.createTextNode(' ' + (c && c.configured ? 'Conectado' : 'Token do AnyMarket desta empresa não configurado')));
     $('am-send').disabled = !(c && c.configured);
     if (c && c.configured && !amCats.length) {
-      try { amCats = (await api('/api/anymarket/categories?company=' + co)).categories; $('am-cats').replaceChildren(...amCats.map((x) => el('option', { value: x.path }))); }
+      try { amCats = (await api('/api/anymarket/categories?company=' + co)).categories.filter((x) => x.leaf !== false); $('am-cats').replaceChildren(...amCats.map((x) => el('option', { value: x.path }))); }
       catch (e) { $('am-msg').className = 'status err'; $('am-msg').textContent = e.message; }
     }
   }
@@ -543,23 +558,55 @@ summary{cursor:pointer;font-weight:700}
     } catch (e) { m.textContent = e.message; }
   };
   const REQ = [['am-cat', (f) => f.categoryId], ['am-brand', (f) => f.brandId], ['am-sku', (f) => f.sku], ['am-preco', (f) => f.preco > 0], ['am-estoque', (f) => f.estoque !== null && f.estoque >= 0], ['am-garantia', (f) => f.garantia !== null && f.garantia >= 0], ['am-alt', (f) => f.altura > 0], ['am-larg', (f) => f.largura > 0], ['am-comp', (f) => f.comprimento > 0], ['am-peso', (f) => f.peso > 0]];
+  const brl = (v) => v == null ? '—' : Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   $('am-send').onclick = async () => {
     const m = $('am-msg'), f = amForm(); let bad = 0;
     for (const [id, ok] of REQ) { const lab = $(id).closest('.f'); const v = !!ok(f); lab.classList.toggle('bad', !v); if (!v) bad++; }
-    if (bad) { m.className = 'status err'; m.textContent = 'Preencha os campos marcados (' + bad + ').' + (!f.categoryId && f.categoryPath ? ' Escolha a categoria na lista.' : '') + (!f.brandId && f.brandName ? ' Escolha a marca na lista ou clique em Criar marca.' : ''); return; }
+    if (bad) { m.className = 'status err'; m.textContent = 'Preencha os campos marcados (' + bad + ').' + (!f.categoryId && f.categoryPath ? ' Escolha a subcategoria na lista.' : '') + (!f.brandId && f.brandName ? ' Escolha a marca na lista ou clique em Criar marca.' : ''); return; }
+    if (!/^[A-Za-z0-9._-]+$/.test(f.sku)) { m.className = 'status err'; m.textContent = 'O SKU só pode ter letras, números, - _ e . (sem espaço).'; $('am-sku').closest('.f').classList.add('bad'); return; }
+    if (f.ean && !/^\d{8,13}$/.test(f.ean)) { m.className = 'status err'; m.textContent = 'O EAN precisa ter de 8 a 13 números.'; $('am-ean').closest('.f').classList.add('bad'); return; }
     if (!sel.size) { m.className = 'status err'; m.textContent = 'Selecione pelo menos uma foto.'; return; }
     if ($('t').value.trim().length > 60) { m.className = 'status err'; m.textContent = 'O título passou de 60 caracteres. Ajuste antes de enviar.'; $('t').focus(); return; }
     if (!$('revok').checked) { m.className = 'status err'; m.textContent = 'Marque "Revisei o título e a descrição" (na coluna do texto) antes de enviar.'; $('revok').closest('.rev').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
-    $('am-send').disabled = true; m.className = 'status'; m.replaceChildren(el('span', { className: 'spin' }), document.createTextNode('Salvando, preparando as fotos em 1200×1200 e enviando ao AnyMarket…'));
+    m.className = 'status'; m.textContent = 'Salvando…';
+    const id = await save(false); if (!id) { m.className = 'status err'; m.textContent = 'Não consegui salvar antes de enviar.'; return; }
+    m.textContent = '';
+    // Resumo para confirmar (nada vai ao AnyMarket sem o clique em Confirmar).
+    const fotos = [...sel].sort((x, y) => x - y).map((i) => cur.detail.pictures[i]);
+    $('cf-env').className = 'envpill ' + (amStat && amStat.sandbox ? 'test' : 'prod'); $('cf-env').textContent = amStat && amStat.sandbox ? 'TESTE (SANDBOX)' : 'PRODUÇÃO';
+    $('cf-pics').replaceChildren(...fotos.slice(0, 9).map((p) => el('img', { src: img(p.url) + '&q=sq', alt: '' })));
+    const rows = [['Título', $('t').value.trim()], ['SKU', f.sku], ['EAN', f.ean || '—'], ['Preço', brl(f.preco) + (f.precoDe && f.precoDe > f.preco ? ' (de ' + brl(f.precoDe) + ')' : '')], ['Estoque', String(f.estoque)],
+      ['Categoria', f.categoryPath], ['Marca', f.brandName], ['Fotos', fotos.length + ' em 1200×1200 (a 1ª é a principal)'], ['Garantia', f.garantia + ' meses'], ['Medidas', f.altura + ' × ' + f.largura + ' × ' + f.comprimento + ' cm · ' + f.peso + ' kg'],
+      ['Marketplaces', f.anunciosAuto ? 'cria os anúncios automaticamente' : 'fica só no AnyMarket']];
+    $('cf-dl').replaceChildren(...rows.flatMap(([k, v]) => [el('dt', { textContent: k }), el('dd', { textContent: v })]));
+    $('cf-upd').hidden = true; $('cf-go').hidden = false; $('amconf').hidden = false; $('amconf').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    pendingId = id;
+  };
+  let pendingId = null;
+  async function doSend(atualizar) {
+    const m = $('am-msg'); if (!pendingId) return;
+    $('cf-go').disabled = $('cf-upd').disabled = true; m.className = 'status';
+    m.replaceChildren(el('span', { className: 'spin' }), document.createTextNode(atualizar ? 'Atualizando o produto no AnyMarket…' : 'Preparando as fotos em 1200×1200 e enviando ao AnyMarket…'));
     try {
-      const id = await save(false); if (!id) throw new Error('Não consegui salvar antes de enviar.');
-      const r = await api('/api/anymarket/send/' + id, { method: 'POST', body: { forcar: sendArmed } });
-      sendArmed = false; m.className = 'status ok'; m.textContent = 'Enviado! Produto ' + r.productId + ' criado no AnyMarket' + (r.sandbox ? ' (ambiente de teste)' : '') + '.'; loadHist();
+      const r = await api('/api/anymarket/send/' + pendingId, { method: 'POST', body: { atualizar } });
+      m.className = 'status ok'; m.textContent = (r.updated ? 'Atualizado! Produto ' + r.productId + ' no AnyMarket' : 'Enviado! Produto ' + r.productId + ' criado no AnyMarket') + (r.sandbox ? ' (ambiente de teste).' : '.');
+      $('amconf').hidden = true; pendingId = null; loadHist();
     } catch (e) {
       m.className = 'status err'; m.textContent = e.message;
-      if (/já foi enviado/.test(e.message)) { sendArmed = true; m.textContent += ' Clique em Enviar de novo para confirmar.'; }
-    } finally { $('am-send').disabled = false; }
-  };
+      if (e.data && e.data.exists) { $('cf-go').hidden = true; $('cf-upd').hidden = false; $('cf-upd').textContent = 'Atualizar o produto ' + e.data.exists.id + ' (textos, ficha e preço)'; m.textContent += ' Se for o mesmo produto, atualize; se não, troque o SKU.'; }
+      loadHist();
+    } finally { $('cf-go').disabled = $('cf-upd').disabled = false; }
+  }
+  $('cf-go').onclick = () => doSend(false);
+  $('cf-upd').onclick = () => doSend(true);
+  $('cf-back').onclick = () => { $('amconf').hidden = true; pendingId = null; };
+  // Avisa na hora se o SKU já existe no AnyMarket.
+  $('am-sku').addEventListener('change', async () => {
+    const sku = $('am-sku').value.trim(), n = $('skumsg'); n.textContent = '';
+    const c = amStat && amStat.companies.find((x) => x.id === co); if (!sku || !(c && c.configured)) return;
+    try { const r = await api('/api/anymarket/sku?' + new URLSearchParams({ company: co, sku })); n.textContent = r.produto ? 'Já existe no AnyMarket: produto ' + r.produto.id + '. O envio vai oferecer atualizar.' : 'SKU livre no AnyMarket.'; } catch (e) { n.textContent = e.message; }
+  });
+  $('amp').addEventListener('input', () => { if (!$('amconf').hidden) { $('amconf').hidden = true; pendingId = null; } });
 
   function renderHScope() { const g = $('hscope'); g.replaceChildren(); for (const [k, n] of [['mine', 'Meus'], ['all', 'Da equipe']]) { const b = el('button', { type: 'button', textContent: n, onclick: () => { hScope = k; renderHScope(); loadHist(); } }); b.setAttribute('aria-pressed', String(hScope === k)); g.append(b); } }
   const ST = { rascunho: 'Rascunho', enviado: 'Enviado ao AnyMarket', erro: 'Erro no envio' };

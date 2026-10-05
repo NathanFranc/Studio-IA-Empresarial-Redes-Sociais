@@ -138,6 +138,10 @@ Campos `tipo`, `descricoes`, `fonte`, `avisos` e fotos como objeto são opcionai
 - Campos obrigatórios do AnyMarket que o ML não traz: categoria, marca, SKU, preço, estoque, garantia, altura, largura, profundidade e peso. Opcionais: EAN, preço "de", prazo de preparo, NCM, origem e modelo. A categoria e a marca são escolhidas da lista do próprio AnyMarket (a marca pode ser criada ali).
 - **Buscar no sistema**: preenche SKU, EAN, preço, estoque, medidas, NCM, origem e garantia pelo sistema próprio, se ele responder `POST SCRAPER_URL {"acao":"produto_loja","codigo":"<SKU ou EAN>","empresa":"megadino"}` → `{"produto":{"sku","ean","preco","preco_de","estoque","peso","altura","largura","comprimento","ncm","origem","garantia_meses","prazo","modelo"}}`.
 - Configuração: `ANYMARKET_API_URL` (comece pelo sandbox) e `ANYMARKET_TOKEN_MEGADINO` / `ANYMARKET_TOKEN_IDMSHOP`.
+- Antes de criar, o Estúdio procura o SKU no AnyMarket. Se já existir, não duplica: oferece **atualizar** textos, ficha, medidas e preço (as fotos de produto existente não mudam por aqui).
+- O envio mostra um resumo (título, SKU, preço, fotos 1200×1200, categoria e o ambiente **TESTE** ou **PRODUÇÃO**) e só vai depois de "Confirmar e enviar". Só subcategorias (último nível) podem ser escolhidas.
+- As fotos vão em 1200×1200, fundo branco, por um endereço público do Estúdio (`/am-media`), por isso `DOMAIN` ou `PUBLIC_URL` precisa estar definido.
+- O AnyMarket não busca por EAN: use "Buscar no sistema" (o bitbrain aceita EAN e devolve o SKU).
 
 Fotos só são carregadas de endereços do próprio Mercado Livre (mlstatic.com).
 
