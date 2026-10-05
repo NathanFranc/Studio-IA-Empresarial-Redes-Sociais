@@ -8,7 +8,7 @@ import { AiError, aiReady, askJson } from '../ai.js';
 import { requireAdmin } from '../auth.js';
 import { pickCompany } from '../companies.js';
 import { logAction } from '../logs.js';
-import { allowedImage, MlError, mlDetail, mlDisconnect, mlSearch, mlStatus } from '../ml.js';
+import { allowedImage, MlError, mlDetail, mlDisconnect, mlLookup, mlSearch, mlStatus } from '../ml.js';
 import { mlRewritePrompt, watermarkPrompt } from '../prompts.js';
 
 export const mlRouter = Router();
@@ -89,6 +89,16 @@ mlRouter.post('/detail', async (req, res) => {
     logAction(req, 'erro_ml', { detail: { etapa: 'detalhe', id, motivo: (e as Error).message } });
     fail(res, e);
   }
+});
+
+/** Dados da loja (SKU, EAN, preço, estoque, medidas, NCM) pelo sistema próprio (bitbrain), se ele oferecer. */
+mlRouter.post('/lookup', async (req, res) => {
+  const codigo = String(req.body?.codigo ?? '').trim().slice(0, 40);
+  if (codigo.length < 3) return void res.status(400).json({ error: 'Digite o SKU ou o EAN.' });
+  try {
+    const r = await mlLookup(codigo, pickCompany(req.body?.company).id);
+    res.json(r);
+  } catch (e) { fail(res, e); }
 });
 
 /** Proxy das fotos do ML (a página só carrega imagens do próprio site e precisa delas para o ZIP). */

@@ -14,6 +14,7 @@ export const ACTIONS = [
   'usuario_criado', 'usuario_alterado',
   'instagram_conectado', 'instagram_desconectado', 'publicar_instagram', 'erro_instagram',
   'ml_conectado', 'ml_desconectado', 'ml_buscar', 'ml_gerar', 'ml_baixar_fotos', 'erro_ml',
+  'ml_salvar', 'ml_atualizar', 'ml_excluir', 'anymarket_enviar', 'erro_anymarket',
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 

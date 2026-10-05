@@ -81,6 +81,24 @@ CREATE TABLE IF NOT EXISTS ig_posts (
 CREATE INDEX IF NOT EXISTS ig_posts_post ON ig_posts(post_id);
 `);
 
+db.exec(`
+CREATE TABLE IF NOT EXISTS ml_listings (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id      INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  company      TEXT NOT NULL DEFAULT 'megadino',
+  title        TEXT NOT NULL,
+  data         TEXT NOT NULL,              -- JSON: textos, ficha, fotos, dados do AnyMarket
+  thumb        TEXT,                       -- URL da foto principal
+  status       TEXT NOT NULL DEFAULT 'rascunho',  -- rascunho | enviado | erro
+  am_product_id TEXT,
+  am_message   TEXT,
+  sent_at      TEXT,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS ml_listings_company ON ml_listings(company, updated_at);
+`);
+
 // Migrações: várias empresas (colunas novas em bancos antigos).
 function addColumn(table: string, col: string, ddl: string): void {
   const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];

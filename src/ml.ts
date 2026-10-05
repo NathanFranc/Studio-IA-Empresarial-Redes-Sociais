@@ -332,6 +332,15 @@ export async function mlDetail(kind: string, id: string): Promise<Detail> {
   return d;
 }
 
+/** Busca os dados da loja pelo SKU/EAN no sistema próprio (ação opcional "produto_loja"). */
+export async function mlLookup(codigo: string, empresa: string): Promise<{ produto: Record<string, unknown> | null; aviso?: string }> {
+  if (!scraperOn()) return { produto: null, aviso: 'O sistema próprio não está configurado (SCRAPER_URL).' };
+  const s = await scraper({ acao: 'produto_loja', codigo, empresa });
+  if (!s) return { produto: null, aviso: 'O sistema próprio não respondeu ou ainda não tem a busca por SKU/EAN.' };
+  if (s.erro) return { produto: null, aviso: String(s.erro).slice(0, 200) };
+  return { produto: (s.produto as Record<string, unknown>) ?? null, aviso: s.produto ? undefined : 'Nada encontrado com esse código.' };
+}
+
 /** Só deixa o proxy de imagem buscar fotos do próprio ML. */
 export function allowedImage(u: string): boolean {
   try {

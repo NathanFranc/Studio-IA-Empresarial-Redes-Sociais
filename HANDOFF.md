@@ -139,6 +139,12 @@ Abas **Resumo / Usuários / Logs**: resumo do dia e semana, cadastro e desativa�
 - Decisão do Nathan: trazer fotos de concorrentes mesmo com marca d'água, só avisando. Remover marca d'água NÃO foi feito (não implementar).
 - Scraping de reserva é o sistema próprio do Nathan via `SCRAPER_URL` (contrato no README). Conexão ML pelo admin (OAuth, refresh token criptografado).
 
+## 4.4 Histórico do Studio ML e AnyMarket (05/10/2026)
+- Tabela `ml_listings` (rascunho/enviado/erro), rotas `/api/ml/listings` e `/api/anymarket/*` (`src/routes/listings.ts`, `src/anymarket.ts`).
+- Envio: `POST /products` (v2, `gumgaToken`), produto SIMPLE com 1 SKU, `definitionPriceScope: SKU`, `allowAutomaticSkuMarketplaceCreation` conforme a caixa (padrão ligado, decisão do Nathan).
+- Dados da loja: a equipe preenche e/ou "Buscar no sistema" (ação `produto_loja` no bitbrain — ainda precisa ser criada lá).
+- Falta: tokens do AnyMarket (pedidos ao AnyMarket), testar no sandbox.
+
 ## 5. Variáveis de ambiente (`.env`)
 
 ```

@@ -41,6 +41,8 @@ export const config = {
   /** Scraping de reserva (sistema próprio). POST {q} → {resultados} e POST {url} → {produto}. */
   scraperUrl: env('SCRAPER_URL').replace(/\/+$/, ''),
   scraperToken: env('SCRAPER_TOKEN'),
+  /** AnyMarket (API v2). Comece pelo sandbox; para produção use https://api.anymarket.com.br/v2. */
+  anymarketUrl: env('ANYMARKET_API_URL', 'https://sandbox-api.anymarket.com.br/v2').replace(/\/+$/, ''),
 };
 
 export const uploadsDir = path.join(config.dataDir, 'uploads');

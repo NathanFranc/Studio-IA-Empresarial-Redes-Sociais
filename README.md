@@ -132,6 +132,13 @@ Com `SCRAPER_URL` definido e sem conta do ML conectada no Studio, o Studio usa s
 
 Campos `tipo`, `descricoes`, `fonte`, `avisos` e fotos como objeto são opcionais.
 
+### Histórico e envio ao AnyMarket
+- **Salvar no histórico** guarda o anúncio montado (textos, ficha, fotos escolhidas e dados do AnyMarket). Fica por empresa, com status: rascunho, enviado ou erro.
+- **Enviar ao AnyMarket** cria o produto (`POST /products` da API v2, cabeçalho `gumgaToken`) com título, descrição (HTML simples), ficha como características, fotos selecionadas (pela URL do ML) e 1 SKU. Opcionalmente cria os anúncios automáticos pela configuração da categoria (`allowAutomaticSkuMarketplaceCreation`).
+- Campos obrigatórios do AnyMarket que o ML não traz: categoria, marca, SKU, preço, estoque, garantia, altura, largura, profundidade e peso. Opcionais: EAN, preço "de", prazo de preparo, NCM, origem e modelo. A categoria e a marca são escolhidas da lista do próprio AnyMarket (a marca pode ser criada ali).
+- **Buscar no sistema**: preenche SKU, EAN, preço, estoque, medidas, NCM, origem e garantia pelo sistema próprio, se ele responder `POST SCRAPER_URL {"acao":"produto_loja","codigo":"<SKU ou EAN>","empresa":"megadino"}` → `{"produto":{"sku","ean","preco","preco_de","estoque","peso","altura","largura","comprimento","ncm","origem","garantia_meses","prazo","modelo"}}`.
+- Configuração: `ANYMARKET_API_URL` (comece pelo sandbox) e `ANYMARKET_TOKEN_MEGADINO` / `ANYMARKET_TOKEN_IDMSHOP`.
+
 Fotos só são carregadas de endereços do próprio Mercado Livre (mlstatic.com).
 
 > Atenção: fotos e textos de anúncios de concorrentes são deles. O Studio reescreve os textos e marca as fotos com marca d'água; usar foto de outro vendedor pode gerar denúncia no Programa de Proteção de Propriedade Intelectual do ML.
@@ -199,6 +206,7 @@ src/
   companies.ts     empresas: nome, @, jeito da legenda, cores e modelos de cada uma
   instagram.ts     conexão (OAuth), token criptografado e publicação no Instagram
   ml.ts            Studio ML: conexão com o Mercado Livre, busca, detalhe e scraping de reserva
+  anymarket.ts     envio ao AnyMarket (categorias, marcas, produto)
   routes/          auth, ai, posts (histórico), events (downloads), admin, instagram
 public/
   index.html       o Estúdio (modelos, recorte de fundo, carrossel, histórico)

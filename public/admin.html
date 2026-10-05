@@ -169,6 +169,11 @@ td.actcell{min-width:300px}
         <a class="btn" href="/ml/conectar">Conectar Mercado Livre</a>
         <p class="muted" style="font-size:13px">Você vai para o Mercado Livre, entra com a conta da loja e autoriza o app.</p>
       </div>
+      <div class="igc-body" id="am-box" style="border-top:1px solid var(--line);padding-top:14px">
+        <b>AnyMarket</b>
+        <dl class="igdl" id="am-dl"></dl>
+        <p class="muted" style="font-size:13px">Tokens por empresa no <code>.env</code>: <code>ANYMARKET_TOKEN_MEGADINO</code>, <code>ANYMARKET_TOKEN_IDMSHOP</code>. Ambiente em <code>ANYMARKET_API_URL</code> (teste: sandbox-api.anymarket.com.br/v2 · produção: api.anymarket.com.br/v2).</p>
+      </div>
       <div id="ml-bitbrain" hidden class="igc-body">
         <p>O Studio ML está buscando pelo <b>sistema próprio</b> (bitbrain), que já tem a conexão com o Mercado Livre. Não é preciso conectar conta aqui.</p>
         <p class="muted" style="font-size:13px">Se um dia quiser que o Studio use a API direto, configure ML_CLIENT_ID e ML_CLIENT_SECRET; o bitbrain passa a ser a reserva.</p>
@@ -401,6 +406,7 @@ td.actcell{min-width:300px}
     $('ml-bitbrain').hidden = !viaBb; $('ml-setup').hidden = s.configured || viaBb; $('ml-connected').hidden = !(s.configured && s.connected); $('ml-disconnected').hidden = !(s.configured && !s.connected) || viaBb;
     $('ml-redirect').textContent = s.redirectUri || 'defina DOMAIN ou PUBLIC_URL no .env para ver o endereço';
     pill.className = 'pill ' + (s.connected || viaBb ? 'ok' : s.configured ? 'warn' : 'off'); pill.textContent = s.connected ? 'Conectado' : viaBb ? 'Via bitbrain' : s.configured ? 'Desconectado' : 'Não configurado';
+    try { const a = await api('/api/anymarket/status'); const dl = $('am-dl'); dl.replaceChildren(el('dt', { textContent: 'Ambiente' }), el('dd', { textContent: a.sandbox ? 'Teste (sandbox)' : 'Produção' }), ...a.companies.flatMap((c) => [el('dt', { textContent: c.name }), el('dd', { textContent: c.configured ? 'Token configurado' : 'Sem token' })])); } catch {}
     $('ml-user').textContent = s.nickname || '—'; $('ml-since').textContent = fmtDate(s.connectedAt); $('ml-scr').textContent = s.scraper ? 'Configurado' : 'Não configurado (opcional)';
   }
   let mlArmed = false;

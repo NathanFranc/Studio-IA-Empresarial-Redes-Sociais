@@ -19,6 +19,7 @@ import { eventsRouter } from './routes/events.js';
 import { postsRouter } from './routes/posts.js';
 import { instagramRouter } from './routes/instagram.js';
 import { mlRouter } from './routes/ml.js';
+import { anymarketRouter, listingsRouter } from './routes/listings.js';
 import { mlAuthorizeUrl, mlConfigured, mlFinishConnect, MlError, mlKeepAlive } from './ml.js';
 import crypto from 'node:crypto';
 import { authorizeUrl, cleanMedia, finishConnect, igConfigured, IgError, refreshIfNeeded } from './instagram.js';
@@ -71,7 +72,9 @@ app.use('/api/posts', requireUser, postsRouter);
 app.use('/api/events', requireUser, eventsRouter);
 app.use('/api/admin', requireUser, requireAdmin, adminRouter);
 app.use('/api/instagram', requireUser, instagramRouter);
+app.use('/api/ml/listings', requireUser, listingsRouter);
 app.use('/api/ml', requireUser, mlRouter);
+app.use('/api/anymarket', requireUser, anymarketRouter);
 app.get('/api/companies', requireUser, (_req, res) => {
   res.json({ companies: Object.values(COMPANIES).map((c) => ({ id: c.id, name: c.name, handle: c.handle })) });
 });

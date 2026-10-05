@@ -86,6 +86,28 @@ summary{cursor:pointer;font-weight:700}
 .row .btn{flex:0 0 auto}
 .note{font-size:13px;color:var(--muted)}
 .empty{color:var(--muted);font-size:14px}
+.amhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.amgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.amgrid .wide{grid-column:span 2}
+@media (max-width:520px){.amgrid .wide{grid-column:auto}}
+.amgrid .row,.lookup .row{flex-wrap:nowrap}
+.amgrid .row input,.lookup .row input{flex:1;min-width:0}
+.lookup{display:flex;flex-direction:column;gap:6px;max-width:520px}
+.tgl{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}
+.tgl input{width:18px;height:18px;accent-color:var(--accent)}
+.f.bad input,.f.bad select{border-color:#FF8A7A}
+.hq{font:inherit;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:9px 12px;min-width:0;width:240px;max-width:100%}
+.chips2{display:flex;gap:6px}
+.chips2 button{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line-2);background:var(--panel-2);color:var(--fg);border-radius:999px;padding:7px 12px;cursor:pointer}
+.chips2 button[aria-pressed=true]{background:#fff;color:#0A0A0B;border-color:#fff}
+.hist{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.hc{background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.hc .im{aspect-ratio:1;border-radius:10px;background:#fff;overflow:hidden}
+.hc .im img{width:100%;height:100%;object-fit:contain}
+.hc b{font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+.hc small{font-size:12px;color:var(--muted)}
+.hc .row .btn{flex:1;padding:8px 10px}
+.st-enviado{color:var(--ok)}.st-erro{color:#FF8A7A}.st-rascunho{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -146,6 +168,44 @@ summary{cursor:pointer;font-weight:700}
         </details>
       </div>
     </div>
+
+    <div class="panel" id="amp" style="margin-top:22px">
+      <div class="amhead"><div><h2>Enviar ao AnyMarket</h2><p class="note" id="amenv"></p></div>
+        <div class="row"><button class="btn ghost sm" type="button" id="save">Salvar no histórico</button><button class="btn ghost sm" type="button" id="saveNew">Salvar como novo</button></div></div>
+      <p class="note" id="savemsg" role="status" aria-live="polite"></p>
+      <div class="lookup">
+        <label class="f" for="am-code">Buscar dados da loja pelo SKU ou EAN<span class="row"><input id="am-code" placeholder="SKU ou código de barras" autocomplete="off"><button class="btn sm ghost" type="button" id="am-look">Buscar no sistema</button></span></label>
+        <span class="note" id="lookmsg" role="status" aria-live="polite"></span>
+      </div>
+      <div class="amgrid">
+        <label class="f wide" for="am-cat">Categoria do AnyMarket *<input id="am-cat" list="am-cats" placeholder="Digite para procurar…" autocomplete="off"><datalist id="am-cats"></datalist></label>
+        <label class="f" for="am-brand">Marca do AnyMarket *<span class="row"><input id="am-brand" list="am-brands" placeholder="Ex.: Oster" autocomplete="off"><button class="btn sm ghost" type="button" id="am-newbrand" hidden>Criar marca</button></span><datalist id="am-brands"></datalist></label>
+        <label class="f" for="am-model">Modelo<input id="am-model"></label>
+        <label class="f" for="am-sku">SKU da loja *<input id="am-sku"></label>
+        <label class="f" for="am-ean">EAN (código de barras)<input id="am-ean" inputmode="numeric"></label>
+        <label class="f" for="am-preco">Preço de venda (R$) *<input id="am-preco" type="number" min="0" step="0.01"></label>
+        <label class="f" for="am-precode">Preço "de" (riscado, opcional)<input id="am-precode" type="number" min="0" step="0.01"></label>
+        <label class="f" for="am-estoque">Estoque *<input id="am-estoque" type="number" min="0" step="1"></label>
+        <label class="f" for="am-prazo">Prazo de preparo (dias)<input id="am-prazo" type="number" min="0" step="1" value="0"></label>
+        <label class="f" for="am-garantia">Garantia (meses) *<input id="am-garantia" type="number" min="0" step="1"></label>
+        <label class="f" for="am-garantiat">Texto da garantia<input id="am-garantiat" placeholder="Ex.: 12 meses contra defeitos de fabricação"></label>
+        <label class="f" for="am-alt">Altura da embalagem (cm) *<input id="am-alt" type="number" min="0" step="0.1"></label>
+        <label class="f" for="am-larg">Largura (cm) *<input id="am-larg" type="number" min="0" step="0.1"></label>
+        <label class="f" for="am-comp">Profundidade (cm) *<input id="am-comp" type="number" min="0" step="0.1"></label>
+        <label class="f" for="am-peso">Peso com embalagem (kg) *<input id="am-peso" type="number" min="0" step="0.001"></label>
+        <label class="f" for="am-ncm">NCM<input id="am-ncm" inputmode="numeric" placeholder="8 números"></label>
+        <label class="f" for="am-origem">Origem fiscal<select id="am-origem"><option value="0">0 · Nacional</option><option value="1">1 · Estrangeira (importação direta)</option><option value="2">2 · Estrangeira (mercado interno)</option><option value="3">3 · Nacional, mais de 40% importado</option><option value="4">4 · Nacional (processos básicos)</option><option value="5">5 · Nacional, até 40% importado</option><option value="6">6 · Estrangeira (importação direta, sem similar)</option><option value="7">7 · Estrangeira (mercado interno, sem similar)</option><option value="8">8 · Nacional, mais de 70% importado</option></select></label>
+      </div>
+      <label class="tgl"><input type="checkbox" id="am-auto" checked> Criar os anúncios nos marketplaces automaticamente (pela configuração da categoria no AnyMarket)</label>
+      <p class="note">Vão para o AnyMarket o título, a descrição, a ficha técnica (como características) e as fotos <b>selecionadas</b>, na ordem em que aparecem. A primeira é a principal.</p>
+      <div class="row"><button class="btn" type="button" id="am-send">Enviar ao AnyMarket</button><span class="status" id="am-msg" role="status" aria-live="polite"></span></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="htitle">
+    <div class="amhead"><h2 id="htitle">Histórico do Studio ML</h2>
+      <div class="row"><input id="hq" type="search" placeholder="Buscar pelo título" aria-label="Buscar no histórico" class="hq"><span class="chips2" id="hscope"></span></div></div>
+    <div class="hist" id="hist"><p class="empty">Carregando…</p></div>
   </section>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -164,7 +224,7 @@ summary{cursor:pointer;font-weight:700}
   function renderCos() {
     const g = $('cos'); g.replaceChildren();
     for (const [id, name, logo] of COS) {
-      const b = el('button', { type: 'button', onclick: () => { co = id; try { localStorage.setItem('estudio_empresa', id); } catch {} renderCos(); } }, el('img', { src: logo, alt: '' }), name);
+      const b = el('button', { type: 'button', onclick: () => { co = id; try { localStorage.setItem('estudio_empresa', id); } catch {} renderCos(); if (typeof loadHist === 'function') { amCats = []; loadHist(); amInit(); } } }, el('img', { src: logo, alt: '' }), name);
       b.setAttribute('aria-pressed', String(co === id)); g.append(b);
     }
   }
@@ -212,7 +272,7 @@ summary{cursor:pointer;font-weight:700}
     setSt('Juntando ficha, descrições e fotos e escrevendo o anúncio com a IA… pode levar até 1 minuto.', '', true);
     try {
       const r = await api('/api/ml/detail', { method: 'POST', body: { kind: it.kind, id: it.id, company: co } });
-      cur = r; render(r);
+      cur = r; render(r); histId = null; fillAm({ modelo: r.detail.model || '', brandName: r.detail.brand || '', anunciosAuto: true }); $('savemsg').textContent = ''; $('am-msg').textContent = ''; if (r.detail.brand) brands(r.detail.brand);
       setSt(r.aiError ? 'Dados prontos, mas sem reescrita: ' + r.aiError : 'Pronto. Revise, copie e baixe as fotos.', r.aiError ? 'err' : 'ok');
       $('out').hidden = false; $('out').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     } catch (err) { setSt(err.message, 'err'); }
@@ -296,6 +356,128 @@ summary{cursor:pointer;font-weight:700}
     } catch { m.textContent = 'Falhou ao montar o ZIP. Tente de novo.'; }
     finally { $('zip').disabled = false; }
   };
+
+  // ---------- histórico + AnyMarket
+  let histId = null, hScope = 'mine', amCats = [], amBrandList = [], amStat = null, sendArmed = false;
+  const num = (id) => { const v = $(id).value.trim().replace(',', '.'); return v === '' ? null : Number(v); };
+  const AMF = { sku: 'am-sku', ean: 'am-ean', preco: 'am-preco', precoDe: 'am-precode', estoque: 'am-estoque', prazo: 'am-prazo', garantia: 'am-garantia', garantiaTexto: 'am-garantiat', altura: 'am-alt', largura: 'am-larg', comprimento: 'am-comp', peso: 'am-peso', ncm: 'am-ncm', modelo: 'am-model' };
+  const NUMS = new Set(['preco', 'precoDe', 'estoque', 'prazo', 'garantia', 'altura', 'largura', 'comprimento', 'peso']);
+  function amForm() {
+    const f = {}; for (const [k, id] of Object.entries(AMF)) f[k] = NUMS.has(k) ? num(id) : $(id).value.trim();
+    const cat = amCats.find((c) => c.path === $('am-cat').value.trim()); f.categoryId = cat ? cat.id : null; f.categoryPath = $('am-cat').value.trim();
+    const br = amBrandList.find((b) => b.name.toLowerCase() === $('am-brand').value.trim().toLowerCase()); f.brandId = br ? br.id : (amBrandId && $('am-brand').value.trim() === amBrandName ? amBrandId : null); f.brandName = $('am-brand').value.trim();
+    f.origem = Number($('am-origem').value); f.anunciosAuto = $('am-auto').checked; f.ean = (f.ean || '').replace(/\D/g, ''); f.ncm = (f.ncm || '').replace(/\D/g, '');
+    return f;
+  }
+  let amBrandId = null, amBrandName = '';
+  function fillAm(f) {
+    f = f || {}; for (const [k, id] of Object.entries(AMF)) $(id).value = f[k] ?? (k === 'prazo' ? 0 : '');
+    $('am-cat').value = f.categoryPath || ''; $('am-brand').value = f.brandName || ''; amBrandId = f.brandId || null; amBrandName = f.brandName || '';
+    $('am-origem').value = String(f.origem ?? 0); $('am-auto').checked = f.anunciosAuto !== false;
+  }
+  function listingData() {
+    const d = cur.detail;
+    return { titulo: $('t').value.trim(), descricao: $('d').value.trim(),
+      ficha: [...$('f').children].map((tr) => { const [a, b] = tr.querySelectorAll('input'); return { nome: a.value.trim(), valor: b.value.trim() }; }).filter((x) => x.nome && x.valor),
+      fotos: [...sel].sort((a, b) => a - b).map((i) => d.pictures[i].url),
+      destaques: [...$('dest').children].map((x) => x.textContent), alertas: (cur.ai && cur.ai.alertas) || [],
+      pictures: d.pictures, sources: d.sources, texts: d.texts, notes: d.notes, brand: d.brand, model: d.model, origemTitulo: d.title, am: amForm() };
+  }
+  async function save(asNew) {
+    if (!cur) return null; const m = $('savemsg');
+    try {
+      const body = { company: co, data: listingData() };
+      if (histId && !asNew) { await api('/api/ml/listings/' + histId, { method: 'PUT', body }); m.textContent = 'Alterações salvas (#' + histId + ').'; }
+      else { const r = await api('/api/ml/listings', { method: 'POST', body }); histId = r.id; m.textContent = 'Salvo no histórico (#' + histId + ').'; }
+      loadHist(); return histId;
+    } catch (e) { m.textContent = e.message; return null; }
+  }
+  $('save').onclick = () => save(false); $('saveNew').onclick = () => save(true);
+
+  async function amInit() {
+    try { amStat = await api('/api/anymarket/status'); } catch { amStat = null; }
+    const c = amStat && amStat.companies.find((x) => x.id === co);
+    $('amenv').textContent = !amStat ? '' : (c && c.configured ? 'Conectado · ' : 'Token do AnyMarket desta empresa não configurado · ') + (amStat.sandbox ? 'ambiente de TESTE (sandbox)' : 'ambiente de PRODUÇÃO');
+    $('am-send').disabled = !(c && c.configured);
+    if (c && c.configured && !amCats.length) {
+      try { amCats = (await api('/api/anymarket/categories?company=' + co)).categories; $('am-cats').replaceChildren(...amCats.map((x) => el('option', { value: x.path }))); }
+      catch (e) { $('am-msg').className = 'status err'; $('am-msg').textContent = e.message; }
+    }
+  }
+  let bT = 0;
+  async function brands(q) {
+    const c = amStat && amStat.companies.find((x) => x.id === co); if (!(c && c.configured)) return;
+    try { amBrandList = (await api('/api/anymarket/brands?company=' + co + '&q=' + encodeURIComponent(q || ''))).brands; $('am-brands').replaceChildren(...amBrandList.map((b) => el('option', { value: b.name }))); } catch { amBrandList = []; }
+    const v = $('am-brand').value.trim(); $('am-newbrand').hidden = !v || amBrandList.some((b) => b.name.toLowerCase() === v.toLowerCase());
+  }
+  $('am-brand').oninput = () => { clearTimeout(bT); bT = setTimeout(() => brands($('am-brand').value.trim()), 300); };
+  $('am-newbrand').onclick = async () => {
+    const name = $('am-brand').value.trim(); if (!name) return;
+    try { const r = await api('/api/anymarket/brands', { method: 'POST', body: { company: co, name } }); amBrandId = r.brand.id; amBrandName = r.brand.name; amBrandList.push(r.brand); $('am-newbrand').hidden = true; $('am-msg').className = 'status ok'; $('am-msg').textContent = 'Marca "' + r.brand.name + '" criada no AnyMarket.'; }
+    catch (e) { $('am-msg').className = 'status err'; $('am-msg').textContent = e.message; }
+  };
+  $('am-look').onclick = async () => {
+    const code = $('am-code').value.trim() || $('am-sku').value.trim() || $('am-ean').value.trim(), m = $('lookmsg'); if (!code) { m.textContent = 'Digite o SKU ou o EAN.'; return; }
+    m.textContent = 'Buscando…';
+    try {
+      const r = await api('/api/ml/lookup', { method: 'POST', body: { codigo: code, company: co } });
+      if (!r.produto) { m.textContent = r.aviso || 'Nada encontrado.'; return; }
+      const p = r.produto, map = { sku: 'sku', ean: 'ean', preco: 'preco', precoDe: 'preco_de', estoque: 'estoque', prazo: 'prazo', garantia: 'garantia_meses', altura: 'altura', largura: 'largura', comprimento: 'comprimento', peso: 'peso', ncm: 'ncm', modelo: 'modelo' };
+      let n = 0; for (const [k, src] of Object.entries(map)) if (p[src] !== undefined && p[src] !== null && p[src] !== '') { $(AMF[k]).value = p[src]; n++; }
+      if (p.origem !== undefined) $('am-origem').value = String(p.origem);
+      m.textContent = n + ' campo(s) preenchido(s) pelo sistema. Confira e complete o resto.';
+    } catch (e) { m.textContent = e.message; }
+  };
+  const REQ = [['am-cat', (f) => f.categoryId], ['am-brand', (f) => f.brandId], ['am-sku', (f) => f.sku], ['am-preco', (f) => f.preco > 0], ['am-estoque', (f) => f.estoque !== null && f.estoque >= 0], ['am-garantia', (f) => f.garantia !== null && f.garantia >= 0], ['am-alt', (f) => f.altura > 0], ['am-larg', (f) => f.largura > 0], ['am-comp', (f) => f.comprimento > 0], ['am-peso', (f) => f.peso > 0]];
+  $('am-send').onclick = async () => {
+    const m = $('am-msg'), f = amForm(); let bad = 0;
+    for (const [id, ok] of REQ) { const lab = $(id).closest('.f'); const v = !!ok(f); lab.classList.toggle('bad', !v); if (!v) bad++; }
+    if (bad) { m.className = 'status err'; m.textContent = 'Preencha os campos marcados (' + bad + ').' + (!f.categoryId && f.categoryPath ? ' Escolha a categoria na lista.' : '') + (!f.brandId && f.brandName ? ' Escolha a marca na lista ou clique em Criar marca.' : ''); return; }
+    if (!sel.size) { m.className = 'status err'; m.textContent = 'Selecione pelo menos uma foto.'; return; }
+    $('am-send').disabled = true; m.className = 'status'; m.replaceChildren(el('span', { className: 'spin' }), document.createTextNode('Salvando e enviando ao AnyMarket…'));
+    try {
+      const id = await save(false); if (!id) throw new Error('Não consegui salvar antes de enviar.');
+      const r = await api('/api/anymarket/send/' + id, { method: 'POST', body: { forcar: sendArmed } });
+      sendArmed = false; m.className = 'status ok'; m.textContent = 'Enviado! Produto ' + r.productId + ' criado no AnyMarket' + (r.sandbox ? ' (ambiente de teste)' : '') + '.'; loadHist();
+    } catch (e) {
+      m.className = 'status err'; m.textContent = e.message;
+      if (/já foi enviado/.test(e.message)) { sendArmed = true; m.textContent += ' Clique em Enviar de novo para confirmar.'; }
+    } finally { $('am-send').disabled = false; }
+  };
+
+  function renderHScope() { const g = $('hscope'); g.replaceChildren(); for (const [k, n] of [['mine', 'Meus'], ['all', 'Da equipe']]) { const b = el('button', { type: 'button', textContent: n, onclick: () => { hScope = k; renderHScope(); loadHist(); } }); b.setAttribute('aria-pressed', String(hScope === k)); g.append(b); } }
+  const ST = { rascunho: 'Rascunho', enviado: 'Enviado ao AnyMarket', erro: 'Erro no envio' };
+  async function loadHist() {
+    const H = $('hist');
+    try {
+      const { listings } = await api('/api/ml/listings?' + new URLSearchParams({ company: co, scope: hScope, q: $('hq').value.trim() }));
+      H.replaceChildren(); if (!listings.length) { H.append(el('p', { className: 'empty', textContent: 'Nenhum anúncio salvo ainda.' })); return; }
+      for (const it of listings) {
+        const del = el('button', { className: 'btn ghost sm', type: 'button', textContent: 'Excluir' }); let armed = false;
+        del.onclick = async () => { if (!armed) { armed = true; del.textContent = 'Confirmar'; setTimeout(() => { armed = false; del.textContent = 'Excluir'; }, 3000); return; } try { await api('/api/ml/listings/' + it.id, { method: 'DELETE' }); if (histId === it.id) histId = null; loadHist(); } catch (e) { alertMsg(e.message); } };
+        H.append(el('article', { className: 'hc' }, el('div', { className: 'im' }, it.thumb ? el('img', { src: img(it.thumb), alt: '', loading: 'lazy' }) : ''), el('b', { textContent: it.title }),
+          el('small', { className: 'st-' + it.status, textContent: ST[it.status] + (it.am_product_id ? ' · produto ' + it.am_product_id : '') + (it.status === 'erro' && it.am_message ? ' · ' + it.am_message.slice(0, 80) : '') }),
+          el('small', { textContent: Estudio.fmtDate(it.updated_at) + (it.user_name && hScope === 'all' ? ' · ' + it.user_name : '') }),
+          el('div', { className: 'row' }, el('button', { className: 'btn sm', type: 'button', textContent: 'Abrir', onclick: () => openHist(it.id) }), (me && (me.role === 'admin' || it.user_id === me.id)) ? del : '')));
+      }
+    } catch (e) { H.replaceChildren(el('p', { className: 'empty', textContent: e.message })); }
+  }
+  const alertMsg = (t) => { $('savemsg').textContent = t; };
+  let hT = 0; $('hq').oninput = () => { clearTimeout(hT); hT = setTimeout(loadHist, 300); };
+  async function openHist(id) {
+    try {
+      const { listing } = await api('/api/ml/listings/' + id); const d = listing.data;
+      if (listing.company !== co) { co = listing.company; try { localStorage.setItem('estudio_empresa', co); } catch {} renderCos(); amCats = []; await amInit(); }
+      cur = { detail: { title: d.origemTitulo || d.titulo, brand: d.brand || '', model: d.model || '', sources: d.sources || [], texts: d.texts || [], notes: d.notes || [], attributes: [], pictures: d.pictures || (d.fotos || []).map((u) => ({ url: u, thumb: u, source: 'Salvo' })) },
+        ai: { titulo: d.titulo, descricao: d.descricao, ficha: d.ficha, destaques: d.destaques || [], alertas: d.alertas || [] } };
+      render(cur);
+      const want = new Set(d.fotos || []); selectBy((p) => want.has(p.url));
+      fillAm(d.am); histId = listing.id; $('out').hidden = false; $('savemsg').textContent = 'Aberto: #' + listing.id + ' · ' + ST[listing.status] + (listing.am_product_id ? ' (produto ' + listing.am_product_id + ')' : '');
+      $('am-msg').textContent = ''; $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) { setSt(e.message, 'err'); }
+  }
+  $('amp').addEventListener('input', (e) => { const f = e.target.closest('.f'); if (f) f.classList.remove('bad'); });
+  renderHScope(); loadHist(); amInit();
 })();
 </script>
 </body>
