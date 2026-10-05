@@ -169,6 +169,10 @@ td.actcell{min-width:300px}
         <a class="btn" href="/ml/conectar">Conectar Mercado Livre</a>
         <p class="muted" style="font-size:13px">Você vai para o Mercado Livre, entra com a conta da loja e autoriza o app.</p>
       </div>
+      <div id="ml-bitbrain" hidden class="igc-body">
+        <p>O Studio ML está buscando pelo <b>sistema próprio</b> (bitbrain), que já tem a conexão com o Mercado Livre. Não é preciso conectar conta aqui.</p>
+        <p class="muted" style="font-size:13px">Se um dia quiser que o Studio use a API direto, configure ML_CLIENT_ID e ML_CLIENT_SECRET; o bitbrain passa a ser a reserva.</p>
+      </div>
       <div id="ml-setup" hidden class="igc-body">
         <p>Falta configurar o app do Mercado Livre no servidor. Uma vez só:</p>
         <ol class="steps">
@@ -393,9 +397,10 @@ td.actcell{min-width:300px}
   // mercado livre
   async function loadMl() {
     const s = await api('/api/ml/status'), pill = $('ml-pill');
-    $('ml-setup').hidden = s.configured; $('ml-connected').hidden = !(s.configured && s.connected); $('ml-disconnected').hidden = !(s.configured && !s.connected);
+    const viaBb = !s.connected && s.scraper;
+    $('ml-bitbrain').hidden = !viaBb; $('ml-setup').hidden = s.configured || viaBb; $('ml-connected').hidden = !(s.configured && s.connected); $('ml-disconnected').hidden = !(s.configured && !s.connected) || viaBb;
     $('ml-redirect').textContent = s.redirectUri || 'defina DOMAIN ou PUBLIC_URL no .env para ver o endereço';
-    pill.className = 'pill ' + (s.connected ? 'ok' : s.configured ? 'warn' : 'off'); pill.textContent = s.connected ? 'Conectado' : s.configured ? 'Desconectado' : 'Não configurado';
+    pill.className = 'pill ' + (s.connected || viaBb ? 'ok' : s.configured ? 'warn' : 'off'); pill.textContent = s.connected ? 'Conectado' : viaBb ? 'Via bitbrain' : s.configured ? 'Desconectado' : 'Não configurado';
     $('ml-user').textContent = s.nickname || '—'; $('ml-since').textContent = fmtDate(s.connectedAt); $('ml-scr').textContent = s.scraper ? 'Configurado' : 'Não configurado (opcional)';
   }
   let mlArmed = false;
