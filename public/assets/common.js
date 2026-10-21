@@ -54,7 +54,7 @@
     } catch {
       return null;
     }
-    const links = [['/', 'Estúdio', 'estudio'], ['/ml', 'Studio ML', 'ml']];
+    const links = [['/', 'Estúdio', 'estudio'], ['/ml', 'Studio ML', 'ml'], ['/midia', 'Mídia dos concorrentes', 'midia']];
     if (me.role === 'admin') links.push(['/admin', 'Administração', 'admin']);
     links.push(['/conta', 'Minha conta', 'conta']);
     bar.innerHTML = '';

@@ -20,6 +20,7 @@ import { eventsRouter } from './routes/events.js';
 import { postsRouter } from './routes/posts.js';
 import { instagramRouter } from './routes/instagram.js';
 import { mlRouter } from './routes/ml.js';
+import { midiaRouter } from './routes/midia.js';
 import { anymarketRouter, listingsRouter } from './routes/listings.js';
 import { mlAuthorizeUrl, mlConfigured, mlFinishConnect, MlError, mlKeepAlive } from './ml.js';
 import crypto from 'node:crypto';
@@ -78,6 +79,7 @@ app.use('/api/instagram', requireUser, instagramRouter);
 app.use('/api/ml/listings', requireUser, listingsRouter);
 app.use('/api/ml', requireUser, mlRouter);
 app.use('/api/anymarket', requireUser, anymarketRouter);
+app.use('/api/midia', requireUser, midiaRouter);
 app.get('/api/companies', requireUser, (_req, res) => {
   res.json({ companies: Object.values(COMPANIES).map((c) => ({ id: c.id, name: c.name, handle: c.handle })) });
 });
@@ -95,6 +97,7 @@ app.get('/', requireUser, page('index.html'));
 app.get('/admin', requireUser, requireAdmin, page('admin.html'));
 app.get('/conta', requireUser, page('conta.html'));
 app.get('/ml', requireUser, page('ml.html'));
+app.get('/midia', requireUser, page('midia.html'));
 
 // ----- Mercado Livre: conectar (admin)
 app.get('/ml/conectar', requireUser, requireAdmin, (_req, res) => {

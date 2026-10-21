@@ -216,6 +216,7 @@ summary{cursor:pointer;font-weight:700}
         <div class="row"><button class="btn sm ghost" type="button" id="pall">Selecionar todas</button><button class="btn sm ghost" type="button" id="pclean">Só sem marca d'água</button><button class="btn sm ghost" type="button" id="pnone">Limpar</button></div>
         <div class="pics" id="pics"></div>
         <div class="row"><button class="btn" type="button" id="zip">Baixar selecionadas (ZIP)</button><span class="note" id="zmsg"></span></div>
+        <p class="note"><a href="/midia" id="midialink">Ver fotos e vídeos dos concorrentes (Shopee e ML) →</a></p>
         <details>
           <summary>De onde vieram os dados</summary>
           <div class="srcs" id="srcs"></div>
@@ -327,12 +328,22 @@ summary{cursor:pointer;font-weight:700}
     finally { busy = false; $('go').disabled = false; }
   });
 
+  // Leva o produto para a tela Mídia dos concorrentes, já preenchida.
+  function midiaLink(d) {
+    const p = new URLSearchParams();
+    const termo = ($('q').value.trim() || d.title || '').slice(0, 120);
+    if (termo) p.set('termo', termo);
+    if (d.brand) p.set('marca', d.brand.slice(0, 60));
+    if (d.model) p.set('modelo', d.model.slice(0, 60));
+    $('midialink').href = '/midia?' + p.toString();
+  }
+
   async function open(it) {
     if (busy) return; busy = true;
     setSt('Juntando ficha, descrições e fotos e escrevendo o anúncio com a IA… pode levar até 1 minuto.', '', true);
     try {
       const r = await api('/api/ml/detail', { method: 'POST', body: { kind: it.kind, id: it.id, company: co } });
-      cur = r; render(r); histId = null; fillAm({ modelo: r.detail.model || '', brandName: r.detail.brand || '', anunciosAuto: true }); $('savemsg').textContent = ''; $('am-msg').textContent = ''; if (r.detail.brand) brands(r.detail.brand);
+      cur = r; render(r); midiaLink(r.detail); histId = null; fillAm({ modelo: r.detail.model || '', brandName: r.detail.brand || '', anunciosAuto: true }); $('savemsg').textContent = ''; $('am-msg').textContent = ''; if (r.detail.brand) brands(r.detail.brand);
       setSt(r.aiError ? 'Dados prontos, mas sem reescrita: ' + r.aiError : 'Pronto. Revise, copie e baixe as fotos.', r.aiError ? 'err' : 'ok');
       $('out').hidden = false; $('out').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     } catch (err) { setSt(err.message, 'err'); }
