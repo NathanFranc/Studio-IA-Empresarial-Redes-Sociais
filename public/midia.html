@@ -117,6 +117,8 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 
   <section class="panel" aria-labelledby="ltitle">
     <div class="head"><h2 id="ltitle">Últimas pesquisas</h2><button class="btn sm ghost" type="button" id="lref">Atualizar</button></div>
+    <p class="note">Excluir apaga a pesquisa e os arquivos dela do servidor na hora, liberando o espaço. Não tem volta.</p>
+    <div class="status" id="lst" role="status" aria-live="polite"></div>
     <div class="list" id="list"><p class="empty">Carregando…</p></div>
   </section>
 </div>
@@ -298,6 +300,37 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     finally { $('go').disabled = false; }
   });
 
+  // ----- excluir uma pesquisa (libera o espaço no servidor do bitbrain na hora). Mesmo jeito do histórico do
+  // Studio ML: o 1º clique vira "Confirmar" por 3 segundos. Em andamento não dá: o bitbrain ainda grava nela.
+  function botaoExcluir(p) {
+    const andando = p.situacao === 'aguardando';
+    const b = el('button', { type: 'button', className: 'btn sm ghost', textContent: 'Excluir', disabled: andando,
+      title: andando ? 'Espere a pesquisa terminar para excluir' : 'Apaga a pesquisa e os arquivos dela do servidor' });
+    let armado = false;
+    b.onclick = async () => {
+      if (!armado) {
+        armado = true; b.textContent = 'Confirmar';
+        setTimeout(() => { armado = false; if (b.isConnected && !b.disabled) b.textContent = 'Excluir'; }, 3000);
+        return;
+      }
+      b.disabled = true; b.textContent = 'Excluindo…';
+      try {
+        await api('/api/midia/pesquisa/' + encodeURIComponent(p.id), { method: 'DELETE' });
+        if (String(openId) === String(p.id)) {
+          clearTimeout(timer); openId = null; cur = null; files = [];
+          $('out').hidden = true;
+          const u = new URL(location.href); u.search = ''; history.replaceState(null, '', u);
+        }
+        setSt('lst', 'Pesquisa excluída e espaço liberado.', 'ok');
+        loadList();
+      } catch (e) {
+        setSt('lst', e.message, 'err');
+        b.disabled = false; b.textContent = 'Excluir'; armado = false;
+      }
+    };
+    return b;
+  }
+
   // ----- últimas pesquisas
   async function loadList() {
     try {
@@ -310,6 +343,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
         const row = el('div', { className: 'row' }, el('span', { className: 'pill ' + (SITK[p.situacao] || ''), textContent: SIT[p.situacao] || p.situacao || '—' }));
         if (p.situacao !== 'apagada') row.append(el('button', { type: 'button', className: 'btn sm ghost', textContent: 'Abrir', onclick: () => openSearch(p.id) }));
         if (p.zip) row.append(el('a', { className: 'btn sm ghost', href: p.zip, download: '', textContent: 'Baixar tudo' }));
+        row.append(botaoExcluir(p));
         return el('div', { className: 'item' },
           el('b', { textContent: [p.termo, p.marca, p.modelo].filter(Boolean).join(' · ') }),
           row,

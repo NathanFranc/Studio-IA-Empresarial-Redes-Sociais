@@ -242,7 +242,7 @@ td.actcell{min-width:300px}
     usuario_criado: ['Criou usuário', 'warn'], usuario_alterado: ['Alterou usuário', 'warn'],
     instagram_conectado: ['Conectou o Instagram', 'ok'], instagram_desconectado: ['Desconectou o Instagram', 'warn'], publicar_instagram: ['Publicou no Instagram', 'ok'], erro_instagram: ['Erro no Instagram', 'err'],
     ml_conectado: ['Conectou o ML', 'ok'], ml_desconectado: ['Desconectou o ML', 'warn'], ml_buscar: ['Buscou no ML', ''], ml_gerar: ['Gerou anúncio ML', 'ok'], ml_baixar_fotos: ['Baixou fotos ML', 'ok'], erro_ml: ['Erro no ML', 'err'], ml_revisar: ['Revisou anúncio ML', 'ok'], ml_padrao: ['Alterou o padrão de anúncio', 'warn'],
-    midia_pesquisar: ['Pesquisou mídia dos concorrentes', ''], midia_baixar: ['Baixou mídia dos concorrentes', 'ok'], erro_midia: ['Erro na mídia dos concorrentes', 'err'],
+    midia_pesquisar: ['Pesquisou mídia dos concorrentes', ''], midia_baixar: ['Baixou mídia dos concorrentes', 'ok'], midia_excluir: ['Excluiu pesquisa de mídia', 'warn'], erro_midia: ['Erro na mídia dos concorrentes', 'err'],
   };
   const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
   const pill = (a) => el('span', { className: 'pill ' + ((LABEL[a] || [])[1] || ''), textContent: (LABEL[a] || [a])[0] });

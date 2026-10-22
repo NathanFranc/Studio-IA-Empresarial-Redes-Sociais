@@ -136,6 +136,22 @@ midiaRouter.get('/pesquisa/:id', async (req, res) => {
   } catch (e) { fail(res, e); }
 });
 
+/** Exclui a pesquisa e os arquivos dela no bitbrain (libera o espaço na hora). Em andamento, o bitbrain recusa (409). */
+midiaRouter.delete('/pesquisa/:id', async (req, res) => {
+  const id = String(req.params.id);
+  if (!/^\d{1,12}$/.test(id)) return void res.status(400).json({ error: 'Pesquisa inválida.' });
+  try {
+    await bitbrain({ acao: 'midia_excluir', id: Number(id) });
+    cache.delete('lista');
+    cache.delete('p:' + id);
+    logAction(req, 'midia_excluir', { detail: { id: Number(id) } });
+    res.json({ ok: true });
+  } catch (e) {
+    logAction(req, 'erro_midia', { detail: { etapa: 'excluir', id: Number(id), motivo: (e as Error).message } });
+    fail(res, e);
+  }
+});
+
 // ----- arquivos (proxy em streaming, com Range para o player de vídeo)
 async function pipe(req: Request, res: Response, path: string, opts: { attach?: boolean; log?: Record<string, unknown> } = {}) {
   const ep = endpoints();
