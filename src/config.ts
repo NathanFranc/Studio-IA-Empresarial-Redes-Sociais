@@ -43,8 +43,23 @@ export const config = {
   scraperToken: env('SCRAPER_TOKEN'),
   /** AnyMarket (API v2). Comece pelo sandbox; para produção use https://api.anymarket.com.br/v2. */
   anymarketUrl: env('ANYMARKET_API_URL', 'https://sandbox-api.anymarket.com.br/v2').replace(/\/+$/, ''),
+  /**
+   * Gerador de vídeo (Mídia dos concorrentes, para produto cuja pesquisa não trouxe vídeo).
+   * '' = desligado (a tela avisa), 'simulado' = vídeo de teste sem custo. O serviço de verdade
+   * (Omni Flash, Veo…) entra em src/video/provedores.ts quando o administrador escolher.
+   */
+  geradorVideo: env('GERADOR_VIDEO').toLowerCase(),
+  geradorVideoChave: env('GERADOR_VIDEO_CHAVE'),
+  geradorVideoModelo: env('GERADOR_VIDEO_MODELO'),
+  geradorVideoDuracao: Number(env('GERADOR_VIDEO_DURACAO', '8')),
+  /** Vídeos por dia no Estúdio inteiro (0 = nenhum). Cada vídeo custa no serviço escolhido. */
+  geradorVideoLimiteDia: Number(env('GERADOR_VIDEO_LIMITE_DIA', '10')),
+  /** Dias que o vídeo gerado fica guardado no servidor. */
+  geradorVideoGuardaDias: Number(env('GERADOR_VIDEO_GUARDA_DIAS', '30')),
 };
 
 export const uploadsDir = path.join(config.dataDir, 'uploads');
 /** Imagens JPEG temporárias que o Instagram baixa na hora de publicar (apagadas depois). */
 export const igMediaDir = path.join(config.dataDir, 'ig-media');
+/** Vídeos do gerador de vídeo (<id>.mp4) e a foto que foi usada (<id>.jpg). */
+export const videosDir = path.join(config.dataDir, 'videos');

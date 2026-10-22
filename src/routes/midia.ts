@@ -25,12 +25,12 @@ function endpoints() {
 }
 const auth = (): Record<string, string> => (config.scraperToken ? { authorization: 'Bearer ' + config.scraperToken } : {});
 
-class MidiaError extends Error {
+export class MidiaError extends Error {
   constructor(message: string, public status = 502) { super(message); }
 }
 
 /** POST na rota do Estúdio no bitbrain. Repassa o {"erro"} e o status (ex.: 429) do bitbrain. */
-async function bitbrain(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+export async function bitbrain(body: Record<string, unknown>): Promise<Record<string, unknown>> {
   const ep = endpoints();
   if (!ep) throw new MidiaError('O bitbrain não está configurado no servidor (SCRAPER_URL).', 400);
   let r: globalThis.Response;

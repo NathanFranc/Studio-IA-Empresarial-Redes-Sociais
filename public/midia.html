@@ -72,6 +72,18 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 .item .row{grid-row:1/span 2;grid-column:2;justify-content:flex-end}
 @media (max-width:640px){.item{grid-template-columns:minmax(0,1fr)}.item .row{grid-row:auto;grid-column:1;justify-content:flex-start}}
 .note{font-size:13px;color:var(--muted)}
+/* Gerador de vídeo: só aparece em pesquisa pronta sem nenhum vídeo. */
+.gen-form{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.gen-foto{width:96px;height:96px;border-radius:12px;border:1px dashed var(--line-2);background:var(--panel-2);display:grid;place-items:center;overflow:hidden;color:var(--muted);font-size:12px;text-align:center;cursor:pointer}
+.gen-foto:focus-within,.gen-foto:hover{border-color:var(--accent-2)}
+.gen-arq{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.gen-foto:has(.gen-arq:focus-visible){outline:2px solid var(--accent-2);outline-offset:2px}
+.gen-foto{position:relative}
+.gen-foto img{width:100%;height:100%;object-fit:contain;background:#fff}
+.gen-cont{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.gen-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.gen-lista .ph{aspect-ratio:9/16}
+.gen-off{border:1px solid rgba(255,181,71,.45);background:rgba(255,181,71,.10);border-radius:12px;padding:10px 14px;font-size:14px}
 </style>
 </head>
 <body>
@@ -113,6 +125,18 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
       <div class="chips2" id="filt" role="group" aria-label="Filtros"></div>
     </div>
     <div class="grid" id="grid" role="tabpanel"></div>
+  </section>
+
+  <section class="panel" id="gen" hidden aria-labelledby="gtitle">
+    <div class="head"><h2 id="gtitle">Gerador de vídeo</h2><span class="gen-cont" id="gcont"></span></div>
+    <p class="note">Esta pesquisa não trouxe nenhum vídeo. Mande uma foto do produto (de preferência com fundo limpo) e o Estúdio gera um vídeo curto de apresentação, na vertical. Leva de 1 a 6 minutos.</p>
+    <p class="gen-off" id="goff" hidden></p>
+    <div class="gen-form">
+      <label class="gen-foto" id="gprev">Escolher foto<input type="file" id="gfile" accept="image/jpeg,image/png,image/webp" class="gen-arq" aria-label="Escolher a foto do produto"></label>
+      <button class="btn" type="button" id="ggo" disabled>Gerar vídeo</button>
+    </div>
+    <div class="status" id="gst" role="status" aria-live="polite"></div>
+    <div class="gen-lista" id="glist"></div>
   </section>
 
   <section class="panel" aria-labelledby="ltitle">
@@ -259,6 +283,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     // Se a aba aberta está vazia e outra tem arquivos, vai para a primeira com arquivos.
     if (!files.some((a) => a.origem === tab)) { const f = ORIG.find(([k]) => files.some((a) => a.origem === k)); if (f) tab = f[0]; }
     renderTabs(); renderFilters(); renderGrid();
+    gerador(cur);
   }
 
   async function load(id, scroll) {
@@ -284,6 +309,85 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     tab = 'shopee_vendedor'; tipo = ''; soPadrao = false; files = []; $('grid').replaceChildren();
     load(id, true);
   }
+
+  // ----- gerador de vídeo (2026-10-22, Nathan: produto sem vídeo → a pessoa manda a foto e já gera).
+  // O roteiro fica no servidor; daqui só vão a foto e o número da pesquisa.
+  let genId = null, genTimer = null, genFoto = null, genEstado = null, genVideos = [];
+  const GSIT = { gerando: 'Gerando…', pronto: 'Pronto', erro: 'Com erro', apagado: 'Apagado (passou do prazo)' };
+  function genPrevia() {
+    const kids = genFoto ? [el('img', { src: genFoto, alt: 'Foto escolhida' })] : [document.createTextNode('Escolher foto')];
+    $('gprev').replaceChildren(...kids, $('gfile'));
+  }
+  function gerador(p) {
+    const a = (p && p.arquivos) || {};
+    const pode = !!p && p.situacao === 'pronta' && !(Number(a.videos) > 0);
+    $('gen').hidden = !pode;
+    clearTimeout(genTimer);
+    if (!pode) { genId = null; return; }
+    if (String(genId) !== String(p.id)) { genId = p.id; genFoto = null; genVideos = []; $('gfile').value = ''; genPrevia(); setSt('gst', ''); }
+    genCarregar();
+  }
+  async function genCarregar() {
+    const id = genId;
+    clearTimeout(genTimer);
+    try {
+      const d = await api('/api/midia/gerador/pesquisa/' + encodeURIComponent(id));
+      if (genId !== id) return;
+      genEstado = d.estado || {}; genVideos = d.videos || [];
+      genRender();
+      if (genVideos.some((v) => v.situacao === 'gerando')) genTimer = setTimeout(genCarregar, 10_000);
+    } catch (e) { if (genId === id) setSt('gst', e.message, 'err'); }
+  }
+  function genRender() {
+    const e = genEstado || {};
+    const andando = genVideos.some((v) => v.situacao === 'gerando');
+    $('gcont').textContent = e.ligado ? (e.usados_hoje || 0) + ' de ' + (e.limite_dia || 0) + ' vídeos hoje' + (e.provedor ? ' · ' + e.provedor : '') : '';
+    $('goff').hidden = !!e.ligado; $('goff').textContent = e.motivo || '';
+    $('ggo').disabled = !e.ligado || !genFoto || andando || !(e.restantes > 0);
+    $('ggo').title = andando ? 'Espere o vídeo em andamento terminar' : (e.ligado && !(e.restantes > 0)) ? 'O limite de hoje já foi usado' : !genFoto ? 'Escolha a foto do produto' : '';
+    $('glist').replaceChildren(...genVideos.map((v) => {
+      const ph = el('div', { className: 'ph' });
+      if (v.video) ph.append(el('video', { src: v.video, controls: true, preload: 'metadata', playsInline: true }));
+      else ph.append(el('span', { className: 'noimg' }, v.situacao === 'gerando' ? el('span', { className: 'spin' }) : '', GSIT[v.situacao] || v.situacao));
+      const info = el('div', { className: 'info' },
+        el('div', { className: 'meta' }, el('span', { textContent: GSIT[v.situacao] || v.situacao }), el('span', { textContent: v.criado_em ? fmtDate(v.criado_em.replace(' ', 'T') + 'Z') : '' }), el('span', { textContent: size(v.bytes) })),
+        v.erro ? el('span', { textContent: v.erro }) : '',
+        v.video ? el('div', { className: 'dl' }, el('a', { className: 'btn sm', href: v.video + '?baixar=1', download: '', textContent: 'Baixar' })) : '');
+      return el('div', { className: 'card' }, ph, info);
+    }));
+  }
+  // A foto vai reduzida (até 1600 px, JPEG) para o envio ser rápido; o servidor confere de novo.
+  $('gfile').addEventListener('change', () => {
+    const file = $('gfile').files && $('gfile').files[0];
+    genFoto = null; genPrevia(); genRender();
+    if (!file) return;
+    if (!/^image[/](jpeg|png|webp)$/.test(file.type)) { setSt('gst', 'Use uma foto JPG, PNG ou WEBP.', 'err'); return; }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      if (img.naturalWidth < 300 || img.naturalHeight < 300) { setSt('gst', 'A foto é pequena demais (mínimo 300×300).', 'err'); return; }
+      const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+      genFoto = c.toDataURL('image/jpeg', 0.9);
+      genPrevia(); setSt('gst', ''); genRender();
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); setSt('gst', 'Não consegui abrir a foto.', 'err'); };
+    img.src = url;
+  });
+  $('ggo').onclick = async () => {
+    if (!genFoto || !genId) return;
+    const id = genId;
+    $('ggo').disabled = true; setSt('gst', 'Enviando a foto…', '', true);
+    try {
+      const d = await api('/api/midia/gerador/pesquisa/' + encodeURIComponent(id), { method: 'POST', body: { foto: genFoto } });
+      if (genId !== id) return;
+      setSt('gst', 'Pedido enviado. O vídeo aparece aqui quando ficar pronto; pode sair e voltar depois.', 'ok');
+      genEstado = d.estado || {}; genVideos = d.videos || []; genRender();
+      clearTimeout(genTimer); genTimer = setTimeout(genCarregar, 10_000);
+    } catch (e) { setSt('gst', e.message, 'err'); genCarregar(); }
+  };
 
   // ----- nova pesquisa
   $('pf').addEventListener('submit', async (e) => {
@@ -318,7 +422,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
         await api('/api/midia/pesquisa/' + encodeURIComponent(p.id), { method: 'DELETE' });
         if (String(openId) === String(p.id)) {
           clearTimeout(timer); openId = null; cur = null; files = [];
-          $('out').hidden = true;
+          $('out').hidden = true; gerador(null);
           const u = new URL(location.href); u.search = ''; history.replaceState(null, '', u);
         }
         setSt('lst', 'Pesquisa excluída e espaço liberado.', 'ok');

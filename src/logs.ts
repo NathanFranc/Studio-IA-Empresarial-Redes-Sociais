@@ -16,6 +16,7 @@ export const ACTIONS = [
   'ml_conectado', 'ml_desconectado', 'ml_buscar', 'ml_gerar', 'ml_baixar_fotos', 'erro_ml', 'ml_revisar', 'ml_padrao', 'anymarket_testar',
   'ml_salvar', 'ml_atualizar', 'ml_excluir', 'anymarket_enviar', 'erro_anymarket',
   'midia_pesquisar', 'midia_baixar', 'midia_excluir', 'erro_midia',
+  'video_gerar', 'video_baixar', 'erro_video',
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 

@@ -21,6 +21,8 @@ import { postsRouter } from './routes/posts.js';
 import { instagramRouter } from './routes/instagram.js';
 import { mlRouter } from './routes/ml.js';
 import { midiaRouter } from './routes/midia.js';
+import { geradorRouter } from './routes/gerador.js';
+import { acompanhar as acompanharVideos, limparAntigos as limparVideos } from './video/servico.js';
 import { anymarketRouter, listingsRouter } from './routes/listings.js';
 import { mlAuthorizeUrl, mlConfigured, mlFinishConnect, MlError, mlKeepAlive } from './ml.js';
 import crypto from 'node:crypto';
@@ -42,6 +44,10 @@ setInterval(cleanMedia, 3600_000).unref();
 void refreshIfNeeded();
 setInterval(() => void refreshIfNeeded(), 6 * 3600_000).unref();
 setInterval(() => void mlKeepAlive(), 24 * 3600_000).unref();
+// Gerador de vídeo: pergunta ao serviço a cada 15 s e apaga os vídeos fora do prazo de guarda.
+setInterval(() => void acompanharVideos(), 15_000).unref();
+limparVideos();
+setInterval(limparVideos, 6 * 3600_000).unref();
 
 const app = express();
 if (config.trustProxy) app.set('trust proxy', 1);
@@ -79,6 +85,7 @@ app.use('/api/instagram', requireUser, instagramRouter);
 app.use('/api/ml/listings', requireUser, listingsRouter);
 app.use('/api/ml', requireUser, mlRouter);
 app.use('/api/anymarket', requireUser, anymarketRouter);
+app.use('/api/midia/gerador', requireUser, geradorRouter);
 app.use('/api/midia', requireUser, midiaRouter);
 app.get('/api/companies', requireUser, (_req, res) => {
   res.json({ companies: Object.values(COMPANIES).map((c) => ({ id: c.id, name: c.name, handle: c.handle })) });
