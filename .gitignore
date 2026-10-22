@@ -3,3 +3,8 @@ dist/
 data/
 .env
 *.log
+.env.*
+docker-compose.override.yml
+*.orig
+*.claude
+*.patch
