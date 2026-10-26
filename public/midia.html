@@ -18,8 +18,9 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 .eyebrow i{width:8px;height:8px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 0 4px rgba(255,138,31,.15),0 0 14px rgba(255,138,31,.7)}
 .hero h1{font-size:48px;line-height:1}
 .hero p{color:var(--muted);max-width:58ch}
-.form{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:end}
-@media (max-width:900px){.form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.form .f:first-child{grid-column:1/-1}.form .btn{grid-column:1/-1}}
+.form{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:end}
+@media (max-width:900px){.form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.form .f:nth-child(2){grid-column:1/-1}.form .btn{grid-column:1/-1}}
+.sku{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:999px;border:1px solid currentColor;font-size:.78em;font-weight:600;opacity:.85;font-variant-numeric:tabular-nums}
 .form .btn{min-height:48px}
 .status{font-size:14px;color:var(--muted);min-height:1.3em}
 .status.err{color:#FF8A7A}.status.ok{color:var(--ok)}
@@ -95,7 +96,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   </header>
 
   <ul class="avisos" id="avisos" aria-label="Avisos importantes">
-    <li><b>Os arquivos ficam no servidor só por 7 dias.</b> Baixe para o seu PC o que for usar.</li>
+    <li><b>Os arquivos ficam guardados até você excluir a pesquisa.</b> Exclua as que não for mais usar para liberar espaço.</li>
     <li><b>Fotos e vídeos de terceiros têm dono.</b> Use como referência e confira antes de publicar.</li>
   </ul>
 
@@ -104,6 +105,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
       <div class="col" id="col" role="status" aria-live="polite"><span class="dot"></span><span id="coltxt">Coletor da Shopee: verificando…</span></div></div>
     <p class="note" id="colhelp" hidden>Abra o Chrome com a extensão <b>Coletor de mídia</b> num PC do Estúdio. Sem ela, a pesquisa só traz o Mercado Livre. <a class="btn sm ghost" href="/api/midia/coletor.zip" download>Baixar a extensão</a></p>
     <form class="form" id="pf">
+      <label class="f" for="sku">SKU<input id="sku" maxlength="60" pattern="[0-9A-Za-z][0-9A-Za-z._/\-]{0,59}" title="Letras, números, ponto, traço ou barra" placeholder="Ex.: 104856" autocomplete="off"></label>
       <label class="f" for="termo">Produto *<input id="termo" required minlength="3" maxlength="120" placeholder="Ex.: máquina de cortar cabelo" autocomplete="off"></label>
       <label class="f" for="marca">Marca<input id="marca" maxlength="60" placeholder="Ex.: Wahl" autocomplete="off"></label>
       <label class="f" for="modelo">Modelo<input id="modelo" maxlength="60" placeholder="Ex.: Magic Clip" autocomplete="off"></label>
@@ -157,7 +159,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   const ORIG = [['shopee_vendedor', 'Shopee - vendedor'], ['shopee_cliente', 'Shopee - clientes'], ['ml_concorrente', 'Mercado Livre - concorrentes']];
   const SHOPEE = { aguardando: 'aguardando', coletando: 'coletando…', feita: 'feito', erro: 'erro', sem_coletor: 'sem o coletor ligado' };
   const ML = { aguardando: 'aguardando', feita: 'feito', erro: 'erro' };
-  const SIT = { aguardando: 'Pesquisando…', pronta: 'Pronta', erro: 'Com erro', apagada: 'Apagada (passou dos 7 dias)' };
+  const SIT = { aguardando: 'Pesquisando…', pronta: 'Pronta', erro: 'Com erro', apagada: 'Arquivos apagados' };
   const SITK = { aguardando: 'warn', pronta: 'ok', erro: 'err', apagada: 'off' };
   const ORI = { vertical: 'vertical', horizontal: 'horizontal', quadrado: 'quadrado' };
   const setSt = (id, t, k, spin) => { const s = $(id); s.className = 'status' + (k ? ' ' + k : ''); s.replaceChildren(); if (spin) s.append(el('span', { className: 'spin' })); s.append(document.createTextNode(t)); };
@@ -183,7 +185,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 
   // ----- preencher sozinho (vindo do Studio ML ou de um link)
   const qs = new URLSearchParams(location.search);
-  for (const k of ['termo', 'marca', 'modelo']) if (qs.get(k)) $(k).value = qs.get(k).slice(0, k === 'termo' ? 120 : 60);
+  for (const k of ['sku', 'termo', 'marca', 'modelo']) if (qs.get(k)) $(k).value = qs.get(k).slice(0, k === 'termo' ? 120 : 60);
 
   // ----- pesquisa aberta
   let cur = null, files = [], tab = 'shopee_vendedor', tipo = '', soPadrao = false, timer = null, openId = null, pollErr = 0;
@@ -271,7 +273,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     if (!cur) return;
     avisos(cur.avisos);
     $('out').hidden = false;
-    $('otitle').textContent = [cur.termo, cur.marca, cur.modelo].filter(Boolean).join(' · ');
+    $('otitle').replaceChildren(...titulo(cur));
     $('osub').textContent = [SIT[cur.situacao] || cur.situacao, cur.pedido_por ? 'pedida por ' + cur.pedido_por : '', cur.criada_em ? 'em ' + fmtDate(cur.criada_em) : '', cur.pronta_em ? 'pronta em ' + fmtDate(cur.pronta_em) : '', cur.expira_em ? 'fica no servidor até ' + fmtDate(cur.expira_em) : ''].filter(Boolean).join(' · ');
     const z = $('zip');
     if (cur.zip) { z.hidden = false; z.href = cur.zip; } else z.hidden = true;
@@ -279,7 +281,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     if (cur.situacao === 'aguardando') setSt('ost', 'Pesquisando… leva de 3 a 10 minutos. Esta tela se atualiza sozinha a cada 10 segundos. Pode sair e voltar depois: a pesquisa continua no servidor.', '', true);
     else if (cur.situacao === 'pronta') setSt('ost', 'Pesquisa pronta.', 'ok');
     else if (cur.situacao === 'erro') setSt('ost', 'A pesquisa terminou com erro. Veja os avisos acima. O que já baixou continua aqui.', 'err');
-    else if (cur.situacao === 'apagada') setSt('ost', 'Esta pesquisa passou dos 7 dias e os arquivos foram apagados.', 'err');
+    else if (cur.situacao === 'apagada') setSt('ost', 'Os arquivos desta pesquisa foram apagados.', 'err');
     // Se a aba aberta está vazia e outra tem arquivos, vai para a primeira com arquivos.
     if (!files.some((a) => a.origem === tab)) { const f = ORIG.find(([k]) => files.some((a) => a.origem === k)); if (f) tab = f[0]; }
     renderTabs(); renderFilters(); renderGrid();
@@ -392,11 +394,11 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   // ----- nova pesquisa
   $('pf').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const termo = $('termo').value.trim(), marca = $('marca').value.trim(), modelo = $('modelo').value.trim();
+    const termo = $('termo').value.trim(), marca = $('marca').value.trim(), modelo = $('modelo').value.trim(), sku = $('sku').value.trim();
     if (termo.length < 3) { setSt('st', 'Digite o produto (pelo menos 3 letras).', 'err'); return; }
     $('go').disabled = true; setSt('st', 'Abrindo a pesquisa…', '', true);
     try {
-      const d = await api('/api/midia/pesquisar', { method: 'POST', body: { termo, marca, modelo } });
+      const d = await api('/api/midia/pesquisar', { method: 'POST', body: { termo, marca, modelo, sku } });
       setSt('st', 'Pesquisa aberta. Acompanhe o andamento abaixo.', 'ok');
       if (d.pesquisa && d.pesquisa.id !== undefined) { render(d); openSearch(d.pesquisa.id); }
       loadList();
@@ -435,6 +437,25 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     return b;
   }
 
+  // ----- SKU da pesquisa (2026-10-26, Nathan: "na parte de últimas pesquisas apareça o sku do produto na frente do
+  // nome"): só um rótulo; aparece antes do nome na lista e no título da pesquisa aberta.
+  function titulo(p) {
+    const nome = [p.termo, p.marca, p.modelo].filter(Boolean).join(' · ');
+    return p.sku ? [el('span', { className: 'sku', textContent: 'SKU ' + p.sku }), document.createTextNode(nome)] : [document.createTextNode(nome)];
+  }
+  function botaoSku(p) {
+    return el('button', { type: 'button', className: 'btn sm ghost', textContent: p.sku ? 'Trocar SKU' : '+ SKU', onclick: async () => {
+      const novo = prompt('SKU deste produto (deixe vazio para tirar):', p.sku || '');
+      if (novo === null) return;
+      try {
+        await api('/api/midia/pesquisa/' + encodeURIComponent(p.id) + '/sku', { method: 'POST', body: { sku: novo.trim() } });
+        setSt('lst', novo.trim() ? 'SKU salvo.' : 'SKU tirado.', 'ok');
+        loadList();
+        if (String(openId) === String(p.id)) load(p.id, false);
+      } catch (e) { setSt('lst', e.message, 'err'); }
+    } });
+  }
+
   // ----- últimas pesquisas
   async function loadList() {
     try {
@@ -447,9 +468,9 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
         const row = el('div', { className: 'row' }, el('span', { className: 'pill ' + (SITK[p.situacao] || ''), textContent: SIT[p.situacao] || p.situacao || '—' }));
         if (p.situacao !== 'apagada') row.append(el('button', { type: 'button', className: 'btn sm ghost', textContent: 'Abrir', onclick: () => openSearch(p.id) }));
         if (p.zip) row.append(el('a', { className: 'btn sm ghost', href: p.zip, download: '', textContent: 'Baixar tudo' }));
-        row.append(botaoExcluir(p));
+        row.append(botaoSku(p), botaoExcluir(p));
         return el('div', { className: 'item' },
-          el('b', { textContent: [p.termo, p.marca, p.modelo].filter(Boolean).join(' · ') }),
+          el('b', {}, ...titulo(p)),
           row,
           el('small', { textContent: [p.pedido_por, p.criada_em ? fmtDate(p.criada_em) : '', typeof a.baixados === 'number' ? a.baixados + ' arquivos' : '', p.bytes_total ? size(p.bytes_total) : '', p.expira_em ? 'até ' + fmtDate(p.expira_em) : ''].filter(Boolean).join(' · ') }));
       }));

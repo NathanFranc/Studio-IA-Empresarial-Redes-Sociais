@@ -111,15 +111,17 @@ midiaRouter.get('/lista', async (_req, res) => {
 
 midiaRouter.post('/pesquisar', async (req, res) => {
   const termo = clip(req.body?.termo, 120), marca = clip(req.body?.marca, 60), modelo = clip(req.body?.modelo, 60);
+  const sku = clip(req.body?.sku, 60);
   if (termo.length < 3) return void res.status(400).json({ error: 'Digite o produto (de 3 a 120 letras).' });
   try {
     const body: Record<string, unknown> = { acao: 'midia_pesquisar', termo, pedido_por: req.user!.name };
     if (marca) body.marca = marca;
     if (modelo) body.modelo = modelo;
+    if (sku) body.sku = sku; // 2026-10-26: só um rótulo, aparece antes do nome nas últimas pesquisas
     const d = await bitbrain(body);
     cache.delete('lista');
     const p = (d.pesquisa ?? {}) as Record<string, unknown>;
-    logAction(req, 'midia_pesquisar', { detail: { termo, marca, modelo, id: p.id ?? null } });
+    logAction(req, 'midia_pesquisar', { detail: { termo, marca, modelo, sku, id: p.id ?? null } });
     res.json(shape(d));
   } catch (e) {
     logAction(req, 'erro_midia', { detail: { etapa: 'pesquisar', termo, motivo: (e as Error).message } });
@@ -152,6 +154,24 @@ midiaRouter.delete('/pesquisa/:id', async (req, res) => {
   }
 });
 
+/** 2026-10-26 (Nathan: "na parte de últimas pesquisas apareça o sku do produto na frente do nome"): põe, troca ou tira
+ *  (vazio) o SKU de uma pesquisa — botão "+ SKU"/"Trocar SKU" das últimas pesquisas. */
+midiaRouter.post('/pesquisa/:id/sku', async (req, res) => {
+  const id = String(req.params.id);
+  if (!/^\d{1,12}$/.test(id)) return void res.status(400).json({ error: 'Pesquisa inválida.' });
+  const sku = clip(req.body?.sku, 60);
+  try {
+    await bitbrain({ acao: 'midia_ligar_sku', id: Number(id), sku });
+    cache.delete('lista');
+    cache.delete('p:' + id);
+    logAction(req, 'midia_sku', { detail: { id: Number(id), sku } });
+    res.json({ ok: true });
+  } catch (e) {
+    logAction(req, 'erro_midia', { detail: { etapa: 'sku', id: Number(id), motivo: (e as Error).message } });
+    fail(res, e);
+  }
+});
+
 // ----- arquivos (proxy em streaming, com Range para o player de vídeo)
 async function pipe(req: Request, res: Response, path: string, opts: { attach?: boolean; log?: Record<string, unknown> } = {}) {
   const ep = endpoints();
@@ -169,7 +189,7 @@ async function pipe(req: Request, res: Response, path: string, opts: { attach?: 
   }
   if (!r.ok && r.status !== 206) {
     const data = (await r.json().catch(() => ({}))) as Record<string, unknown>;
-    return void res.status(r.status === 404 ? 404 : 502).json({ error: String(data.erro ?? '').slice(0, 300) || (r.status === 404 ? 'Arquivo não encontrado (pode ter passado dos 7 dias).' : 'O bitbrain recusou o download (' + r.status + ').') });
+    return void res.status(r.status === 404 ? 404 : 502).json({ error: String(data.erro ?? '').slice(0, 300) || (r.status === 404 ? 'Arquivo não encontrado (a pesquisa pode ter sido excluída).' : 'O bitbrain recusou o download (' + r.status + ').') });
   }
   res.status(r.status);
   for (const h of ['content-type', 'content-length', 'content-range', 'accept-ranges', 'last-modified', 'etag']) {
