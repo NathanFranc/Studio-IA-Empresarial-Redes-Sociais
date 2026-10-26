@@ -144,6 +144,8 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   <section class="panel" aria-labelledby="ltitle">
     <div class="head"><h2 id="ltitle">Últimas pesquisas</h2><button class="btn sm ghost" type="button" id="lref">Atualizar</button></div>
     <p class="note">Excluir apaga a pesquisa e os arquivos dela do servidor na hora, liberando o espaço. Não tem volta.</p>
+    <!-- 2026-10-26 (Nathan: "colocar uma barra de pesquisa para encontrarmos alguma pesquisa, pois está com bastante e ficar rolando está complicado") -->
+    <label class="f" for="lbusca">Procurar pesquisa<input id="lbusca" type="search" maxlength="80" placeholder="Produto, marca, modelo, SKU ou quem pediu" autocomplete="off"></label>
     <div class="status" id="lst" role="status" aria-live="polite"></div>
     <div class="list" id="list"><p class="empty">Carregando…</p></div>
   </section>
@@ -457,13 +459,22 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   }
 
   // ----- últimas pesquisas
-  async function loadList() {
-    try {
-      const d = await api('/api/midia/lista');
-      coletor(d.coletor);
-      const list = Array.isArray(d.pesquisas) ? d.pesquisas : [];
-      if (!list.length) { $('list').replaceChildren(el('p', { className: 'empty', textContent: 'Nenhuma pesquisa ainda.' })); return; }
-      $('list').replaceChildren(...list.map((p) => {
+  // A busca filtra na tela (a lista já vem inteira do bitbrain): sem acento e sem maiúscula; várias palavras = todas
+  // precisam aparecer em algum campo (produto, marca, modelo, SKU, quem pediu ou o número da pesquisa).
+  let todas = [];
+  const semAcento = (t) => String(t ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  function combina(p, palavras) {
+    const alvo = semAcento([p.termo, p.marca, p.modelo, p.sku, p.pedido_por, '#' + p.id, String(p.id)].filter(Boolean).join(' '));
+    return palavras.every((w) => alvo.includes(w));
+  }
+  function renderList() {
+    const palavras = semAcento($('lbusca').value).split(/\s+/).filter(Boolean);
+    const list = palavras.length ? todas.filter((p) => combina(p, palavras)) : todas;
+    if (palavras.length) setSt('lst', list.length + ' de ' + todas.length + ' pesquisa(s).', list.length ? '' : 'err');
+    else setSt('lst', '', '');
+    if (!todas.length) { $('list').replaceChildren(el('p', { className: 'empty', textContent: 'Nenhuma pesquisa ainda.' })); return; }
+    if (!list.length) { $('list').replaceChildren(el('p', { className: 'empty', textContent: 'Nenhuma pesquisa com esse texto.' })); return; }
+    $('list').replaceChildren(...list.map((p) => {
         const a = p.arquivos || {};
         const row = el('div', { className: 'row' }, el('span', { className: 'pill ' + (SITK[p.situacao] || ''), textContent: SIT[p.situacao] || p.situacao || '—' }));
         if (p.situacao !== 'apagada') row.append(el('button', { type: 'button', className: 'btn sm ghost', textContent: 'Abrir', onclick: () => openSearch(p.id) }));
@@ -474,9 +485,17 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
           row,
           el('small', { textContent: [p.pedido_por, p.criada_em ? fmtDate(p.criada_em) : '', typeof a.baixados === 'number' ? a.baixados + ' arquivos' : '', p.bytes_total ? size(p.bytes_total) : '', p.expira_em ? 'até ' + fmtDate(p.expira_em) : ''].filter(Boolean).join(' · ') }));
       }));
+  }
+  async function loadList() {
+    try {
+      const d = await api('/api/midia/lista');
+      coletor(d.coletor);
+      todas = Array.isArray(d.pesquisas) ? d.pesquisas : [];
+      renderList();
     } catch (e) { $('list').replaceChildren(el('p', { className: 'empty', textContent: e.message })); }
   }
   $('lref').onclick = loadList;
+  $('lbusca').addEventListener('input', renderList);
 
   loadList();
   if (qs.get('id')) load(qs.get('id'), false);
