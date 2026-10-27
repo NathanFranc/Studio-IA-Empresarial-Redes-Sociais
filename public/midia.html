@@ -22,6 +22,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 @media (max-width:900px){.form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.form .f:nth-child(2){grid-column:1/-1}.form .btn{grid-column:1/-1}}
 .sku{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:999px;border:1px solid currentColor;font-size:.78em;font-weight:600;opacity:.85;font-variant-numeric:tabular-nums}
 .form .btn{min-height:48px}
+.lote{margin-top:6px;display:flex;flex-direction:column;gap:10px}.lote summary{cursor:pointer;font-weight:600}.lote[open] summary{margin-bottom:4px}.lote textarea{resize:vertical;min-height:140px;font-family:inherit}.lote .btn{align-self:flex-start;min-height:44px}
 .status{font-size:14px;color:var(--muted);min-height:1.3em}
 .status.err{color:#FF8A7A}.status.ok{color:var(--ok)}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:8px}
@@ -113,6 +114,14 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     </form>
     <p class="note">Marca e modelo fazem muita diferença: sem eles vêm acessórios e modelos parecidos. A pesquisa leva de 3 a 10 minutos. Pode sair desta tela e voltar depois: ela fica na lista de últimas pesquisas.</p>
     <div class="status" id="st" role="status" aria-live="polite"></div>
+    <!-- 2026-10-27 (Nathan: "colocar uma lista de produtos no estudio e ele ir pegando os produtos um por um") -->
+    <details class="lote" id="lote">
+      <summary>Vários produtos de uma vez</summary>
+      <label class="f" for="ltexto">Um produto por linha (até 50)<textarea id="ltexto" rows="7" maxlength="20000" placeholder="Secador de cabelo Taiff Style&#10;Máquina de corte; Wahl; Magic Clip; 104856&#10;Panela de pressão; Tramontina"></textarea></label>
+      <p class="note">Só o nome já serve. Para ajudar a busca, separe por ponto e vírgula: <b>produto; marca; modelo; SKU</b>, ou copie as 4 colunas direto do Excel. As pesquisas entram na fila e o servidor faz <b>uma por vez</b> (cada uma leva de 3 a 10 minutos), mesmo com esta tela fechada. Deixe o Chrome com o Coletor aberto para vir a Shopee.</p>
+      <button class="btn" type="button" id="lgo">Pôr na fila</button>
+      <div class="status" id="lost" role="status" aria-live="polite"></div>
+    </details>
   </section>
 
   <section class="panel" id="out" hidden aria-labelledby="otitle">
@@ -161,8 +170,8 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   const ORIG = [['shopee_vendedor', 'Shopee - vendedor'], ['shopee_cliente', 'Shopee - clientes'], ['ml_concorrente', 'Mercado Livre - concorrentes']];
   const SHOPEE = { aguardando: 'aguardando', coletando: 'coletando…', feita: 'feito', erro: 'erro', sem_coletor: 'sem o coletor ligado' };
   const ML = { aguardando: 'aguardando', feita: 'feito', erro: 'erro' };
-  const SIT = { aguardando: 'Pesquisando…', pronta: 'Pronta', erro: 'Com erro', apagada: 'Arquivos apagados' };
-  const SITK = { aguardando: 'warn', pronta: 'ok', erro: 'err', apagada: 'off' };
+  const SIT = { na_fila: 'Na fila', aguardando: 'Pesquisando…', pronta: 'Pronta', erro: 'Com erro', apagada: 'Arquivos apagados' };
+  const SITK = { na_fila: 'off', aguardando: 'warn', pronta: 'ok', erro: 'err', apagada: 'off' };
   const ORI = { vertical: 'vertical', horizontal: 'horizontal', quadrado: 'quadrado' };
   const setSt = (id, t, k, spin) => { const s = $(id); s.className = 'status' + (k ? ' ' + k : ''); s.replaceChildren(); if (spin) s.append(el('span', { className: 'spin' })); s.append(document.createTextNode(t)); };
   const size = (b) => { b = Number(b) || 0; if (!b) return ''; if (b < 1024 * 1024) return Math.max(1, Math.round(b / 1024)) + ' KB'; return (b / 1024 / 1024).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' MB'; };
@@ -280,7 +289,8 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     const z = $('zip');
     if (cur.zip) { z.hidden = false; z.href = cur.zip; } else z.hidden = true;
     renderProg(cur);
-    if (cur.situacao === 'aguardando') setSt('ost', 'Pesquisando… leva de 3 a 10 minutos. Esta tela se atualiza sozinha a cada 10 segundos. Pode sair e voltar depois: a pesquisa continua no servidor.', '', true);
+    if (cur.situacao === 'na_fila') setSt('ost', 'Na fila: começa quando a pesquisa anterior terminar. Esta tela se atualiza sozinha.', '', true);
+    else if (cur.situacao === 'aguardando') setSt('ost', 'Pesquisando… leva de 3 a 10 minutos. Esta tela se atualiza sozinha a cada 10 segundos. Pode sair e voltar depois: a pesquisa continua no servidor.', '', true);
     else if (cur.situacao === 'pronta') setSt('ost', 'Pesquisa pronta.', 'ok');
     else if (cur.situacao === 'erro') setSt('ost', 'A pesquisa terminou com erro. Veja os avisos acima. O que já baixou continua aqui.', 'err');
     else if (cur.situacao === 'apagada') setSt('ost', 'Os arquivos desta pesquisa foram apagados.', 'err');
@@ -299,7 +309,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
       pollErr = 0;
       render(d);
       if (scroll) $('out').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-      if (d.pesquisa && d.pesquisa.situacao === 'aguardando') timer = setTimeout(() => load(id), 10_000);
+      if (d.pesquisa && ['aguardando', 'na_fila'].includes(d.pesquisa.situacao)) timer = setTimeout(() => load(id), 10_000);
       else loadList();
     } catch (e) {
       if (openId !== id) return;
@@ -408,6 +418,22 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     finally { $('go').disabled = false; }
   });
 
+  // ----- vários produtos: vão para a fila do bitbrain, que pesquisa um por vez
+  $('lgo').onclick = async () => {
+    const produtos = $('ltexto').value;
+    const n = produtos.split(String.fromCharCode(10)).filter((l) => l.trim()).length;
+    if (!n) { setSt('lost', 'Cole pelo menos um produto (um por linha).', 'err'); return; }
+    if (n > 50) { setSt('lost', 'São ' + n + ' linhas: no máximo 50 por vez. Divida a lista.', 'err'); return; }
+    $('lgo').disabled = true; setSt('lost', 'Pondo na fila…', '', true);
+    try {
+      const d = await api('/api/midia/fila', { method: 'POST', body: { produtos } });
+      setSt('lost', d.quantidade + ' produto(s) na fila (' + d.na_fila + ' esperando no total). Acompanhe em Últimas pesquisas.', 'ok');
+      $('ltexto').value = '';
+      loadList();
+    } catch (err) { setSt('lost', err.message, 'err'); }
+    finally { $('lgo').disabled = false; }
+  };
+
   // ----- excluir uma pesquisa (libera o espaço no servidor do bitbrain na hora). Mesmo jeito do histórico do
   // Studio ML: o 1º clique vira "Confirmar" por 3 segundos. Em andamento não dá: o bitbrain ainda grava nela.
   function botaoExcluir(p) {
@@ -461,7 +487,7 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   // ----- últimas pesquisas
   // A busca filtra na tela (a lista já vem inteira do bitbrain): sem acento e sem maiúscula; várias palavras = todas
   // precisam aparecer em algum campo (produto, marca, modelo, SKU, quem pediu ou o número da pesquisa).
-  let todas = [];
+  let todas = [], listTimer = null;
   const semAcento = (t) => String(t ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   function combina(p, palavras) {
     const alvo = semAcento([p.termo, p.marca, p.modelo, p.sku, p.pedido_por, '#' + p.id, String(p.id)].filter(Boolean).join(' '));
@@ -492,6 +518,8 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
       coletor(d.coletor);
       todas = Array.isArray(d.pesquisas) ? d.pesquisas : [];
       renderList();
+      clearTimeout(listTimer);
+      if (todas.some((p) => ['aguardando', 'na_fila'].includes(p.situacao))) listTimer = setTimeout(loadList, 30_000);
     } catch (e) { $('list').replaceChildren(el('p', { className: 'empty', textContent: e.message })); }
   }
   $('lref').onclick = loadList;

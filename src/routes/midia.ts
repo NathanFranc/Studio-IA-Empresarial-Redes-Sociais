@@ -129,6 +129,24 @@ midiaRouter.post('/pesquisar', async (req, res) => {
   }
 });
 
+/** 2026-10-27 (Nathan: "eu so quero poder colocar uma lista de produtos no estudio e ele ir pegando os produtos um por
+ *  um na midia dos concorrentes"): uma linha por produto (ou colunas do Excel: produto, marca, modelo, SKU). O bitbrain
+ *  guarda tudo numa fila e pesquisa um produto por vez, mesmo com esta tela fechada. */
+midiaRouter.post('/fila', async (req, res) => {
+  const produtos = String(req.body?.produtos ?? '').slice(0, 20_000);
+  if (!produtos.trim()) return void res.status(400).json({ error: 'Cole pelo menos um produto (um por linha).' });
+  try {
+    const d = await bitbrain({ acao: 'midia_fila', produtos, pedido_por: req.user!.name });
+    cache.delete('lista');
+    const ps = (d.pesquisas as Record<string, unknown>[]) ?? [];
+    logAction(req, 'midia_fila', { detail: { quantidade: ps.length, ids: ps.map((p) => p.id) } });
+    res.json({ quantidade: ps.length, na_fila: d.na_fila ?? ps.length });
+  } catch (e) {
+    logAction(req, 'erro_midia', { detail: { etapa: 'fila', motivo: (e as Error).message } });
+    fail(res, e);
+  }
+});
+
 midiaRouter.get('/pesquisa/:id', async (req, res) => {
   const id = String(req.params.id);
   if (!ID.test(id)) return void res.status(400).json({ error: 'Pesquisa inválida.' });
