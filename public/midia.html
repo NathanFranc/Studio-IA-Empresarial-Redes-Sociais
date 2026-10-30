@@ -73,6 +73,12 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 .item small{color:var(--muted);font-size:12.5px;grid-column:1}
 .item .row{grid-row:1/span 2;grid-column:2;justify-content:flex-end}
 @media (max-width:640px){.item{grid-template-columns:minmax(0,1fr)}.item .row{grid-row:auto;grid-column:1;justify-content:flex-start}}
+/* Excluir várias de uma vez: caixinha antes do nome + barra acima da lista. */
+.lote{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;margin:10px 0 8px}
+.lote label{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer}
+.item .marca{width:16px;height:16px;margin:0 10px 0 0;vertical-align:-3px;cursor:pointer;accent-color:var(--accent,#a5b4fc)}
+.item .marca:disabled{cursor:not-allowed;opacity:.4}
+.item.marcada{border-color:var(--accent,#a5b4fc)}
 .note{font-size:13px;color:var(--muted)}
 /* Gerador de vídeo: só aparece em pesquisa pronta sem nenhum vídeo. */
 .gen-form{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
@@ -155,6 +161,12 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
     <p class="note">Excluir apaga a pesquisa e os arquivos dela do servidor na hora, liberando o espaço. Não tem volta.</p>
     <!-- 2026-10-26 (Nathan: "colocar uma barra de pesquisa para encontrarmos alguma pesquisa, pois está com bastante e ficar rolando está complicado") -->
     <label class="f" for="lbusca">Procurar pesquisa<input id="lbusca" type="search" maxlength="80" placeholder="Produto, marca, modelo, SKU ou quem pediu" autocomplete="off"></label>
+    <!-- 2026-10-30 (Nathan: "coloque um botao para eu conseguir apagar em massa as ultimas pesquisas, que eu consiga
+         selecionar quais apagar") -->
+    <div class="lote" id="llote" hidden>
+      <label><input type="checkbox" id="lsel"> Selecionar todas as da lista</label>
+      <button class="btn sm ghost" type="button" id="ldel" disabled>Excluir selecionadas</button>
+    </div>
     <div class="status" id="lst" role="status" aria-live="polite"></div>
     <div class="list" id="list"><p class="empty">Carregando…</p></div>
   </section>
@@ -436,6 +448,12 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
 
   // ----- excluir uma pesquisa (libera o espaço no servidor do bitbrain na hora). Mesmo jeito do histórico do
   // Studio ML: o 1º clique vira "Confirmar" por 3 segundos. Em andamento não dá: o bitbrain ainda grava nela.
+  function fecharSeAberta(id) {
+    if (String(openId) !== String(id)) return;
+    clearTimeout(timer); openId = null; cur = null; files = [];
+    $('out').hidden = true; gerador(null);
+    const u = new URL(location.href); u.search = ''; history.replaceState(null, '', u);
+  }
   function botaoExcluir(p) {
     const andando = p.situacao === 'aguardando';
     const b = el('button', { type: 'button', className: 'btn sm ghost', textContent: 'Excluir', disabled: andando,
@@ -450,11 +468,8 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
       b.disabled = true; b.textContent = 'Excluindo…';
       try {
         await api('/api/midia/pesquisa/' + encodeURIComponent(p.id), { method: 'DELETE' });
-        if (String(openId) === String(p.id)) {
-          clearTimeout(timer); openId = null; cur = null; files = [];
-          $('out').hidden = true; gerador(null);
-          const u = new URL(location.href); u.search = ''; history.replaceState(null, '', u);
-        }
+        fecharSeAberta(p.id);
+        marcadas.delete(String(p.id));
         setSt('lst', 'Pesquisa excluída e espaço liberado.', 'ok');
         loadList();
       } catch (e) {
@@ -487,7 +502,68 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   // ----- últimas pesquisas
   // A busca filtra na tela (a lista já vem inteira do bitbrain): sem acento e sem maiúscula; várias palavras = todas
   // precisam aparecer em algum campo (produto, marca, modelo, SKU, quem pediu ou o número da pesquisa).
-  let todas = [], listTimer = null;
+  let todas = [], listTimer = null, visiveis = [], excluindoLote = false, stDaBusca = false;
+  // Excluir várias (2026-10-30): ids marcados ficam guardados mesmo trocando a busca; em andamento não dá para marcar.
+  const marcadas = new Set();
+  const podeExcluir = (p) => p.situacao !== 'aguardando';
+  function atualizarLote() {
+    const elegiveis = visiveis.filter(podeExcluir);
+    const nVis = elegiveis.filter((p) => marcadas.has(String(p.id))).length;
+    $('llote').hidden = !todas.length;
+    $('lsel').checked = elegiveis.length > 0 && nVis === elegiveis.length;
+    $('lsel').indeterminate = nVis > 0 && nVis < elegiveis.length;
+    $('lsel').disabled = excluindoLote || !elegiveis.length;
+    if (!excluindoLote) {
+      $('ldel').disabled = !marcadas.size;
+      $('ldel').textContent = marcadas.size ? 'Excluir selecionadas (' + marcadas.size + ')' : 'Excluir selecionadas';
+    }
+  }
+  function caixaMarcar(p, item) {
+    const id = String(p.id);
+    const c = el('input', { type: 'checkbox', className: 'marca', checked: marcadas.has(id), disabled: !podeExcluir(p) || excluindoLote,
+      title: podeExcluir(p) ? 'Marcar para excluir' : 'Espere a pesquisa terminar para excluir' });
+    c.setAttribute('aria-label', 'Marcar a pesquisa ' + [p.sku ? 'SKU ' + p.sku : '', p.termo].filter(Boolean).join(' ') + ' para excluir');
+    c.onchange = () => {
+      if (c.checked) marcadas.add(id); else marcadas.delete(id);
+      item.classList.toggle('marcada', c.checked);
+      atualizarLote();
+    };
+    return c;
+  }
+  $('lsel').onchange = () => {
+    const ligar = $('lsel').checked;
+    visiveis.filter(podeExcluir).forEach((p) => { if (ligar) marcadas.add(String(p.id)); else marcadas.delete(String(p.id)); });
+    renderList();
+  };
+  // 1º clique vira "Confirmar" por 4 segundos (mesmo jeito do Excluir de uma). Apaga uma por uma pela mesma rota de
+  // sempre (cada uma vai ao Log); a que falhar continua marcada.
+  let loteArmado = false, loteTimer = null;
+  $('ldel').onclick = async () => {
+    if (!marcadas.size || excluindoLote) return;
+    if (!loteArmado) {
+      loteArmado = true;
+      $('ldel').textContent = 'Confirmar: excluir ' + marcadas.size + ' pesquisa(s)';
+      clearTimeout(loteTimer);
+      loteTimer = setTimeout(() => { loteArmado = false; atualizarLote(); }, 4000);
+      return;
+    }
+    clearTimeout(loteTimer); loteArmado = false;
+    const ids = [...marcadas];
+    excluindoLote = true; $('ldel').disabled = true; renderList();
+    let ok = 0, erroMsg = '';
+    for (let i = 0; i < ids.length; i++) {
+      $('ldel').textContent = 'Excluindo ' + (i + 1) + ' de ' + ids.length + '…';
+      setSt('lst', 'Excluindo ' + (i + 1) + ' de ' + ids.length + '…', '', true);
+      try {
+        await api('/api/midia/pesquisa/' + encodeURIComponent(ids[i]), { method: 'DELETE' });
+        marcadas.delete(ids[i]); fecharSeAberta(ids[i]); ok++;
+      } catch (e) { erroMsg = e.message; }
+    }
+    excluindoLote = false;
+    const falhas = ids.length - ok;
+    setSt('lst', ok + ' pesquisa(s) excluída(s) e espaço liberado.' + (falhas ? ' ' + falhas + ' não foram excluídas e continuam marcadas: ' + erroMsg : ''), falhas ? 'err' : 'ok');
+    await loadList();
+  };
   const semAcento = (t) => String(t ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   function combina(p, palavras) {
     const alvo = semAcento([p.termo, p.marca, p.modelo, p.sku, p.pedido_por, '#' + p.id, String(p.id)].filter(Boolean).join(' '));
@@ -496,8 +572,14 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
   function renderList() {
     const palavras = semAcento($('lbusca').value).split(/\s+/).filter(Boolean);
     const list = palavras.length ? todas.filter((p) => combina(p, palavras)) : todas;
-    if (palavras.length) setSt('lst', list.length + ' de ' + todas.length + ' pesquisa(s).', list.length ? '' : 'err');
-    else setSt('lst', '', '');
+    visiveis = list;
+    const existe = new Set(todas.filter(podeExcluir).map((p) => String(p.id)));
+    [...marcadas].forEach((id) => { if (!existe.has(id)) marcadas.delete(id); });
+    atualizarLote();
+    if (!excluindoLote) {
+      if (palavras.length) { setSt('lst', list.length + ' de ' + todas.length + ' pesquisa(s).', list.length ? '' : 'err'); stDaBusca = true; }
+      else if (stDaBusca) { setSt('lst', '', ''); stDaBusca = false; }
+    }
     if (!todas.length) { $('list').replaceChildren(el('p', { className: 'empty', textContent: 'Nenhuma pesquisa ainda.' })); return; }
     if (!list.length) { $('list').replaceChildren(el('p', { className: 'empty', textContent: 'Nenhuma pesquisa com esse texto.' })); return; }
     $('list').replaceChildren(...list.map((p) => {
@@ -506,10 +588,12 @@ Uso, cópia, modificação ou distribuição só com autorização por escrito d
         if (p.situacao !== 'apagada') row.append(el('button', { type: 'button', className: 'btn sm ghost', textContent: 'Abrir', onclick: () => openSearch(p.id) }));
         if (p.zip) row.append(el('a', { className: 'btn sm ghost', href: p.zip, download: '', textContent: 'Baixar tudo' }));
         row.append(botaoSku(p), botaoExcluir(p));
-        return el('div', { className: 'item' },
-          el('b', {}, ...titulo(p)),
+        const item = el('div', { className: 'item' + (marcadas.has(String(p.id)) ? ' marcada' : '') });
+        item.append(
+          el('b', {}, caixaMarcar(p, item), ...titulo(p)),
           row,
           el('small', { textContent: [p.pedido_por, p.criada_em ? fmtDate(p.criada_em) : '', typeof a.baixados === 'number' ? a.baixados + ' arquivos' : '', p.bytes_total ? size(p.bytes_total) : '', p.expira_em ? 'até ' + fmtDate(p.expira_em) : ''].filter(Boolean).join(' · ') }));
+        return item;
       }));
   }
   async function loadList() {
